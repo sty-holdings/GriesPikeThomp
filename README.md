@@ -1,2 +1,2 @@
-# GO-GPT
-This is the base code for NATS Content.
+# GriesPikeThomp
+This is the repository for my go projects
