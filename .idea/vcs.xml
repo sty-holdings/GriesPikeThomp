@@ -2,7 +2,6 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/shared-services" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../resuable-const-vars" vcs="Git" />
   </component>
 </project>

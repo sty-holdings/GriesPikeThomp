@@ -1,0 +1,4 @@
+cat ${TEST_TOKEN_DIRECTORY}/AWSTokens | awk -F '[\#|\&]' '{ for (var = 1; var < 5; var++) {if (var==2) {print $2 > "${TEST_TOKEN_DIRECTORY}/token1.tmp"} {if (var==3) {print $3 > "${TEST_TOKEN_DIRECTORY}/token2.tmp"}}}} '
+cat ${TEST_TOKEN_DIRECTORY}/token1.tmp | awk '{ if ( /id_token/ ) { print > "${TEST_TOKEN_DIRECTORY}/token_id" } { if ( /access_token/ ) { print > "${TEST_TOKEN_DIRECTORY}/token_access" } } } '
+cat ${TEST_TOKEN_DIRECTORY}/token2.tmp | awk '{ if ( /id_token/ ) { print > "${TEST_TOKEN_DIRECTORY}/token_id" } { if ( /access_token/ ) { print > "${TEST_TOKEN_DIRECTORY}/token_access" } } } '
+cat ${TEST_TOKEN_DIRECTORY}/token_id| awk -F \= ' { print $2 > "${TEST_TOKEN_DIRECTORY}/token_raw_id" }'; cat ${TEST_TOKEN_DIRECTORY}/token_access| awk -F \= ' { print $2 > "${TEST_TOKEN_DIRECTORY}/token_raw_access" }'
