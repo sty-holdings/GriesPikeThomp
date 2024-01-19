@@ -121,8 +121,8 @@ func PrintErrorInfo(errorInfo ErrorInfo, outputMode string) {
 func outputError(errorInfo ErrorInfo, outputMode string) {
 
 	if strings.ToLower(outputMode) == rcv.MODE_OUTPUT_DISPLAY {
-		fmt.Printf("[ERROR] %v %v Additional Info: '%v' File: %v Near Line Number: %v\n", rcv.BASH_COLOR_RED, errorInfo.Error.Error(), errorInfo.AdditionalInfo,
-			errorInfo.FileName, errorInfo.LineNumber)
+		fmt.Printf("[ERROR] %v %v Additional Info: '%v' File: %v Near Line Number: %v% v\n", rcv.BASH_COLOR_RED, errorInfo.Error.Error(), errorInfo.AdditionalInfo,
+			errorInfo.FileName, errorInfo.LineNumber, rcv.BASH_COLOR_RESET)
 	} else {
 		log.Printf("[ERROR] %v Additional Info: '%v' File: %v Near Line Number: %v\n", errorInfo.Error.Error(), errorInfo.AdditionalInfo, errorInfo.FileName, errorInfo.LineNumber)
 	}
@@ -130,7 +130,7 @@ func outputError(errorInfo ErrorInfo, outputMode string) {
 
 func newError(myError error) (errorInfo ErrorInfo) {
 
-	errorInfo = getErrorFunctionFileNameLineNumber(2)
+	errorInfo = getErrorFunctionFileNameLineNumber(3)
 	errorInfo.Error = myError
 
 	return

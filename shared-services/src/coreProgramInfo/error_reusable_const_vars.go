@@ -48,6 +48,7 @@ const (
 	//
 	EXPECTED_ERROR_FORMAT     = "%v Failed: Was expecting an err."
 	EXPECTING_NO_ERROR_FORMAT = "%v Failed: Wasn't expecting an err. ERROR: %v"
+	UNEXPECTED_ERROR_FORMAT   = "%v Failed: Unexpected err. ERROR: %v"
 	//
 	// Messages
 	ACCESS_TOKEN_MISSING           = "No access token was provided."
@@ -67,6 +68,7 @@ const (
 	DOCUMENTS_NONE_FOUND           = "No documents were found."
 	EVIRNOMENT_INVALID             = "The environment value is invalid."
 	ERROR_MISSING                  = "ERROR MISSING"
+	FALSE_SHOULD_BE_TRUE           = "The result should have been true."
 	FILE_MISSING                   = "The file doesn't exist."
 	FILE_UNREADABLE                = "[ERROR} The file is not readable."
 	FIREBASE_GC_PROJECT_ID_MISSING = "No Firebase project id was provided."
@@ -79,6 +81,7 @@ const (
 	MAP_IS_EMPTY                   = "Provided map is not populated."
 	MAP_MISSING_KEY                = "Provided map has a nil or empty key."
 	MAP_MISSING_VALUE              = "Provided map has a nil or empty value."
+	MAX_THREADS_INVALID            = "The config file max threads value is invalid."
 	MESSAGE_JSON_INVALID           = "The message body is not valid JSON."
 	MESSAGE_PREFIX_INVALID         = "The Message Prefix value is invalid."
 	MISSING_SERVER_NAME            = "The server name in main.go is empty."
@@ -116,6 +119,7 @@ const (
 	TRANSFER_IN_NOT_ALLOWED        = "Transferring money to SavUp is not allowed for this transfer method."
 	TRANSFER_METHOD_INVALID        = "The transfer method is not support! (Transfer Method is case insensitive)"
 	TRANSFER_OUT_NOT_ALLOWED       = "Transferring money from SavUp is not allowed for this transfer method."
+	TRUE_SHOULD_BE_FALSE           = "The result should have been false."
 	UNABLE_READ_FILE               = "Unable to read file."
 	UNCONFIRMED_EMAIL              = "Users email has not been confirmed."
 	UNEXPECTED_ERROR               = "The system has experienced an unexpected issue. Investigate right away!"
@@ -127,6 +131,7 @@ const (
 	USER_BUNDLE_ALREADY_EXISTS     = "User bundle already exists in the SavUp system."
 	USER_BUNDLE_MISSING            = "User bundle is not in the SavUp system."
 	USER_MISSING                   = "User is not in the SavUp system."
+	VERSION_INVALID                = "The software version is invalid. Use @env GOOS=linux GOARCH=amd64 go build -ldflags \"-X main.version=$(VERSION)\" -o ${ROOT_DIRECTORY}/servers/${SERVER_NAME}/bin/${SERVER_NAME} ${ROOT_DIRECTORY}/servers/${SERVER_NAME}/main.go"
 	//
 	// String that are used to determine third party error messages
 	USER_DOES_NOT_EXIST = "User does not exist."
@@ -156,6 +161,7 @@ var (
 	ErrDocumentsNoneFound         = errors.New(DOCUMENTS_NONE_FOUND)
 	ErrEnvironmentInvalid         = errors.New(EVIRNOMENT_INVALID)
 	ErrErrorMissing               = errors.New(ERROR_MISSING)
+	ErrFalseShouldBeTrue          = errors.New(FALSE_SHOULD_BE_TRUE)
 	ErrFileMissing                = errors.New(FILE_MISSING)
 	ErrFileUnreadable             = errors.New(FILE_UNREADABLE)
 	ErrFirstNameMissing           = errors.New(FIRST_NAME_MISSING)
@@ -168,6 +174,7 @@ var (
 	ErrMapIsEmpty                 = errors.New(MAP_IS_EMPTY)
 	ErrMapIsMissingKey            = errors.New(MAP_MISSING_KEY)
 	ErrMapIsMissingValue          = errors.New(MAP_MISSING_VALUE)
+	ErrMaxThreadsInvalid          = errors.New(MAX_THREADS_INVALID)
 	ErrMessageJSONInvalid         = errors.New(MESSAGE_JSON_INVALID)
 	ErrMessagePrefixInvalid       = errors.New(MESSAGE_PREFIX_INVALID)
 	ErrMissingServerName          = errors.New(MISSING_SERVER_NAME)
@@ -204,6 +211,7 @@ var (
 	ErrTransferInNotAllowed       = errors.New(TRANSFER_IN_NOT_ALLOWED)
 	ErrTransferMethodInvalid      = errors.New(TRANSFER_METHOD_INVALID)
 	ErrTransferOutNotAllowed      = errors.New(TRANSFER_OUT_NOT_ALLOWED)
+	ErrTrueShouldBeFalse          = errors.New(TRUE_SHOULD_BE_FALSE)
 	ErrUnableReadFile             = errors.New(UNABLE_READ_FILE)
 	ErrUnauthorizedRequest        = errors.New(UNAUTHORIZED_REQUEST)
 	ErrUnconfirmedEmail           = errors.New(UNCONFIRMED_EMAIL)
@@ -215,4 +223,5 @@ var (
 	ErrUserBundleAlreadyExists    = errors.New(BUNDLE_ALREADY_EXISTS)
 	ErrUserBundleMissing          = errors.New(BUNDLE_MISSING)
 	ErrUserMissing                = errors.New(USER_MISSING)
+	ErrVersionInvalid             = errors.New(VERSION_INVALID)
 )

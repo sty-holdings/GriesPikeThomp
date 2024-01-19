@@ -2,7 +2,6 @@
   "skeleton_config_filename": "skeleton-config-file.json",
   "debug_mode_on": true,
   "environment": "production",
-  "log_directory": "/var/log/nats-connect",
-  "max_threads": 5,
+  "log_directory"
   "pid_directory": "/var/run/nats-connect"
 }

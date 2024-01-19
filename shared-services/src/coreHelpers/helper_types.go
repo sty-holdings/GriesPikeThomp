@@ -1,4 +1,4 @@
-// Package coreHelpers
+// Package shared_services
 /*
 This is the STY-Holdings shared services
 
@@ -11,7 +11,7 @@ COPYRIGHT & WARRANTY:
 	Copyright (c) 2022 STY-Holdings, inc
 	All rights reserved.
 
-	This software is the confidential and proprietary information of STY-Holdings, Inc..
+	This software is the confidential and proprietary information of STY-Holdings, Inc.
 	Use is subject to license terms.
 
 	Unauthorized copying of this file, via any medium is strictly prohibited.
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package coreHelpers
+package shared_services
 
 import (
 	"cloud.google.com/go/firestore"

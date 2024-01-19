@@ -66,7 +66,7 @@ func TestGetFunctionInfo(tPtr *testing.T) {
 		errorMessageFormat string
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS,
+			name: rcv.TEST_POSITVE_SUCCESS + "Level 0 Filename Empty",
 			arguments: arguments{
 				level:         0,
 				filenameValue: rcv.VAL_EMPTY,
@@ -75,7 +75,7 @@ func TestGetFunctionInfo(tPtr *testing.T) {
 			wantError:          false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS,
+			name: rcv.TEST_POSITVE_SUCCESS + "Level 1 Filename Empty",
 			arguments: arguments{
 				level:         1,
 				filenameValue: rcv.VAL_EMPTY,
@@ -84,7 +84,7 @@ func TestGetFunctionInfo(tPtr *testing.T) {
 			wantError:          false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS,
+			name: rcv.TEST_POSITVE_SUCCESS + "Level 2 Filename Empty",
 			arguments: arguments{
 				level:         2,
 				filenameValue: rcv.VAL_EMPTY,
@@ -93,7 +93,7 @@ func TestGetFunctionInfo(tPtr *testing.T) {
 			wantError:          false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS,
+			name: rcv.TEST_POSITVE_SUCCESS + "Level 3 Filename Empty",
 			arguments: arguments{
 				level:         3,
 				filenameValue: rcv.VAL_EMPTY,
@@ -102,7 +102,7 @@ func TestGetFunctionInfo(tPtr *testing.T) {
 			wantError:          false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS,
+			name: rcv.TEST_POSITVE_SUCCESS + "Level 4 Filename Empty",
 			arguments: arguments{
 				level:         4,
 				filenameValue: rcv.VAL_EMPTY,

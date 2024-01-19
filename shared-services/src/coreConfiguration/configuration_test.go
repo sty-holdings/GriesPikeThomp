@@ -51,6 +51,7 @@ var (
 func TestGenerateConfigFileSkeleton(tPtr *testing.T) {
 
 	var (
+		errorInfo          cpi.ErrorInfo
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
@@ -61,7 +62,7 @@ func TestGenerateConfigFileSkeleton(tPtr *testing.T) {
 		os.Stdout = tWriter
 
 		GenerateConfigFileSkeleton("NATS Connect Test",
-			"/Users/syacko/workspace/sty-holdings/gpt2/shared-services/src/coreConfiguration",
+			"GriesPikeThomp/shared-services/src/coreConfiguration",
 			"/skeleton-config-file.")
 
 		tBuffer := make([]byte, 3072)
@@ -70,7 +71,7 @@ func TestGenerateConfigFileSkeleton(tPtr *testing.T) {
 		_ = tWriter.Close()
 		os.Stdout = old
 
-		if len(tBuffer) == 0 {
+		if len(tBuffer) == 0 && errorInfo.Error != nil {
 			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.ErrBufferEmpty)
 		}
 	})
@@ -78,23 +79,191 @@ func TestGenerateConfigFileSkeleton(tPtr *testing.T) {
 
 func TestReadAndParseConfigFile(tPtr *testing.T) {
 
+	type arguments struct {
+		configFileName string
+	}
+
 	var (
+		gotError           bool
 		errorInfo          cpi.ErrorInfo
-		tConfigFilename    = fmt.Sprintf("%v.json", DEFAULT_SKELETON_CONFIG_FILENAME_NO_SUFFIX)
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+	tests := []struct {
+		name      string
+		arguments arguments
+		wantError bool
+	}{
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid config file",
+			arguments: arguments{
+				configFileName: "skeleton-config-file.json",
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Invalid config file",
+			arguments: arguments{
+				configFileName: "invalid-skeleton-config-file.json",
+			},
+			wantError: true,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Unreadable config file",
+			arguments: arguments{
+				configFileName: "unreadable-skeleton-config-file.json",
+			},
+			wantError: true,
+		},
+	}
 
-		fmt.Println(os.Getwd())
-		if _, errorInfo = ReadAndParseConfigFile(tConfigFilename); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		if _, errorInfo = ReadAndParseConfigFile(rcv.VAL_EMPTY); errorInfo.Error == nil {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	fmt.Println(os.Getwd())
+
+	for _, ts := range tests {
+		tPtr.Run(ts.name, func(t *testing.T) {
+			if _, errorInfo = ReadAndParseConfigFile(ts.arguments.configFileName); errorInfo.Error != nil {
+				gotError = true
+			} else {
+				gotError = false
+			}
+			if gotError != ts.wantError {
+				tPtr.Errorf(cpi.UNEXPECTED_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+		})
+	}
+}
+
+func TestValidateConfiguration(tPtr *testing.T) {
+
+	type arguments struct {
+		config Configuration
+	}
+
+	var (
+		gotError           bool
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	tests := []struct {
+		name      string
+		arguments arguments
+		wantError bool
+	}{
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "All missing",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  "",
+					LogDirectory: "",
+					MaxThreads:   0,
+					PIDDirectory: "",
+				},
+			},
+			wantError: true,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Local Environment",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  rcv.ENVIRONMENT_LOCAL,
+					LogDirectory: DEFAULT_LOG_DIRECTORY,
+					MaxThreads:   DEFAULT_MAX_THREADS,
+					PIDDirectory: DEFAULT_PID_DIRECTORY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Development Environment",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  rcv.ENVIRONMENT_DEVELOPMENT,
+					LogDirectory: DEFAULT_LOG_DIRECTORY,
+					MaxThreads:   DEFAULT_MAX_THREADS,
+					PIDDirectory: DEFAULT_PID_DIRECTORY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Production Environment",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  rcv.ENVIRONMENT_PRODUCTION,
+					LogDirectory: DEFAULT_LOG_DIRECTORY,
+					MaxThreads:   DEFAULT_MAX_THREADS,
+					PIDDirectory: DEFAULT_PID_DIRECTORY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Directories missing",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  rcv.ENVIRONMENT_PRODUCTION,
+					LogDirectory: rcv.VAL_EMPTY,
+					MaxThreads:   1,
+					PIDDirectory: rcv.VAL_EMPTY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Negative threads",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  rcv.ENVIRONMENT_PRODUCTION,
+					LogDirectory: rcv.VAL_EMPTY,
+					MaxThreads:   -1,
+					PIDDirectory: rcv.VAL_EMPTY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Zero threads",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  rcv.ENVIRONMENT_PRODUCTION,
+					LogDirectory: rcv.VAL_EMPTY,
+					MaxThreads:   0,
+					PIDDirectory: rcv.VAL_EMPTY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Greater than threads cap",
+			arguments: arguments{
+				config: Configuration{
+					Environment:  rcv.ENVIRONMENT_PRODUCTION,
+					LogDirectory: rcv.VAL_EMPTY,
+					MaxThreads:   THREAD_CAP + 1,
+					PIDDirectory: rcv.VAL_EMPTY,
+				},
+			},
+			wantError: false,
+		},
+	}
+
+	fmt.Println(os.Getwd())
+
+	for _, ts := range tests {
+		tPtr.Run(ts.name, func(t *testing.T) {
+			if errorInfo = ValidateConfiguration(ts.arguments.config); errorInfo.Error != nil {
+				gotError = true
+			} else {
+				gotError = false
+			}
+			if gotError != ts.wantError {
+				tPtr.Errorf(cpi.UNEXPECTED_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+		})
+	}
 }
 
 // func TestValidateOptions(tPtr *testing.T) {

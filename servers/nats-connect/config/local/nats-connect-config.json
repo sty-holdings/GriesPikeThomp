@@ -1,7 +1,17 @@
 {
-	"skeleton_config_filename": "",
-	"debug_mode_on": true,
-	"log_directory": "/Users/syacko/workspace/sty-holdings/GriesPikeThomp/servers/nats-connect",
-	"Environment": "LOCAL",
-	"pid_directory": "/Users/syacko/workspace/sty-holdings/GriesPikeThomp/servers/nats-connect/.run",
+  "skeleton_config_filename": "",
+  "debug_mode_on": true,
+  "Environment": "LOCAL",
+  "log_directory": "servers/nats-connect/logs",
+  "max_threads": 5,
+  "pid_directory": "servers/nats-connect/.run",
+  "extensions": {
+    "nats": {
+      "credentials_filename": "",
+      "message_environment": "local",
+      "message_prefix": "nc",
+      "url": "",
+      "port": ""
+    }
+  }
 }

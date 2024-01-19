@@ -40,6 +40,7 @@ import (
 	"os"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	cv "GriesPikeThomp/shared-services/src/coreValidators"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -50,6 +51,7 @@ type Configuration struct {
 	DebugModeOn            bool           `json:"debug_mode_on"`
 	Environment            string         `json:"environment"`
 	LogDirectory           string         `json:"log_directory"`
+	MaxThreads             int            `json:"max_threads"`
 	PIDDirectory           string         `json:"pid_directory"`
 	Extensions             map[string]any `json:"extensions"`
 }
@@ -59,9 +61,10 @@ type Configuration struct {
 //	Customer Messages: None
 //	Errors: ErrConfigFileMissing
 //	Verifications: None
-func GenerateConfigFileSkeleton(serverName, SkeletonConfigDirectory, SkeletonConfigFilenameNoSuffix string) (errorInfo cpi.ErrorInfo) {
+func GenerateConfigFileSkeleton(serverName, SkeletonConfigDirectory, SkeletonConfigFilenameNoSuffix string) {
 
 	var (
+		errorInfo                   cpi.ErrorInfo
 		tSkeletonConfigData         []byte
 		tSkeletonConfigNoteData     []byte
 		tSkeletonConfigFilename     string
@@ -122,6 +125,35 @@ func ReadAndParseConfigFile(configFileFQN string) (config Configuration, errorIn
 
 	fileStat, _ := os.Stat(configFileFQN)
 	config.ConfigFileName = fileStat.Name()
+
+	return
+}
+
+// ValidateConfiguration -checks the values in the configuration file are valid. ValidateConfiguration doesn't
+// test if the configuration file exists, readable, or parsable. LogDirectory, MaxThreads, and PIDDirectory will be
+// set to '/var/log/nats-connect', 1, and '/var/run/nats-connect', respectively.
+//
+//	Customer Messages: None
+//	Errors: ErrEnvironmentInvalid, ErrDirectoryMissing, ErrMaxThreadsInvalid
+//	Verifications: None
+func ValidateConfiguration(config Configuration) (errorInfo cpi.ErrorInfo) {
+
+	if cv.IsEnvironmentValid(config.Environment) == false {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.Environment))
+		return
+	}
+	if cv.DoesDirectoryExist(config.LogDirectory) == false {
+		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_LOG_DIRECTORY), rcv.MODE_OUTPUT_DISPLAY)
+		config.LogDirectory = DEFAULT_LOG_DIRECTORY
+	}
+	if config.MaxThreads < 1 || config.MaxThreads > THREAD_CAP {
+		cpi.PrintError(cpi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_MAX_THREADS, config.LogDirectory, DEFAULT_MAX_THREADS), rcv.MODE_OUTPUT_DISPLAY)
+		config.MaxThreads = DEFAULT_MAX_THREADS
+	}
+	if cv.DoesDirectoryExist(config.PIDDirectory) == false {
+		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_PID_DIRECTORY), rcv.MODE_OUTPUT_DISPLAY)
+		config.PIDDirectory = DEFAULT_PID_DIRECTORY
+	}
 
 	return
 }

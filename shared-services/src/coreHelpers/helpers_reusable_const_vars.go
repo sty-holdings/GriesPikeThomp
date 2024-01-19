@@ -33,6 +33,5 @@ package shared_services
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	DEFAULT_SKELETON_CONFIG_DIRECTORY          = "shared-services/src/coreConfiguration/"
-	DEFAULT_SKELETON_CONFIG_FILENAME_NO_SUFFIX = "skeleton-config-file"
+	TEST_FILE_NAME = "test_file.txt"
 )

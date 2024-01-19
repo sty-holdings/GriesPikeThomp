@@ -11,7 +11,7 @@ COPYRIGHT & WARRANTY:
 	Copyright (c) 2022 STY-Holdings, inc
 	All rights reserved.
 
-	This software is the confidential and proprietary information of STY-Holdings, Inc..
+	This software is the confidential and proprietary information of STY-Holdings, Inc.
 	Use is subject to license terms.
 
 	Unauthorized copying of this file, via any medium is strictly prohibited.

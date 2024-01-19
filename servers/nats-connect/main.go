@@ -10,7 +10,7 @@ COPYRIGHT & WARRANTY:
 	Copyright (c) 2022 STY-Holdings, inc
 	All rights reserved.
 
-	This software is the confidential and proprietary information of STY-Holdings, Inc..
+	This software is the confidential and proprietary information of STY-Holdings, Inc.
 	Use is subject to license terms.
 
 	Unauthorized copying of this file, via any medium is strictly prohibited.
@@ -39,6 +39,7 @@ import (
 	"log"
 	"os"
 
+	"GriesPikeThomp/servers/nats-connect/src"
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/integrii/flaggy"
@@ -52,15 +53,16 @@ import (
 var (
 	// Add Variables here for the file (Remember, they are global)
 	// Start up values for a service
-	serverName         = ""
-	generateConfigFile bool
 	configFileFQN      string
+	generateConfigFile bool
+	serverName         = "nats-connect"
+	testingOn          bool
 	version            = "9999.9999.9999"
 )
 
 func init() {
 
-	appDescription := "The " + cases.Title(language.English).String(serverName) + " bridges the gap between NATS users and the wider world, enabling effortless integration" +
+	appDescription := cases.Title(language.English).String(serverName) + " bridges the gap between NATS users and the wider world, enabling effortless integration" +
 		" with third-party platforms and services.\n" +
 		"\nVersion: \n" +
 		rcv.SPACES_FOUR + "- " + version + "\n" +
@@ -84,7 +86,8 @@ func init() {
 
 	// Add a flag to the main program (this will be available in all subcommands as well).
 	flaggy.String(&configFileFQN, "c", "config", "Provides the setup information needed by and is required to start the server.")
-	flaggy.Bool(&generateConfigFile, "g", "genconfig", "This will output a skeleton configuration file.\n\t\t\tThis will cause the -c option to be ignored.")
+	flaggy.Bool(&generateConfigFile, "g", "genconfig", "This will output a skeleton configuration file.\n\t\t\tThis will cause all other options to be ignored.")
+	flaggy.Bool(&testingOn, "t", "testingOn", "This puts the server into testing mode.")
 
 	// Set the version and parse all inputs into variables.
 	flaggy.SetVersion(version)
@@ -92,6 +95,14 @@ func init() {
 }
 
 func main() {
+
+	var (
+		returnCode = 0
+		tServer    *src.Server
+	)
+
+	fmt.Println()
+	log.Printf("Starting %v server.\n", serverName)
 
 	if serverName == rcv.VAL_EMPTY {
 		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName), rcv.MODE_OUTPUT_DISPLAY)
@@ -104,10 +115,18 @@ func main() {
 	}
 
 	// Has the config file location and name been provided, if not, return help.
-	if configFileFQN == "" {
+	if configFileFQN == "" && testingOn == false {
 		flaggy.ShowHelpAndExit("")
 	}
 
+	if tServer, returnCode = src.NewServer(configFileFQN, version, testingOn); returnCode > 0 {
+		Shutdown(returnCode)
+	}
+
+	Shutdown(tServer.Run()) // Start things up. Block here until done.
+}
+
+func Shutdown(returnCode int) {
 	log.Printf("Shutting down %v server.\n", serverName)
-	os.Exit(0)
+	os.Exit(returnCode)
 }
