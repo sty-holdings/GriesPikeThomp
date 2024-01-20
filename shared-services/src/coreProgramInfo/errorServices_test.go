@@ -276,6 +276,7 @@ func TestNewError(tPtr *testing.T) {
 	})
 }
 
+// Private Functions
 func TestGetErrorFunctionFileNameLineNumber(tPtr *testing.T) {
 
 	type arguments struct {

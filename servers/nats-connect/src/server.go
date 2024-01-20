@@ -30,15 +30,17 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"runtime"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	h "GriesPikeThomp/shared-services/src/coreHelpers"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	"github.com/nats-io/nats.go"
+	"GriesPikeThomp/shared-services/src/coreValidators"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -55,12 +57,15 @@ type Instance struct {
 	logFQN            string
 	mu                sync.RWMutex
 	numberCPUS        int
+	outputMode        string
 	pid               int
 	pidFQN            string
 	processChannel    chan string
 	running           bool
-	secured           bool
 	runStartTime      time.Time
+	secured           bool
+	serverName        string
+	testingOn         bool
 	version           string
 	waitGroup         sync.WaitGroup
 	workingDirectory  string
@@ -74,16 +79,16 @@ type NATSInfo struct {
 	port                string
 }
 
-type natsMessage struct {
-	restrictedUsage bool
-	handler         nats.MsgHandler
-	subscriptionPtr *nats.Subscription
-}
+// type natsMessage struct {
+// 	restrictedUsage bool
+// 	handler         nats.MsgHandler
+// 	subscriptionPtr *nats.Subscription
+// }
 
 type Server struct {
-	config          cc.Configuration
-	instanceDetails Instance
-	natsInfo        NATSInfo
+	config   cc.Configuration
+	instance Instance
+	natsInfo NATSInfo
 	// MyAWS               coreAWS.AWSHelper
 	// MyFireBase          coreHelpers.FirebaseFirestoreHelper
 	// MyPlaid             PlaidHelper
@@ -95,43 +100,54 @@ type Server struct {
 	// WebAssetsURL        string
 }
 
-// NewServer will set up a new server struct after parsing the configuration defined
+// RunServer will set up a new server instance after parsing the configuration defined
 // in the supplied configuration file. If no configuration file is provide, an
 // error will be returned. If the configuration is invalid, an error will be returned.
+// After the server is created, RunServer will block waiting for messages.
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func NewServer(configFileFQN, version string, test bool) (server *Server, returnCode int) {
+func RunServer(configFileFQN, serverName, version string, testingOn bool) (returnCode int) {
 
 	var (
-		errorInfo cpi.ErrorInfo
-		tConfig   cc.Configuration
+		errorInfo          cpi.ErrorInfo
+		serverPtr          *Server
+		tConfig            cc.Configuration
+		tLogFileHandlerPtr *os.File
+		tLogFQD            string
+		tlogFQN            string
 	)
 
-	if version == rcv.VAL_EMPTY && test == false {
+	if version == rcv.VAL_EMPTY && testingOn == false {
 		cpi.PrintError(cpi.ErrVersionInvalid, fmt.Sprintf("%v %v", rcv.TXT_SERVER_VERSION, version), rcv.MODE_OUTPUT_DISPLAY)
-		return nil, 1
+		return 1
 	}
 
 	// See if configuration file exists and is readable, if not, return an error
 	if tConfig, errorInfo = cc.ReadAndParseConfigFile(configFileFQN); errorInfo.Error != nil {
 		cpi.PrintErrorInfo(errorInfo, rcv.MODE_OUTPUT_DISPLAY)
-		return nil, 1
+		return 1
 	}
-
-	// Adjusting non-fully qualified filenames to fully qualified
-	tConfig.LogDirectory = h.PrependWorkingDirectory(tConfig.LogDirectory)
-	tConfig.PIDDirectory = h.PrependWorkingDirectory(tConfig.PIDDirectory)
 
 	if errorInfo = cc.ValidateConfiguration(tConfig); errorInfo.Error != nil {
 		cpi.PrintErrorInfo(errorInfo, rcv.MODE_OUTPUT_DISPLAY)
-		return nil, 1
+		return 1
 	}
 
-	fmt.Println(tConfig)
+	// Initializing the log output.
+	tLogFQD = h.PrependWorkingDirectoryWithEndingSlash(tConfig.LogDirectory)
+	if tLogFileHandlerPtr, tlogFQN, errorInfo = h.CreateAndRedirectLogOutput(tLogFQD, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
+		cpi.PrintErrorInfo(errorInfo, rcv.MODE_OUTPUT_DISPLAY)
+		return
+	}
 
-	server = setServerValues(tConfig, version)
+	log.Printf("Creating a new instance of %v server.\n", serverName)
+
+	if serverPtr, errorInfo = InitializeServer(tConfig, serverName, version, tlogFQN, tLogFileHandlerPtr, testingOn); errorInfo.Error != nil {
+		log.Println(rcv.BASH_COLOR_RED, errorInfo, rcv.BASH_COLOR_RESET)
+		return 1
+	}
 
 	// // Determine if connections are secure
 	// if myServer.tls.TLSCert == rcv.EMPTY || myServer.tls.TLSKey == rcv.EMPTY || myServer.tls.TLSCABundle == rcv.EMPTY {
@@ -141,86 +157,67 @@ func NewServer(configFileFQN, version string, test bool) (server *Server, return
 	// }
 	// myServer.baseURL = coreHelpers.GenerateURL(myServer.environment, myServer.secured)
 	// myServer.verifyEmailURL = coreHelpers.GenerateVerifyEmailURL(myServer.environment, myServer.secured)
-	// //
-	// Redirecting output to the log
-	if test == false {
-		if server.instanceDetails.logFileHandlerPtr, server.instanceDetails.logFQN, errorInfo = h.RedirectLogOutput(tConfig.LogDirectory); errorInfo.Error != nil {
-			cpi.PrintErrorInfo(errorInfo, rcv.MODE_OUTPUT_DISPLAY)
-			return nil, 1
-		}
-	}
+
+	serverPtr.Run()
+
+	log.Printf("Instance of %v server has been created.\n", serverName)
 
 	return
 }
 
-// setServerValues - sets the values for the Server struct
+// NewServer - creates an instance by setting the values for the Server struct
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func setServerValues(config cc.Configuration, version string) (server *Server) {
+func NewServer(config cc.Configuration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (server *Server) {
 	server = &Server{
 		config: cc.Configuration{
 			ConfigFileName:         config.ConfigFileName,
 			SkeletonConfigFilename: config.SkeletonConfigFilename,
 			DebugModeOn:            config.DebugModeOn,
 			Environment:            strings.ToLower(config.Environment),
-			LogDirectory:           config.LogDirectory,
 			MaxThreads:             config.MaxThreads,
-			PIDDirectory:           config.PIDDirectory,
-			Extensions:             nil,
 		},
-		instanceDetails: Instance{
-			baseURL:           "",
+		instance: Instance{
 			debugMode:         config.DebugModeOn,
-			logFileHandlerPtr: &os.File{},
-			mu:                sync.RWMutex{},
+			logFileHandlerPtr: logFileHandlerPtr,
+			logFQN:            logFQN,
 			numberCPUS:        runtime.NumCPU(),
+			outputMode:        rcv.MODE_OUTPUT_LOG_DISPLAY,
 			pid:               os.Getppid(),
-			pidFQN:            config.PIDDirectory + rcv.PID_FILENAME,
-			processChannel:    nil,
-			running:           false,
-			secured:           false,
-			runStartTime:      time.Time{},
+			serverName:        serverName,
+			testingOn:         testingOn,
 			version:           version,
-			waitGroup:         sync.WaitGroup{},
 		},
 	}
-	server.instanceDetails.hostname, _ = os.Hostname()
-	server.instanceDetails.workingDirectory, _ = os.Getwd()
-	server.instanceDetails.mu.Lock()
-	defer server.instanceDetails.mu.Unlock()
+	server.instance.hostname, _ = os.Hostname()
+	server.instance.workingDirectory, _ = os.Getwd()
+	server.instance.pidFQN = h.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
 
 	return
 }
 
-// Run starts the NATS server.
-func (myServer *Server) Run() (returnCode int) {
+// Run - blocks for requests.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (serverPtr *Server) Run() (errorInfo cpi.ErrorInfo) {
 
-	var (
-	// errorInfo          cpi.ErrorInfo
-	// tFunction, _, _, _ = runtime.Caller(0)
-	// tFunctionName      = runtime.FuncForPC(tFunction).Name()
-	)
+	// capture signals
+	go initializeSignals(serverPtr)
 
-	log.Println("Starting SavUp server.")
-
-	// if errorInfo = InitializeServer(myServer); errorInfo.Error != nil {
-	// 	fmt.Println(rcv.BASH_COLOR_RED, errorInfo, rcv.BASH_COLOR_RESET)
-	// 	os.Exit(1)
-	// }
 	//
-	// // capture signals
-	// go initializeSignals(myServer)
-	//
-	// coreError.PrintDebugLine(tFunctionName, "Blocking for NATS messages.")
-	// myServer.processChannel = make(chan string)
-	// go func() {
-	// 	_ = myServer.messageHandler()
-	// }()
-	// select {
-	// case <-myServer.processChannel:
-	// }
+	serverPtr.instance.processChannel = make(chan string)
+	go func() {
+		serverPtr.instance.waitGroup = sync.WaitGroup{}
+		serverPtr.instance.waitGroup.Add(1)
+		// _ = serverPtr.instance.messageHandler()
+	}()
+	select {
+	case <-serverPtr.instance.processChannel:
+	}
 
 	return
 }
@@ -420,73 +417,34 @@ func (myServer *Server) Run() (returnCode int) {
 // 	log.Printf("%v", rcv.LINE_SEPARATOR)
 // }
 //
-// func InitializeServer(myServer *Server) (errorInfo cpi.ErrorInfo) {
-//
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	coreError.PrintDebugTrail(tFunctionName)
-//
-// 	// Avoid RACE between Start() and Shutdown()
-// 	myServer.mu.Lock()
-// 	myServer.running = true
-// 	myServer.mu.Unlock()
-//
-// 	// Check if a server.pid exists, if so shutdown
-// 	if coreValidators.DoesFileExist(myServer.pidDirectory + rcv.PID_FILENAME) { // err of nil, means the file exists
-// 		errorInfo.Error = coreError.ErrPIDFileExists
-// 		errorInfo.AdditionalInfo = fmt.Sprintf("PID Directory: %v", myServer.pidDirectory+rcv.PID_FILENAME)
-// 		coreError.PrintError(errorInfo)
-// 	} else {
-// 		errorInfo = coreHelpers.WritePidFile(myServer.pidDirectory)
-// 	}
-//
-// 	// Setting up AWS
-// 	if errorInfo.Error == nil {
-// 		myServer.MyAWS, errorInfo = coreAWS.NewAWSSession(myServer.MyAWS.InfoFQN)
-// 	}
-//
-// 	// Setting up Firebase & Firestore
-// 	if errorInfo.Error == nil {
-// 		if myServer.MyFireBase.AppPtr, myServer.MyFireBase.AuthPtr, errorInfo = coreFirebase.GetFirebaseAppAuthConnection(myServer.MyFireBase.CredentialsLocation); errorInfo.Error == nil {
-// 			if myServer.MyFireBase.FirestoreClientPtr, errorInfo = coreFirestore.GetFirestoreClientConnection(myServer.MyFireBase.AppPtr); errorInfo.Error != nil {
-// 				coreError.PrintError(errorInfo)
-// 			}
-// 		} else {
-// 			coreError.PrintError(errorInfo)
-// 		}
-// 	}
-//
-// 	// Setting up NATS
-// 	if errorInfo.Error == nil {
-// 		myServer.MyNATS.NatsConnPtr, errorInfo = coreNATS.GetNATSConnection(myServer.MyNATS.NatsURL, myServer.MyNATS.NatsCredentialsFQN, myServer.tls)
-// 	}
-//
-// 	// Setting up Plaid
-// 	if errorInfo.Error == nil && myServer.MyPlaid.Keys.ClientId != rcv.EMPTY && myServer.MyPlaid.Keys.Secret != rcv.EMPTY {
-// 		myServer.MyPlaid.PlaidClient, errorInfo = getPlaidClientConnection(myServer.MyPlaid.Keys)
-// 	}
-//
-// 	// Setting up SendGrid email server
-// 	if errorInfo.Error == nil {
-// 		myServer.MySendGrid.EmailServerPtr, errorInfo = coreSendGrid.NewSendGridServer(coreSendGrid.DEFAULT_SENDER_ADDRESS, coreSendGrid.DEFAULT_SENDER_NAME, myServer.environment, myServer.MySendGrid.SendGridCredentialsFQN)
-// 	}
-//
-// 	if errorInfo.Error == nil {
-// 		if errorInfo = InitializeNATSMessages(myServer); errorInfo.Error != nil {
-// 			coreError.PrintError(errorInfo)
-// 		}
-// 	}
-//
-// 	//
-// 	// Outputting Server Info to the log
-// 	displayServerInfo(myServer)
-//
-// 	return
-// }
-//
+
+func InitializeServer(config cc.Configuration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (serverPtr *Server,
+	errorInfo cpi.ErrorInfo) {
+
+	log.Printf("Initializing instance of %v server.\n", serverName)
+
+	serverPtr = NewServer(config, serverName, version, logFQN, logFileHandlerPtr, testingOn)
+
+	// Check if a server.pid exists, if so shutdown
+	if coreValidators.DoesFileExist(serverPtr.instance.pidFQN) {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrPIDFileExists, fmt.Sprintf("PID Directory: %v", serverPtr.instance.pidFQN))
+		return nil, errorInfo
+	}
+
+	if errorInfo = h.WritePidFile(serverPtr.instance.pidFQN, serverPtr.instance.pid); errorInfo.Error != nil {
+		return nil, errorInfo
+	}
+
+	// Avoid RACE between Start() and Shutdown(), running is set below.
+	serverPtr.instance.mu.Lock()
+	serverPtr.instance.running = true
+	serverPtr.instance.mu.Unlock()
+
+	log.Printf("Instance of %v server has been initialized.\n", serverName)
+
+	return
+}
+
 // // InitializeNATSMessages
 // func InitializeNATSMessages(myServer *Server) (errorInfo cpi.ErrorInfo) {
 //
@@ -503,7 +461,7 @@ func (myServer *Server) Run() (returnCode int) {
 // 	} else {
 // 		//
 // 		// Command Messages
-// 		tNatMessage.handler = myServer.debug()
+// 		tNatMessage.handler = server.debug()
 // 		tNatMessage.restrictedUsage = true
 // 		myServer.messages[myServer.messagePrefix+rcv.COMMAND_DEBUG] = tNatMessage
 // 		//
@@ -620,17 +578,50 @@ func (myServer *Server) Run() (returnCode int) {
 //
 // 	return
 // }
-//
-// // initialize signal handler
-// func initializeSignals(myServer *Server) {
-// 	var (
-// 		captureSignal      = make(chan os.Signal, 1)
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	coreError.PrintDebugTrail(tFunctionName)
-//
-// 	signal.Notify(captureSignal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT)
-// 	myServer.signalHandler(<-captureSignal)
-// }
+
+// initialize signal handler
+func initializeSignals(serverPtr *Server) {
+	var (
+		captureSignal = make(chan os.Signal, 1)
+	)
+
+	signal.Notify(captureSignal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT)
+	serverPtr.signalHandler(<-captureSignal)
+}
+
+func (serverPtr *Server) signalHandler(signal os.Signal) {
+
+	switch signal {
+	case syscall.SIGHUP: // kill -SIGHUP XXXX
+		fallthrough
+	case syscall.SIGINT: // kill -SIGINT XXXX or Ctrl+c
+		fallthrough
+	case syscall.SIGTERM: // kill -SIGTERM XXXX
+		fallthrough
+	case syscall.SIGQUIT: // kill -SIGQUIT XXXX
+		serverPtr.Shutdown()
+	default:
+		cpi.PrintError(cpi.ErrSignalUnknown, fmt.Sprintf("%v%v", rcv.TXT_SIGNAL, signal.String()), serverPtr.instance.outputMode)
+	}
+
+	os.Exit(0)
+}
+
+// Shutdown - unsubscribes the server to all subjects and removes the pid file.
+func (serverPtr *Server) Shutdown() {
+
+	var (
+		errorInfo cpi.ErrorInfo
+	)
+
+	// Remove pid file
+	if errorInfo = h.RemovePidFile(serverPtr.instance.pidFQN); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, serverPtr.instance.pidFQN))
+	}
+
+	log.Println(rcv.LINE_SHORT)
+	log.Printf("The pid file (%v) has been removed", serverPtr.instance.pidFQN)
+	log.Printf("The %v server has shutdown gracefully.", serverPtr.instance.serverName)
+
+	serverPtr.instance.waitGroup.Done() // This must be the last statement in the Shutdown process.
+}

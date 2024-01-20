@@ -729,25 +729,6 @@ var (
 // 	})
 // }
 
-// func TestRemovePidFile(tPtr *testing.T) {
-//
-// 	var (
-// 		errorInfo          coreError.ErrorInfo
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		_ = WritePidFile("/tmp")
-// 		if errorInfo = RemovePidFile("/tmp/server.pid"); errorInfo.Error != nil {
-// 			tPtr.Errorf("%v Failed: Was expected err to be nil and got %v.", tFunctionName, errorInfo.Error.Error())
-// 		}
-// 		if errorInfo = RemovePidFile("/xxx/server.pid"); errorInfo.Error == nil {
-// 			tPtr.Errorf("%v Failed: Was expected err to be nil and got %v.", tFunctionName, errorInfo.Error.Error())
-// 		}
-// 	})
-// }
-
 // func TestUnmarshalRequest(tPtr *testing.T) {
 //
 // 	type testStruct struct {
@@ -946,6 +927,25 @@ var (
 //
 // }
 
+func TestIsDirectoryFullyQualified(tPtr *testing.T) {
+
+	var (
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		// Adds working directory to file name
+		if IsDirectoryFullyQualified(TEST_DIRECTORY_ENDING_SLASH) == false {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_GOT_WRONG_BOOLEAN)
+		}
+		// Pass working directory and get back working directory
+		if IsDirectoryFullyQualified(TEST_DIRECTORY) {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_GOT_WRONG_BOOLEAN)
+		}
+	})
+}
+
 func TestPrependWorkingDirectory(tPtr *testing.T) {
 
 	var (
@@ -969,4 +969,138 @@ func TestPrependWorkingDirectory(tPtr *testing.T) {
 			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DID_NOT_MATCH)
 		}
 	})
+}
+
+func TestRedirectLogOutput(tPtr *testing.T) {
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tLogFileHandlerPtr *os.File
+		tLogFQN            string
+	)
+
+	tLogFileHandlerPtr, tLogFQN, _ = createLogFile(TEST_DIRECTORY_ENDING_SLASH)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.MODE_OUTPUT_LOG); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.VAL_EMPTY); errorInfo.Error == nil {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+	})
+
+	_ = os.Remove(tLogFQN)
+}
+
+func TestRemovePidFile(tPtr *testing.T) {
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tTestFQN           = TEST_DIRECTORY_ENDING_SLASH + TEST_FILE_NAME
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		_ = WritePidFile(tTestFQN, 777)
+		if errorInfo = RemovePidFile(tTestFQN); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		if errorInfo = RemovePidFile(rcv.VAL_EMPTY); errorInfo.Error == nil {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+	})
+}
+
+func TestWriteFile(tPtr *testing.T) {
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tTestFQN           = TEST_DIRECTORY_ENDING_SLASH + TEST_FILE_NAME
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if errorInfo = WriteFile(tTestFQN, []byte(rcv.TXT_EMPTY), 0777); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		_ = os.Remove(tTestFQN)
+		if errorInfo = WriteFile(rcv.VAL_EMPTY, []byte(rcv.TXT_EMPTY), 0777); errorInfo.Error == nil {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+	})
+}
+
+func TestWritePidFile(tPtr *testing.T) {
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tTestFQN           = TEST_DIRECTORY_ENDING_SLASH + TEST_FILE_NAME
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if errorInfo = WritePidFile(tTestFQN, 777); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		_ = os.Remove(tTestFQN)
+		if errorInfo = WritePidFile(rcv.VAL_EMPTY, 777); errorInfo.Error == nil {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+	})
+}
+
+// Private Functions
+func TestCreateAndRedirectLogOutput(tPtr *testing.T) {
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tLogFQN            string
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.MODE_OUTPUT_LOG); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		fmt.Println(os.Remove(tLogFQN))
+		if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		fmt.Println(os.Remove(tLogFQN))
+		if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.VAL_EMPTY); errorInfo.Error == nil {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+	})
+
+}
+
+func TestCreateLogFile(tPtr *testing.T) {
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tLogFQN            string
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if _, tLogFQN, errorInfo = createLogFile(TEST_DIRECTORY_ENDING_SLASH); errorInfo.Error != nil {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+		}
+		_ = os.Remove(tLogFQN)
+		if _, _, errorInfo = createLogFile(TEST_DIRECTORY); errorInfo.Error == nil {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+	})
+
 }

@@ -37,7 +37,6 @@ package shared_services
 import (
 	// Add imports here
 
-	"fmt"
 	"log"
 	"runtime"
 	"strings"
@@ -118,12 +117,16 @@ func PrintErrorInfo(errorInfo ErrorInfo, outputMode string) {
 	outputError(errorInfo, outputMode)
 }
 
+// Private Functions
 func outputError(errorInfo ErrorInfo, outputMode string) {
 
-	if strings.ToLower(outputMode) == rcv.MODE_OUTPUT_DISPLAY {
-		fmt.Printf("[ERROR] %v %v Additional Info: '%v' File: %v Near Line Number: %v% v\n", rcv.BASH_COLOR_RED, errorInfo.Error.Error(), errorInfo.AdditionalInfo,
+	switch strings.ToLower(outputMode) {
+	case rcv.MODE_OUTPUT_DISPLAY:
+		log.Printf("[ERROR] %v %v Additional Info: '%v' File: %v Near Line Number: %v% v\n", rcv.BASH_COLOR_RED, errorInfo.Error.Error(), errorInfo.AdditionalInfo,
 			errorInfo.FileName, errorInfo.LineNumber, rcv.BASH_COLOR_RESET)
-	} else {
+	case rcv.MODE_OUTPUT_LOG:
+		fallthrough
+	case rcv.MODE_OUTPUT_LOG_DISPLAY:
 		log.Printf("[ERROR] %v Additional Info: '%v' File: %v Near Line Number: %v\n", errorInfo.Error.Error(), errorInfo.AdditionalInfo, errorInfo.FileName, errorInfo.LineNumber)
 	}
 }
@@ -157,33 +160,33 @@ func getErrorFunctionFileNameLineNumber(level int) (errorInfo ErrorInfo) {
 //	}
 
 // ToDo move to validation which should return the errors
-func GetMapKeyPopulatedError(finding string) (errorInfo ErrorInfo) {
-
-	GetFunctionInfo(1)
-
-	switch strings.ToLower(finding) {
-	case rcv.TXT_EMPTY:
-		errorInfo = ErrorInfo{
-			Error:   ErrMapIsEmpty,
-			Message: ErrMapIsEmpty.Error(),
-		}
-	case rcv.TXT_MISSING_KEY:
-		errorInfo = ErrorInfo{
-			Error:   ErrMapIsMissingKey,
-			Message: ErrMapIsMissingKey.Error(),
-		}
-	case rcv.TXT_MISSING_VALUE:
-		errorInfo = ErrorInfo{
-			Error:   ErrMapIsMissingValue,
-			Message: ErrMapIsMissingValue.Error(),
-		}
-	case rcv.VAL_EMPTY:
-		fallthrough
-	default:
-		errorInfo.Error = ErrRequiredArgumentMissing
-		errorInfo.Message = ErrRequiredArgumentMissing.Error()
-		errorInfo.AdditionalInfo = "The 'finding' argument is empty."
-	}
-
-	return
-}
+// func GetMapKeyPopulatedError(finding string) (errorInfo ErrorInfo) {
+//
+// 	GetFunctionInfo(1)
+//
+// 	switch strings.ToLower(finding) {
+// 	case rcv.TXT_EMPTY:
+// 		errorInfo = ErrorInfo{
+// 			Error:   ErrMapIsEmpty,
+// 			Message: ErrMapIsEmpty.Error(),
+// 		}
+// 	case rcv.TXT_MISSING_KEY:
+// 		errorInfo = ErrorInfo{
+// 			Error:   ErrMapIsMissingKey,
+// 			Message: ErrMapIsMissingKey.Error(),
+// 		}
+// 	case rcv.TXT_MISSING_VALUE:
+// 		errorInfo = ErrorInfo{
+// 			Error:   ErrMapIsMissingValue,
+// 			Message: ErrMapIsMissingValue.Error(),
+// 		}
+// 	case rcv.VAL_EMPTY:
+// 		fallthrough
+// 	default:
+// 		errorInfo.Error = ErrRequiredArgumentMissing
+// 		errorInfo.Message = ErrRequiredArgumentMissing.Error()
+// 		errorInfo.AdditionalInfo = "The 'finding' argument is empty."
+// 	}
+//
+// 	return
+// }

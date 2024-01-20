@@ -36,12 +36,15 @@ package shared_services
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	cv "GriesPikeThomp/shared-services/src/coreValidators"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -287,17 +290,22 @@ import (
 // 	return time.Now().Format("15-04-05.00000")
 // }
 
-// getType
-// func getType(myVar interface{}) (myType string) {
+// IsDirectoryFullyQualified - checks to see if the directory starts and ends with a slash.
 //
-// 	if t := reflect.TypeOf(myVar); t.Kind() == reflect.Ptr {
-// 		myType = "*" + t.Elem().Name()
-// 	} else {
-// 		myType = t.Name()
-// 	}
-//
-// 	return
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func IsDirectoryFullyQualified(directory string) bool {
+
+	if strings.HasPrefix(directory, rcv.FORWARD_SLASH) {
+		if strings.HasSuffix(directory, rcv.FORWARD_SLASH) {
+			return true
+		}
+	}
+
+	return false
+
+}
 
 // PenniesToFloat
 // func PenniesToFloat(pennies int64) float64 {
@@ -313,7 +321,7 @@ import (
 //
 // }
 
-// PrependWorkingDirectory - will add the working directory and return the result.
+// PrependWorkingDirectory - will add the working directory.
 // if the filename first character is a /, the passed value will be returned
 //
 //	Customer Messages: None
@@ -331,6 +339,29 @@ func PrependWorkingDirectory(filename string) (fqn string) {
 	}
 
 	return fmt.Sprintf("%v/%v", tWorkingDirectory, filename)
+}
+
+// PrependWorkingDirectoryWithEndingSlash - will add the working directory with an ending slash.
+// if the filename first and last character is a /, the passed value will be returned
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func PrependWorkingDirectoryWithEndingSlash(filename string) (fqn string) {
+
+	var (
+		tWorkingDirectory, _ = os.Getwd()
+	)
+
+	if strings.HasPrefix(filename, rcv.FORWARD_SLASH) {
+		if strings.HasSuffix(filename, rcv.FORWARD_SLASH) {
+			fqn = filename
+			return
+		}
+		fqn = fmt.Sprintf("%v/", filename)
+	}
+
+	return fmt.Sprintf("%v/%v/", tWorkingDirectory, filename)
 }
 
 // printDashLine - will output a given number of dashed lines based on the outputMode.
@@ -361,57 +392,68 @@ func PrependWorkingDirectory(filename string) (fqn string) {
 //
 // }
 
-// RedirectLogOutput - will send log records to the config file log directory or the default directory.
+// CreateAndRedirectLogOutput - will create the fully qualified config file log directory.
+// The log output is based on the redirectTo value, [MODE_OUTPUT_LOG | MODE_OUTPUT_LOG_DISPLAY].
 // The log file name uses this format: 2006-01-02 15:04:05.000 Z0700. All spaces, colons, and periods
 // are replaced with underscores.
 //
 //	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func RedirectLogOutput(logDirectory string) (logFileHandlerPtr *os.File, logFQN string, errorInfo cpi.ErrorInfo) {
+//	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
+//	Verifications: IsDirectoryFullyQualified
+func CreateAndRedirectLogOutput(logDirectory, redirectTo string) (logFileHandlerPtr *os.File, logFQN string, errorInfo cpi.ErrorInfo) {
 
-	var (
-		tLogFileName string
-	)
-
-	tDateTime := time.Now().Format("2006-01-02 15:04:05.000 Z0700")
-	tLogFileName = strings.Replace(strings.Replace(strings.Replace(tDateTime, rcv.SPACES_ONE, rcv.UNDERSCORE, -1), rcv.COLON, rcv.UNDERSCORE, -1), rcv.PERIOD, rcv.UNDERSCORE, -1)
-	logFQN = logDirectory + "/" + tLogFileName
-
-	// Set log file output
-	if logFileHandlerPtr, errorInfo.Error = os.OpenFile(logFQN, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, logFQN))
-		return
+	switch redirectTo {
+	case rcv.MODE_OUTPUT_LOG:
+		logFileHandlerPtr, logFQN, errorInfo = createLogFile(logDirectory)
+		log.SetOutput(io.MultiWriter(logFileHandlerPtr))
+	case rcv.MODE_OUTPUT_LOG_DISPLAY:
+		logFileHandlerPtr, logFQN, errorInfo = createLogFile(logDirectory)
+		log.SetOutput(io.MultiWriter(os.Stdout, logFileHandlerPtr))
+	default:
+		errorInfo = cpi.NewErrorInfo(cpi.ErrMissingServerName, fmt.Sprintf("%v%v", rcv.TXT_REDIRECT, redirectTo))
 	}
-
-	log.Printf("The log file has been redirected to %v.", logFQN)
-	log.SetOutput(logFileHandlerPtr)
 
 	return
 }
 
-// RemovePidFile
-// func RemovePidFile(pidFQN string) (errorInfo cpi.ErrorInfo) {
+// RedirectLogOutput - will redirect log output based on the redirectTo value, [MODE_OUTPUT_LOG | MODE_OUTPUT_LOG_DISPLAY].
 //
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
+//	Customer Messages: None
+//	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
+//	Verifications: IsDirectoryFullyQualified
+func RedirectLogOutput(inLogFileHandlerPtr *os.File, redirectTo string) (errorInfo cpi.ErrorInfo) {
+
+	switch redirectTo {
+	case rcv.MODE_OUTPUT_LOG:
+		log.SetOutput(io.MultiWriter(inLogFileHandlerPtr))
+	case rcv.MODE_OUTPUT_LOG_DISPLAY:
+		log.SetOutput(io.MultiWriter(os.Stdout, inLogFileHandlerPtr))
+	default:
+		errorInfo = cpi.NewErrorInfo(cpi.ErrRedirectModeInvalid, fmt.Sprintf("%v%v", rcv.TXT_REDIRECT, redirectTo))
+	}
+
+	return
+}
+
+// RemovePidFile - removes the pid file for the running instance
 //
-// 	cpi.PrintDebugTrail(tFunctionName)
-//
-// 	if coreValidators.DoesFileExist(pidFQN) {
-// 		if errorInfo.Error = os.Remove(pidFQN); errorInfo.Error != nil {
-// 			errorInfo.Error = errors.New(fmt.Sprintf("The removal of the pid file (%v) failed: %v", pidFQN, errorInfo.Error.Error()))
-// 			log.Println(errorInfo.Error.Error())
-// 		}
-// 	} else {
-// 		errorInfo.Error = errors.New(fmt.Sprintf("The pid file (%v) does not exist.", pidFQN))
-// 		log.Println(errorInfo.Error.Error())
-// 	}
-//
-// 	return
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func RemovePidFile(pidFQN string) (errorInfo cpi.ErrorInfo) {
+
+	if cv.DoesFileExist(pidFQN) == false {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrFileMissing, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
+		return
+	}
+
+	if errorInfo.Error = os.Remove(pidFQN); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrFileRemovalFailed, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
+		return
+	}
+
+	return
+}
 
 // SendReply
 // func SendReply(functionName string, jsonReply []byte, msg *nats.Msg) (errorInfo cpi.ErrorInfo) {
@@ -444,38 +486,70 @@ func RedirectLogOutput(logDirectory string) (logFileHandlerPtr *os.File, logFQN 
 // 	return
 // }
 
-// WriteFile
-// func WriteFile(fullQualifiedName string, fileData []byte, filePermissions os.FileMode) (errorInfo cpi.ErrorInfo) {
+// WriteFile - will create and write to a fully qualified file.
 //
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	cpi.PrintDebugTrail(tFunctionName)
-//
-// 	if errorInfo.Error = os.WriteFile(fullQualifiedName, fileData, filePermissions); errorInfo.Error != nil {
-// 		errorInfo.Error = errors.New(fmt.Sprintf("%vERROR: The creation of the file (%v) failed: %v", constants.COLOR_RED, fullQualifiedName, errorInfo.Error.Error()))
-// 		log.Println(errorInfo.Error.Error())
-// 	} else {
-// 		log.Printf("Wrote %v to the file system.", fullQualifiedName)
-// 	}
-//
-// 	return
-// }
+//	Customer Messages: None
+//	Errors: ErrFileCreationFailed
+//	Verifications: None
+func WriteFile(fqn string, fileData []byte, filePermissions os.FileMode) (errorInfo cpi.ErrorInfo) {
 
-// WritePidFile
-// func WritePidFile(directory string) (errorInfo cpi.ErrorInfo) {
+	if errorInfo.Error = os.WriteFile(fqn, fileData, filePermissions); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v %v%v", cpi.ErrFileCreationFailed.Error(), rcv.TXT_FILENAME, fqn))
+	}
+
+	return
+}
+
+// WritePidFile - will create and write the server pid file.
 //
-// 	var (
-// 		tPIDFileName = directory + constants.PID_FILENAME
-// 	)
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func WritePidFile(pidFQN string, pid int) (errorInfo cpi.ErrorInfo) {
+
+	if errorInfo = WriteFile(pidFQN, []byte(strconv.Itoa(pid)), 0766); errorInfo.Error == nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
+	}
+
+	return
+}
+
+// createLogFile - will create and open the  log file using the fully qualified directory.
 //
-// 	if errorInfo = coreValidators.ValidateDirectory(directory); errorInfo.Error == nil {
-// 		pidStr := strconv.Itoa(os.Getpid())
-// 		if errorInfo = WriteFile(tPIDFileName, []byte(pidStr), 0766); errorInfo.Error == nil {
-// 			log.Printf("Wrote pid file (%v) to the file system. It must be removed if the system exits unexspectedly.", tPIDFileName)
-// 		}
+//	Customer Messages: None
+//	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
+//	Verifications: IsDirectoryFullyQualified
+func createLogFile(logFQD string) (logFileHandlerPtr *os.File, logFQN string, errorInfo cpi.ErrorInfo) {
+
+	var (
+		tLogFileName string
+	)
+
+	if IsDirectoryFullyQualified(logFQD) == false {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrDirectoryNotFullyQualified, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, logFQD))
+		return
+	}
+
+	tDateTime := time.Now().Format("2006-01-02 15:04:05.000 Z0700")
+	tLogFileName = strings.Replace(strings.Replace(strings.Replace(tDateTime, rcv.SPACES_ONE, rcv.UNDERSCORE, -1), rcv.COLON, rcv.UNDERSCORE, -1), rcv.PERIOD, rcv.UNDERSCORE, -1)
+	logFQN = fmt.Sprintf("%v%v.log", logFQD, tLogFileName)
+
+	// Set log file output
+	if logFileHandlerPtr, errorInfo.Error = os.OpenFile(logFQN, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, logFQN))
+		return
+	}
+
+	return
+}
+
+// getType
+// func getType(myVar interface{}) (myType string) {
+//
+// 	if t := reflect.TypeOf(myVar); t.Kind() == reflect.Ptr {
+// 		myType = "*" + t.Elem().Name()
+// 	} else {
+// 		myType = t.Name()
 // 	}
 //
 // 	return

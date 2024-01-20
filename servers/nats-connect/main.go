@@ -98,7 +98,6 @@ func main() {
 
 	var (
 		returnCode = 0
-		tServer    *src.Server
 	)
 
 	fmt.Println()
@@ -115,18 +114,11 @@ func main() {
 	}
 
 	// Has the config file location and name been provided, if not, return help.
-	if configFileFQN == "" && testingOn == false {
+	if (configFileFQN == "" || configFileFQN == "-t") && testingOn == false {
 		flaggy.ShowHelpAndExit("")
 	}
 
-	if tServer, returnCode = src.NewServer(configFileFQN, version, testingOn); returnCode > 0 {
-		Shutdown(returnCode)
-	}
-
-	Shutdown(tServer.Run()) // Start things up. Block here until done.
-}
-
-func Shutdown(returnCode int) {
+	returnCode = src.RunServer(configFileFQN, serverName, version, testingOn)
 	log.Printf("Shutting down %v server.\n", serverName)
 	os.Exit(returnCode)
 }
