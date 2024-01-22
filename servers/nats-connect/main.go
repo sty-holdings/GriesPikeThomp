@@ -103,8 +103,15 @@ func main() {
 	fmt.Println()
 	log.Printf("Starting %v server.\n", serverName)
 
+	// This is to prevent the serverName from being empty.
 	if serverName == rcv.VAL_EMPTY {
-		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName), rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName))
+		os.Exit(1)
+	}
+
+	// This is to prevent the version from being empty or not being set during the build process.
+	if (version == rcv.VAL_EMPTY || version == "9999.9999.9999") && testingOn == false {
+		cpi.PrintError(cpi.ErrVersionInvalid, fmt.Sprintf("%v %v", rcv.TXT_SERVER_VERSION, version))
 		os.Exit(1)
 	}
 
@@ -119,6 +126,6 @@ func main() {
 	}
 
 	returnCode = src.RunServer(configFileFQN, serverName, version, testingOn)
-	log.Printf("Shutting down %v server.\n", serverName)
+	log.Printf("%v server is stopped. REMIDER: Remove the pid file in the .run directory if it exists before running again.\n", serverName)
 	os.Exit(returnCode)
 }

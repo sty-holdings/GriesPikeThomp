@@ -39,7 +39,6 @@ import (
 
 	"log"
 	"runtime"
-	"strings"
 
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -81,7 +80,7 @@ func NewErrorInfo(myError error, additionalInfo string) (errorInfo ErrorInfo) {
 //	Customer Messages: None
 //	Errors: Missing values will be filled with 'MISSING'.
 //	Verifications: None
-func PrintError(myError error, additionalInfo string, outputMode string) {
+func PrintError(myError error, additionalInfo string) {
 
 	var (
 		errorInfo ErrorInfo
@@ -98,7 +97,7 @@ func PrintError(myError error, additionalInfo string, outputMode string) {
 		errorInfo.AdditionalInfo = additionalInfo
 	}
 
-	outputError(errorInfo, outputMode)
+	outputError(errorInfo)
 }
 
 // PrintErrorInfo - will output error information using this format:
@@ -108,27 +107,19 @@ func PrintError(myError error, additionalInfo string, outputMode string) {
 //	Customer Messages: None
 //	Errors: ErrErrorMissing
 //	Verifications: None
-func PrintErrorInfo(errorInfo ErrorInfo, outputMode string) {
+func PrintErrorInfo(errorInfo ErrorInfo) {
 
 	if errorInfo.Error == nil {
 		errorInfo = newError(ErrErrorMissing)
 	}
 
-	outputError(errorInfo, outputMode)
+	outputError(errorInfo)
 }
 
 // Private Functions
-func outputError(errorInfo ErrorInfo, outputMode string) {
+func outputError(errorInfo ErrorInfo) {
 
-	switch strings.ToLower(outputMode) {
-	case rcv.MODE_OUTPUT_DISPLAY:
-		log.Printf("[ERROR] %v %v Additional Info: '%v' File: %v Near Line Number: %v% v\n", rcv.BASH_COLOR_RED, errorInfo.Error.Error(), errorInfo.AdditionalInfo,
-			errorInfo.FileName, errorInfo.LineNumber, rcv.BASH_COLOR_RESET)
-	case rcv.MODE_OUTPUT_LOG:
-		fallthrough
-	case rcv.MODE_OUTPUT_LOG_DISPLAY:
-		log.Printf("[ERROR] %v Additional Info: '%v' File: %v Near Line Number: %v\n", errorInfo.Error.Error(), errorInfo.AdditionalInfo, errorInfo.FileName, errorInfo.LineNumber)
-	}
+	log.Printf("[ERROR] %v Additional Info: '%v' File: %v Near Line Number: %v\n", errorInfo.Error.Error(), errorInfo.AdditionalInfo, errorInfo.FileName, errorInfo.LineNumber)
 }
 
 func newError(myError error) (errorInfo ErrorInfo) {

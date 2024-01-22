@@ -72,7 +72,7 @@ func GenerateConfigFileSkeleton(serverName, SkeletonConfigDirectory, SkeletonCon
 	)
 
 	if serverName == rcv.VAL_EMPTY {
-		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName), rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName))
 		return
 	}
 	if SkeletonConfigDirectory == rcv.VAL_EMPTY || SkeletonConfigFilenameNoSuffix == rcv.VAL_EMPTY {
@@ -84,12 +84,12 @@ func GenerateConfigFileSkeleton(serverName, SkeletonConfigDirectory, SkeletonCon
 	}
 
 	if tSkeletonConfigData, errorInfo.Error = os.ReadFile(tSkeletonConfigFilename); errorInfo.Error != nil {
-		cpi.PrintError(cpi.ErrFileUnreadable, fmt.Sprintf("%v %v", rcv.TXT_FILENAME, tSkeletonConfigFilename), rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintError(cpi.ErrFileUnreadable, fmt.Sprintf("%v %v", rcv.TXT_FILENAME, tSkeletonConfigFilename))
 		return
 	}
 
 	if tSkeletonConfigNoteData, errorInfo.Error = os.ReadFile(tSkeletonConfigNoteFilename); errorInfo.Error != nil {
-		cpi.PrintError(cpi.ErrFileUnreadable, fmt.Sprintf("%v %v", rcv.TXT_FILENAME, tSkeletonConfigNoteFilename), rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintError(cpi.ErrFileUnreadable, fmt.Sprintf("%v %v", rcv.TXT_FILENAME, tSkeletonConfigNoteFilename))
 		return
 	}
 
@@ -143,15 +143,15 @@ func ValidateConfiguration(config Configuration) (errorInfo cpi.ErrorInfo) {
 		return
 	}
 	if cv.DoesDirectoryExist(config.LogDirectory) == false {
-		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_LOG_DIRECTORY), rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_LOG_DIRECTORY))
 		config.LogDirectory = DEFAULT_LOG_DIRECTORY
 	}
 	if config.MaxThreads < 1 || config.MaxThreads > THREAD_CAP {
-		cpi.PrintError(cpi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_MAX_THREADS, config.LogDirectory, DEFAULT_MAX_THREADS), rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintError(cpi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_MAX_THREADS, config.LogDirectory, DEFAULT_MAX_THREADS))
 		config.MaxThreads = DEFAULT_MAX_THREADS
 	}
 	if cv.DoesDirectoryExist(config.PIDDirectory) == false {
-		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_PID_DIRECTORY), rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_PID_DIRECTORY))
 		config.PIDDirectory = DEFAULT_PID_DIRECTORY
 	}
 

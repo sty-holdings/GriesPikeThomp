@@ -119,33 +119,28 @@ func RunServer(configFileFQN, serverName, version string, testingOn bool) (retur
 		tlogFQN            string
 	)
 
-	if version == rcv.VAL_EMPTY && testingOn == false {
-		cpi.PrintError(cpi.ErrVersionInvalid, fmt.Sprintf("%v %v", rcv.TXT_SERVER_VERSION, version), rcv.MODE_OUTPUT_DISPLAY)
-		return 1
-	}
-
 	// See if configuration file exists and is readable, if not, return an error
 	if tConfig, errorInfo = cc.ReadAndParseConfigFile(configFileFQN); errorInfo.Error != nil {
-		cpi.PrintErrorInfo(errorInfo, rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintErrorInfo(errorInfo)
 		return 1
 	}
 
 	if errorInfo = cc.ValidateConfiguration(tConfig); errorInfo.Error != nil {
-		cpi.PrintErrorInfo(errorInfo, rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintErrorInfo(errorInfo)
 		return 1
 	}
 
 	// Initializing the log output.
 	tLogFQD = h.PrependWorkingDirectoryWithEndingSlash(tConfig.LogDirectory)
 	if tLogFileHandlerPtr, tlogFQN, errorInfo = h.CreateAndRedirectLogOutput(tLogFQD, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
-		cpi.PrintErrorInfo(errorInfo, rcv.MODE_OUTPUT_DISPLAY)
+		cpi.PrintErrorInfo(errorInfo)
 		return
 	}
 
 	log.Printf("Creating a new instance of %v server.\n", serverName)
 
 	if serverPtr, errorInfo = InitializeServer(tConfig, serverName, version, tlogFQN, tLogFileHandlerPtr, testingOn); errorInfo.Error != nil {
-		log.Println(rcv.BASH_COLOR_RED, errorInfo, rcv.BASH_COLOR_RESET)
+		cpi.PrintErrorInfo(errorInfo)
 		return 1
 	}
 
@@ -159,8 +154,6 @@ func RunServer(configFileFQN, serverName, version string, testingOn bool) (retur
 	// myServer.verifyEmailURL = coreHelpers.GenerateVerifyEmailURL(myServer.environment, myServer.secured)
 
 	serverPtr.Run()
-
-	log.Printf("Instance of %v server has been created.\n", serverName)
 
 	return
 }
@@ -203,7 +196,7 @@ func NewServer(config cc.Configuration, serverName, version, logFQN string, logF
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) Run() (errorInfo cpi.ErrorInfo) {
+func (serverPtr *Server) Run() {
 
 	// capture signals
 	go initializeSignals(serverPtr)
@@ -601,7 +594,7 @@ func (serverPtr *Server) signalHandler(signal os.Signal) {
 	case syscall.SIGQUIT: // kill -SIGQUIT XXXX
 		serverPtr.Shutdown()
 	default:
-		cpi.PrintError(cpi.ErrSignalUnknown, fmt.Sprintf("%v%v", rcv.TXT_SIGNAL, signal.String()), serverPtr.instance.outputMode)
+		cpi.PrintError(cpi.ErrSignalUnknown, fmt.Sprintf("%v%v", rcv.TXT_SIGNAL, signal.String()))
 	}
 
 	os.Exit(0)
@@ -616,7 +609,7 @@ func (serverPtr *Server) Shutdown() {
 
 	// Remove pid file
 	if errorInfo = h.RemovePidFile(serverPtr.instance.pidFQN); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, serverPtr.instance.pidFQN))
+		cpi.PrintError(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, serverPtr.instance.pidFQN))
 	}
 
 	log.Println(rcv.LINE_SHORT)

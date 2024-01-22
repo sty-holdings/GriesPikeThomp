@@ -137,7 +137,8 @@ const (
 	USER_BUNDLE_ALREADY_EXISTS     = "User bundle already exists in the SavUp system."
 	USER_BUNDLE_MISSING            = "User bundle is not in the SavUp system."
 	USER_MISSING                   = "User is not in the SavUp system."
-	VERSION_INVALID                = "The software version is invalid. Use @env GOOS=linux GOARCH=amd64 go build -ldflags \"-X main.version=$(VERSION)\" -o ${ROOT_DIRECTORY}/servers/${SERVER_NAME}/bin/${SERVER_NAME} ${ROOT_DIRECTORY}/servers/${SERVER_NAME}/main.go"
+	VERSION_INVALID                = "The software version is invalid. Use @env GOOS=linux GOARCH=amd64 go build -ldflags \"-X main.version=$(" +
+		"VERSION)\" -o ${ROOT_DIRECTORY}/servers/${SERVER_NAME}/bin/${SERVER_NAME} ${ROOT_DIRECTORY}/servers/${SERVER_NAME}/main.go"
 	//
 	// String that are used to determine third party error messages
 	USER_DOES_NOT_EXIST = "User does not exist."
