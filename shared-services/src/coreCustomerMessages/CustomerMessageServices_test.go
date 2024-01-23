@@ -49,7 +49,7 @@ var (
 func TestUsernameAlreadyExists(tPtr *testing.T) {
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		_ = UsernameAlreadyExists(constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
+		_ = UsernameAlreadyExists(rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
 	})
 }
 
@@ -70,7 +70,7 @@ func TestUnexpectedError(tPtr *testing.T) {
 func TestUsernameNotFound(tPtr *testing.T) {
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		_ = UsernameNotFound(constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
+		_ = UsernameNotFound(rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
 	})
 }
 

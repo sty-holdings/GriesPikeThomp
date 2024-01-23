@@ -33,7 +33,8 @@ package sharedServices
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	TEST_FILE_NAME              = "test_file.txt"
-	TEST_DIRECTORY              = "/tmp"
-	TEST_DIRECTORY_ENDING_SLASH = "/tmp/"
+	TEST_DOMAIN               = "savup.com"
+	TEST_FILE_EXISTS_FILENAME = "file_exists.txt"
+	TEST_FILE_UNREADABLE      = "unreadable_file.txt"
+	TEST_INVALID_DOMAIN       = "tmp"
 )

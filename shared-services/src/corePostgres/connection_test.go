@@ -69,7 +69,7 @@ func TestSetConnectionValue(tPtr *testing.T) {
 		{
 			name: "Negative Case: Missing DBName!",
 			arguments: arguments{
-				dbName:      constants.EMPTY,
+				dbName:      rcv.EMPTY,
 				user:        "string",
 				password:    "string",
 				host:        "string",

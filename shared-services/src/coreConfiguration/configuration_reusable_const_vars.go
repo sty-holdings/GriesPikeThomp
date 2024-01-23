@@ -1,4 +1,4 @@
-// Package shared_services
+// Package sharedServices
 /*
 General description of the purpose of the go file.
 
@@ -29,7 +29,7 @@ COPYRIGHT:
 	limitations under the License.
 
 */
-package shared_services
+package sharedServices
 
 //goland:noinspection GoSnakeCaseUsage
 const (

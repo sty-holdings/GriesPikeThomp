@@ -35,15 +35,30 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
-	"cloud.google.com/go/firestore"
-	firebase "firebase.google.com/go"
-	"firebase.google.com/go/auth"
+	"fmt"
+	"strings"
+
+	ns "GriesPikeThomp/shared-services/src/coreNATS"
+	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-// This is here because if it were in coreFirebase or coreFirestore a circular reference would occur.
-type FirebaseFirestoreHelper struct {
-	AppPtr              *firebase.App
-	AuthPtr             *auth.Client
-	FirestoreClientPtr  *firestore.Client
-	CredentialsLocation string
+func HandleExtension(extensions map[string]map[string]interface{}) (extensionPtrs map[string]interface{}, errorInfo cpi.ErrorInfo) {
+
+	var (
+		tExtension = make(map[string]interface{})
+	)
+
+	extensionPtrs = make(map[string]interface{})
+	for extensionName, extensionValues := range extensions {
+		switch strings.ToLower(extensionName) {
+		case NATS_INTERNAL:
+			tExtension = extensionValues
+			extensionPtrs[NATS_INTERNAL], errorInfo = ns.NewNATS(tExtension)
+		default:
+			fmt.Println(rcv.TXT_BAD)
+		}
+	}
+
+	return
 }

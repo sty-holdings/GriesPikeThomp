@@ -1,4 +1,4 @@
-// Package coreJWT
+// Package sharedServices
 /*
 This is the STY-Holdings shared services
 
@@ -32,14 +32,13 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package coreJWT
+package sharedServices
 
 import (
 	"runtime"
 	"testing"
 
-	"albert/constants"
-	"albert/core/coreError"
+	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 )
 
 //goland:noinspection ALL
@@ -57,7 +56,7 @@ func TestGenerateJWT(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo coreError.ErrorInfo
+		errorInfo cpi.ErrorInfo
 		gotError  bool
 	)
 
@@ -70,8 +69,8 @@ func TestGenerateJWT(tPtr *testing.T) {
 			name: "Positive Case: Successful - period year!",
 			arguments: arguments{
 				privateKey:  TEST_PRIVATE_KEY,
-				requestorId: constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				period:      constants.YEAR,
+				requestorId: rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				period:      rcv.YEAR,
 				duration:    10,
 			},
 			wantError: false,
@@ -80,8 +79,8 @@ func TestGenerateJWT(tPtr *testing.T) {
 			name: "Positive Case: Successful! - period month",
 			arguments: arguments{
 				privateKey:  TEST_PRIVATE_KEY,
-				requestorId: constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				period:      constants.MONTH,
+				requestorId: rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				period:      rcv.MONTH,
 				duration:    10,
 			},
 			wantError: false,
@@ -90,8 +89,8 @@ func TestGenerateJWT(tPtr *testing.T) {
 			name: "Positive Case: Successful - period day!",
 			arguments: arguments{
 				privateKey:  TEST_PRIVATE_KEY,
-				requestorId: constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				period:      constants.DAY,
+				requestorId: rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				period:      rcv.DAY,
 				duration:    10,
 			},
 			wantError: false,
@@ -100,8 +99,8 @@ func TestGenerateJWT(tPtr *testing.T) {
 			name: "Negative Case: Empty period!",
 			arguments: arguments{
 				privateKey:  TEST_PRIVATE_KEY,
-				requestorId: constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				period:      constants.EMPTY,
+				requestorId: rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				period:      rcv.EMPTY,
 				duration:    10,
 			},
 			wantError: true,
@@ -110,8 +109,8 @@ func TestGenerateJWT(tPtr *testing.T) {
 			name: "Negative Case: Empty requestor id!",
 			arguments: arguments{
 				privateKey:  TEST_PRIVATE_KEY,
-				requestorId: constants.EMPTY,
-				period:      constants.DAY,
+				requestorId: rcv.EMPTY,
+				period:      rcv.DAY,
 				duration:    10,
 			},
 			wantError: true,
@@ -120,8 +119,8 @@ func TestGenerateJWT(tPtr *testing.T) {
 			name: "Negative Case: Zero duration",
 			arguments: arguments{
 				privateKey:  TEST_PRIVATE_KEY,
-				requestorId: constants.EMPTY,
-				period:      constants.DAY,
+				requestorId: rcv.EMPTY,
+				period:      rcv.DAY,
 				duration:    0,
 			},
 			wantError: true,
@@ -130,8 +129,8 @@ func TestGenerateJWT(tPtr *testing.T) {
 			name: "Negative Case: Zero negative",
 			arguments: arguments{
 				privateKey:  TEST_PRIVATE_KEY,
-				requestorId: constants.EMPTY,
-				period:      constants.DAY,
+				requestorId: rcv.EMPTY,
+				period:      rcv.DAY,
 				duration:    -1,
 			},
 			wantError: true,
@@ -159,7 +158,7 @@ func TestGenerateRSAKey(tPtr *testing.T) {
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 	)
 
 	tPtr.Run(tFunctionName, func(t *testing.T) {
@@ -176,7 +175,7 @@ func TestGenerateRSAKey(tPtr *testing.T) {
 func TestParsePrivateKey(tPtr *testing.T) {
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 		tRawPrivateKey     []byte
@@ -186,10 +185,10 @@ func TestParsePrivateKey(tPtr *testing.T) {
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
 		if _, errorInfo = ParsePrivateKey(tRawPrivateKey); errorInfo.Error != nil {
-			tPtr.Errorf("%v Failed: Was expected %v and got error.", tFunctionName, constants.STATUS_SUCCESS)
+			tPtr.Errorf("%v Failed: Was expected %v and got error.", tFunctionName, rcv.STATUS_SUCCESS)
 		}
-		if _, errorInfo = ParsePrivateKey([]byte(constants.EMPTY)); errorInfo.Error == nil {
-			tPtr.Errorf("%v Failed: Was expected an error and got %v.", tFunctionName, constants.STATUS_SUCCESS)
+		if _, errorInfo = ParsePrivateKey([]byte(rcv.EMPTY)); errorInfo.Error == nil {
+			tPtr.Errorf("%v Failed: Was expected an error and got %v.", tFunctionName, rcv.STATUS_SUCCESS)
 		}
 	})
 }

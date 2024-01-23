@@ -50,7 +50,6 @@ import (
 	"strings"
 
 	"albert/constants"
-	"albert/core/coreError"
 	"albert/core/coreFirestore"
 	"cloud.google.com/go/firestore"
 	"github.com/aws/aws-sdk-go/aws"
@@ -115,7 +114,7 @@ var (
 //	Customer Messages: None
 //	Errors:
 //	Verifications: None
-func NewAWSSession(awsInfoFQN string) (awsHelper AWSHelper, errorInfo coreError.ErrorInfo) {
+func NewAWSSession(awsInfoFQN string) (awsHelper AWSHelper, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAWSConfig         AWSConfig
@@ -124,18 +123,18 @@ func NewAWSSession(awsInfoFQN string) (awsHelper AWSHelper, errorInfo coreError.
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if awsInfoFQN == constants.EMPTY {
-		coreError.PrintDebugLine(tFunctionName, fmt.Sprintf("awsInfoFQN: %v", awsInfoFQN))
-		errorInfo.Error = coreError.ErrRequiredArgumentMissing
+	if awsInfoFQN == rcv.EMPTY {
+		cpi.PrintDebugLine(tFunctionName, fmt.Sprintf("awsInfoFQN: %v", awsInfoFQN))
+		errorInfo.Error = cpi.ErrRequiredArgumentMissing
 		errorInfo.AdditionalInfo = fmt.Sprintf("AWS Credential FQN: '%v'", awsInfoFQN)
-		coreError.PrintError(errorInfo)
+		cpi.PrintError(errorInfo)
 	} else {
 		if tData, errorInfo.Error = os.ReadFile(awsInfoFQN); errorInfo.Error == nil {
-			coreError.PrintDebugLine(tFunctionName, fmt.Sprintf("tData: %v", tData))
+			cpi.PrintDebugLine(tFunctionName, fmt.Sprintf("tData: %v", tData))
 			if errorInfo.Error = json.Unmarshal(tData, &tAWSConfig); errorInfo.Error == nil {
-				coreError.PrintDebugLine(tFunctionName, fmt.Sprintf("tAWSConfig: %v", tAWSConfig))
+				cpi.PrintDebugLine(tFunctionName, fmt.Sprintf("tAWSConfig: %v", tAWSConfig))
 				awsHelper.SessionPtr, errorInfo.Error = awsSession.NewSessionWithOptions(awsSession.Options{
 					Config: aws.Config{
 						Region: aws.String(tAWSConfig.Region),
@@ -143,25 +142,25 @@ func NewAWSSession(awsInfoFQN string) (awsHelper AWSHelper, errorInfo coreError.
 					Profile: tAWSConfig.ProfileName,
 				})
 				if errorInfo.Error == nil {
-					coreError.PrintDebugLine(tFunctionName, "AWS Session started.")
+					cpi.PrintDebugLine(tFunctionName, "AWS Session started.")
 					awsHelper.InfoFQN = awsInfoFQN
 					awsHelper.AWSConfig = tAWSConfig
 					awsHelper.KeySetURL = fmt.Sprintf("https://cognito-idp.%s.amazonaws.com/%s/.well-known/jwks.json", awsHelper.AWSConfig.Region, awsHelper.AWSConfig.UserPoolId)
 					awsHelper.KeySet, errorInfo = getPublicKeySet(awsHelper.KeySetURL)
 				} else {
-					coreError.PrintDebugLine(tFunctionName, "AWS Session failed.")
+					cpi.PrintDebugLine(tFunctionName, "AWS Session failed.")
 					errorInfo.AdditionalInfo = fmt.Sprintf("AWS Account Info JSON file: '%v'", awsInfoFQN)
-					coreError.PrintError(errorInfo)
+					cpi.PrintError(errorInfo)
 				}
 			} else {
-				errorInfo.Error = coreError.ErrJSONInvalid
+				errorInfo.Error = cpi.ErrJSONInvalid
 				errorInfo.AdditionalInfo = fmt.Sprintf("AWS Account Info JSON file: '%v'", awsInfoFQN)
-				coreError.PrintError(errorInfo)
+				cpi.PrintError(errorInfo)
 			}
 		} else {
-			errorInfo.Error = coreError.ErrServiceFailedAWS
+			errorInfo.Error = cpi.ErrServiceFailedAWS
 			errorInfo.AdditionalInfo = fmt.Sprintf("Required AWS Account Info file %v has an issue.", awsInfoFQN)
-			coreError.PrintError(errorInfo)
+			cpi.PrintError(errorInfo)
 		}
 	}
 
@@ -169,7 +168,7 @@ func NewAWSSession(awsInfoFQN string) (awsHelper AWSHelper, errorInfo coreError.
 }
 
 // ConfirmUser - mark the AWS user as confirmed
-func (a *AWSHelper) ConfirmUser(userName string) (errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) ConfirmUser(userName string) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAdminConfirmSignUpInput    cognito.AdminConfirmSignUpInput
@@ -178,10 +177,10 @@ func (a *AWSHelper) ConfirmUser(userName string) (errorInfo coreError.ErrorInfo)
 		tFunctionName               = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if userName == constants.EMPTY {
-		errorInfo.Error = coreError.ErrRequiredArgumentMissing
+	if userName == rcv.EMPTY {
+		errorInfo.Error = cpi.ErrRequiredArgumentMissing
 		log.Println(errorInfo.Error)
 	} else {
 		tCognitoIdentityProviderPtr = cognito.New(a.SessionPtr)
@@ -189,11 +188,11 @@ func (a *AWSHelper) ConfirmUser(userName string) (errorInfo coreError.ErrorInfo)
 		tAdminConfirmSignUpInput.UserPoolId = &a.AWSConfig.UserPoolId
 		if _, errorInfo.Error = tCognitoIdentityProviderPtr.AdminConfirmSignUp(&tAdminConfirmSignUpInput); errorInfo.Error != nil {
 			// If the user is already confirmed, AWS will return an error, and do not care about this error.
-			if strings.Contains(errorInfo.Error.Error(), constants.STATUS_CONFIRMED) {
+			if strings.Contains(errorInfo.Error.Error(), rcv.STATUS_CONFIRMED) {
 				errorInfo.Error = nil
 			} else {
-				if strings.Contains(errorInfo.Error.Error(), coreError.USER_DOES_NOT_EXIST) {
-					errorInfo.Error = coreError.ErrUserMissing
+				if strings.Contains(errorInfo.Error.Error(), cpi.USER_DOES_NOT_EXIST) {
+					errorInfo.Error = cpi.ErrUserMissing
 				}
 			}
 		}
@@ -203,7 +202,7 @@ func (a *AWSHelper) ConfirmUser(userName string) (errorInfo coreError.ErrorInfo)
 }
 
 // GetRequestorEmailPhoneFromIdTokenClaims - will validate the AWS Id JWT, check to make sure the email has been verified, and return the requestor id, email, and phone number.
-func (a *AWSHelper) GetRequestorEmailPhoneFromIdTokenClaims(firestoreClientPtr *firestore.Client, token string) (requestorId, email, phoneNumber string, errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) GetRequestorEmailPhoneFromIdTokenClaims(firestoreClientPtr *firestore.Client, token string) (requestorId, email, phoneNumber string, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tClaimsPtr         *Claims
@@ -211,19 +210,19 @@ func (a *AWSHelper) GetRequestorEmailPhoneFromIdTokenClaims(firestoreClientPtr *
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if token == constants.EMPTY {
+	if token == rcv.EMPTY {
 		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! Token: '%v'", token))
 		log.Println(errorInfo.Error)
 	} else {
-		if tClaimsPtr, errorInfo = getTokenClaims(a, constants.TOKEN_TYPE_ID, token); errorInfo.Error == nil {
-			if isTokenValid(firestoreClientPtr, a, constants.TOKEN_TYPE_ID, token) {
+		if tClaimsPtr, errorInfo = getTokenClaims(a, rcv.TOKEN_TYPE_ID, token); errorInfo.Error == nil {
+			if isTokenValid(firestoreClientPtr, a, rcv.TOKEN_TYPE_ID, token) {
 				requestorId = tClaimsPtr.Subject
 				email = tClaimsPtr.Email
 				phoneNumber = tClaimsPtr.PhoneNumber
 			} else {
-				errorInfo.Error = coreError.ErrTokenInvalid
+				errorInfo.Error = cpi.ErrTokenInvalid
 				log.Println(errorInfo.Error)
 			}
 		}
@@ -237,7 +236,7 @@ func (a *AWSHelper) GetRequestorEmailPhoneFromIdTokenClaims(firestoreClientPtr *
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (a *AWSHelper) GetRequestorFromAccessTokenClaims(firestoreClientPtr *firestore.Client, token string) (requestorId string, errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) GetRequestorFromAccessTokenClaims(firestoreClientPtr *firestore.Client, token string) (requestorId string, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tClaimsPtr         *Claims
@@ -245,20 +244,20 @@ func (a *AWSHelper) GetRequestorFromAccessTokenClaims(firestoreClientPtr *firest
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if token == constants.TEST_STRING {
-		requestorId = constants.TEST_USERNAME_SAVUP_REQUESTOR_ID
+	if token == rcv.TEST_STRING {
+		requestorId = rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID
 	} else {
-		if token == constants.EMPTY {
+		if token == rcv.EMPTY {
 			errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! Token: '%v'", token))
 			log.Println(errorInfo.Error)
 		} else {
-			if tClaimsPtr, errorInfo = getTokenClaims(a, constants.TOKEN_TYPE_ACCESS, token); errorInfo.Error == nil {
-				if isTokenValid(firestoreClientPtr, a, constants.TOKEN_TYPE_ACCESS, token) {
+			if tClaimsPtr, errorInfo = getTokenClaims(a, rcv.TOKEN_TYPE_ACCESS, token); errorInfo.Error == nil {
+				if isTokenValid(firestoreClientPtr, a, rcv.TOKEN_TYPE_ACCESS, token) {
 					requestorId = tClaimsPtr.Subject
 				} else {
-					errorInfo.Error = coreError.ErrTokenInvalid
+					errorInfo.Error = cpi.ErrTokenInvalid
 					log.Println(errorInfo.Error)
 				}
 			}
@@ -269,24 +268,24 @@ func (a *AWSHelper) GetRequestorFromAccessTokenClaims(firestoreClientPtr *firest
 }
 
 // ParseAWSJWTWithClaims - will return an err if the AWS JWT is invalid.
-func (a *AWSHelper) ParseAWSJWTWithClaims(tokenType, tokenString string) (claimsPtr *Claims, errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) ParseAWSJWTWithClaims(tokenType, tokenString string) (claimsPtr *Claims, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if tokenString == constants.EMPTY {
+	if tokenString == rcv.EMPTY {
 		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! Token: '%v'", tokenString))
 		log.Println(errorInfo.Error)
 	} else {
 		if _, errorInfo.Error = jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (key interface{}, err error) {
 			switch strings.ToUpper(tokenType) {
-			case constants.TOKEN_TYPE_ID:
+			case rcv.TOKEN_TYPE_ID:
 				key, err = convertKey(a.KeySet.Keys[0].E, a.KeySet.Keys[0].N)
-			case constants.TOKEN_TYPE_ACCESS:
+			case rcv.TOKEN_TYPE_ACCESS:
 				key, err = convertKey(a.KeySet.Keys[1].E, a.KeySet.Keys[1].N)
 			}
 			claimsPtr = token.Claims.(*Claims)
@@ -300,16 +299,16 @@ func (a *AWSHelper) ParseAWSJWTWithClaims(tokenType, tokenString string) (claims
 }
 
 // ParseAWSJWT - will return an err if the AWS JWT is invalid.
-func (a *AWSHelper) ParseAWSJWT(tokenString string) (tTokenPtr *jwt.Token, errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) ParseAWSJWT(tokenString string) (tTokenPtr *jwt.Token, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if tokenString == constants.EMPTY {
+	if tokenString == rcv.EMPTY {
 		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! Token: '%v'", tokenString))
 		fmt.Println(errorInfo.Error)
 	} else {
@@ -323,7 +322,7 @@ func (a *AWSHelper) ParseAWSJWT(tokenString string) (tTokenPtr *jwt.Token, error
 }
 
 // PullCognitoUserInfo - pull user information from the Cognito user pool.
-func (a *AWSHelper) PullCognitoUserInfo(username string) (userData map[string]interface{}, errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) PullCognitoUserInfo(username string) (userData map[string]interface{}, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAdminGetUserInput          cognito.AdminGetUserInput
@@ -333,17 +332,17 @@ func (a *AWSHelper) PullCognitoUserInfo(username string) (userData map[string]in
 		tFunctionName               = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if username == constants.EMPTY {
-		errorInfo.Error = coreError.ErrRequiredArgumentMissing
-		coreError.PrintError(errorInfo)
+	if username == rcv.EMPTY {
+		errorInfo.Error = cpi.ErrRequiredArgumentMissing
+		cpi.PrintError(errorInfo)
 	} else {
 		tCognitoIdentityProviderPtr = cognito.New(a.SessionPtr)
 		if tCognitoIdentityProviderPtr == nil {
-			errorInfo.FileName, errorInfo.ErrorLineNumber = coreError.GetFileLineNumber()
-			errorInfo.Error = coreError.ErrServiceFailedAWS
-			coreError.PrintError(errorInfo)
+			errorInfo.FileName, errorInfo.ErrorLineNumber = cpi.GetFileLineNumber()
+			errorInfo.Error = cpi.ErrServiceFailedAWS
+			cpi.PrintError(errorInfo)
 		} else {
 			// Set up the request to get the user
 			tAdminGetUserInput.UserPoolId = &a.AWSConfig.UserPoolId
@@ -355,9 +354,9 @@ func (a *AWSHelper) PullCognitoUserInfo(username string) (userData map[string]in
 					userData[*attr.Name] = *attr.Value
 				}
 			} else {
-				errorInfo.FileName, errorInfo.ErrorLineNumber = coreError.GetFileLineNumber()
-				errorInfo.Error = coreError.ErrServiceFailedAWS
-				coreError.PrintError(errorInfo)
+				errorInfo.FileName, errorInfo.ErrorLineNumber = cpi.GetFileLineNumber()
+				errorInfo.Error = cpi.ErrServiceFailedAWS
+				cpi.PrintError(errorInfo)
 			}
 		}
 	}
@@ -366,16 +365,16 @@ func (a *AWSHelper) PullCognitoUserInfo(username string) (userData map[string]in
 }
 
 // ValidAWSJWT - will valid the AWS JWT and check to make sure either the phone or email has been verified.
-func (a *AWSHelper) ValidAWSJWT(firestoreClientPtr *firestore.Client, tokenType, token string) (valid bool, errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) ValidAWSJWT(firestoreClientPtr *firestore.Client, tokenType, token string) (valid bool, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if token == constants.EMPTY {
+	if token == rcv.EMPTY {
 		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! Token: '%v'", token))
 		log.Println(errorInfo.Error)
 	} else {
@@ -386,7 +385,7 @@ func (a *AWSHelper) ValidAWSJWT(firestoreClientPtr *firestore.Client, tokenType,
 }
 
 // UpdateAWSEmailVerifyFlag - will update the email_valid field for the user in the Cognito user pool.
-func (a *AWSHelper) UpdateAWSEmailVerifyFlag(username string) (errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) UpdateAWSEmailVerifyFlag(username string) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAdminUpdateUserAttributesInput cognito.AdminUpdateUserAttributesInput
@@ -398,13 +397,13 @@ func (a *AWSHelper) UpdateAWSEmailVerifyFlag(username string) (errorInfo coreErr
 		tName                           string
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if username == constants.EMPTY {
-		errorInfo.Error = coreError.ErrRequiredArgumentMissing
+	if username == rcv.EMPTY {
+		errorInfo.Error = cpi.ErrRequiredArgumentMissing
 	} else {
 		tCognitoIdentityProviderPtr = cognito.New(a.SessionPtr)
-		tName = constants.FN_EMAIL_VERIFIED // This is required because go doesn't support pointers to constants.
+		tName = rcv.FN_EMAIL_VERIFIED // This is required because go doesn't support pointers to rcv.
 		tAttributeType = cognito.AttributeType{
 			Name:  &tName,
 			Value: &tTrueString,
@@ -421,7 +420,7 @@ func (a *AWSHelper) UpdateAWSEmailVerifyFlag(username string) (errorInfo coreErr
 }
 
 // ResetUserPassword - trigger one-time code to be set to user email.
-func (a *AWSHelper) ResetUserPassword(userName string, test bool) (errorInfo coreError.ErrorInfo) {
+func (a *AWSHelper) ResetUserPassword(userName string, test bool) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAdminResetUserPasswordInput cognito.AdminResetUserPasswordInput
@@ -431,9 +430,9 @@ func (a *AWSHelper) ResetUserPassword(userName string, test bool) (errorInfo cor
 		req                          *request.Request
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if userName == constants.EMPTY {
+	if userName == rcv.EMPTY {
 		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! AWS User Name: '%v'", userName))
 		log.Println(errorInfo.Error)
 	} else {
@@ -453,31 +452,31 @@ func (a *AWSHelper) ResetUserPassword(userName string, test bool) (errorInfo cor
 func areAWSClaimsValid(FirestoreClientPtr *firestore.Client, subject, email, username, tokenUse string, emailVerified bool) bool {
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		tDocumentPtr       *firestore.DocumentSnapshot
 		tEmailInterface    interface{}
 		tSubjectInterface  interface{}
 		tUsernameInterface interface{}
 	)
 
-	if _, tDocumentPtr, errorInfo = coreFirestore.FindDocument(FirestoreClientPtr, constants.DATASTORE_USERS, coreFirestore.NameValueQuery{
-		FieldName:  constants.FN_REQUESTOR_ID,
+	if _, tDocumentPtr, errorInfo = coreFirestore.FindDocument(FirestoreClientPtr, rcv.DATASTORE_USERS, coreFirestore.NameValueQuery{
+		FieldName:  rcv.FN_REQUESTOR_ID,
 		FieldValue: subject,
 	}); errorInfo.Error == nil {
 		switch strings.ToUpper(tokenUse) {
-		case constants.TOKEN_TYPE_ID:
-			if tSubjectInterface, errorInfo.Error = tDocumentPtr.DataAt(constants.FN_REQUESTOR_ID); errorInfo.Error == nil {
-				if tUsernameInterface, errorInfo.Error = tDocumentPtr.DataAt(constants.FN_USERNAME); errorInfo.Error == nil {
-					if tEmailInterface, errorInfo.Error = tDocumentPtr.DataAt(constants.FN_EMAIL); errorInfo.Error == nil {
+		case rcv.TOKEN_TYPE_ID:
+			if tSubjectInterface, errorInfo.Error = tDocumentPtr.DataAt(rcv.FN_REQUESTOR_ID); errorInfo.Error == nil {
+				if tUsernameInterface, errorInfo.Error = tDocumentPtr.DataAt(rcv.FN_USERNAME); errorInfo.Error == nil {
+					if tEmailInterface, errorInfo.Error = tDocumentPtr.DataAt(rcv.FN_EMAIL); errorInfo.Error == nil {
 						if emailVerified && tSubjectInterface.(string) == subject && tEmailInterface.(string) == email && tUsernameInterface.(string) == username {
 							return true
 						}
 					}
 				}
 			}
-		case constants.TOKEN_TYPE_ACCESS:
-			if tSubjectInterface, errorInfo.Error = tDocumentPtr.DataAt(constants.FN_REQUESTOR_ID); errorInfo.Error == nil {
-				if tUsernameInterface, errorInfo.Error = tDocumentPtr.DataAt(constants.FN_USERNAME); errorInfo.Error == nil {
+		case rcv.TOKEN_TYPE_ACCESS:
+			if tSubjectInterface, errorInfo.Error = tDocumentPtr.DataAt(rcv.FN_REQUESTOR_ID); errorInfo.Error == nil {
+				if tUsernameInterface, errorInfo.Error = tDocumentPtr.DataAt(rcv.FN_USERNAME); errorInfo.Error == nil {
 					if emailVerified && tSubjectInterface.(string) == subject && tUsernameInterface.(string) == username {
 						return true
 					}
@@ -519,7 +518,7 @@ func convertKey(rawE, rawN string) (publicKey *rsa.PublicKey, err error) {
 }
 
 // getPublicKeySet
-func getPublicKeySet(keySetURL string) (keySet KeySet, errorInfo coreError.ErrorInfo) {
+func getPublicKeySet(keySetURL string) (keySet KeySet, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tBody              []byte
@@ -528,14 +527,14 @@ func getPublicKeySet(keySetURL string) (keySet KeySet, errorInfo coreError.Error
 		tKeySetPtr         *http.Response
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if keySetURL == constants.EMPTY {
+	if keySetURL == rcv.EMPTY {
 		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! Key Set URL: '%v'", keySetURL))
 		log.Println(errorInfo.Error)
 	} else {
 		if tKeySetPtr, errorInfo.Error = http.Get(keySetURL); errorInfo.Error == nil {
-			if tKeySetPtr.StatusCode == constants.HTTP_STATUS_200 {
+			if tKeySetPtr.StatusCode == rcv.HTTP_STATUS_200 {
 				if tBody, errorInfo.Error = io.ReadAll(tKeySetPtr.Body); errorInfo.Error == nil {
 					if errorInfo.Error = json.Unmarshal(tBody, &keySet); errorInfo.Error != nil {
 						errorInfo.Error = errors.New(fmt.Sprintf("Get Public Key's KeySet is corrupt. Response Body: '%v' Error: %v", tBody, errorInfo.Error))
@@ -555,24 +554,24 @@ func getPublicKeySet(keySetURL string) (keySet KeySet, errorInfo coreError.Error
 func isTokenValid(firestoreClientPtr *firestore.Client, a *AWSHelper, tokenType, token string) bool {
 
 	var (
-		errorInfo  coreError.ErrorInfo
+		errorInfo  cpi.ErrorInfo
 		tClaimsPtr *Claims
 	)
 
 	a.tokenType = tokenType
 	if tClaimsPtr, errorInfo = getTokenClaims(a, tokenType, token); errorInfo.Error == nil {
 		switch strings.ToUpper(tClaimsPtr.TokenUse) {
-		case constants.TOKEN_TYPE_ID:
+		case rcv.TOKEN_TYPE_ID:
 			return areAWSClaimsValid(firestoreClientPtr, tClaimsPtr.Subject, tClaimsPtr.Email, tClaimsPtr.CognitoUsername, tClaimsPtr.TokenUse, tClaimsPtr.EmailVerified)
-		case constants.TOKEN_TYPE_ACCESS:
-			return areAWSClaimsValid(firestoreClientPtr, tClaimsPtr.Subject, constants.EMPTY, tClaimsPtr.UserName, tClaimsPtr.TokenUse, true)
+		case rcv.TOKEN_TYPE_ACCESS:
+			return areAWSClaimsValid(firestoreClientPtr, tClaimsPtr.Subject, rcv.EMPTY, tClaimsPtr.UserName, tClaimsPtr.TokenUse, true)
 		}
 	}
 
 	return false
 }
 
-func getTokenClaims(a *AWSHelper, tokenType, token string) (claimsPtr *Claims, errorInfo coreError.ErrorInfo) {
+func getTokenClaims(a *AWSHelper, tokenType, token string) (claimsPtr *Claims, errorInfo cpi.ErrorInfo) {
 
 	return a.ParseAWSJWTWithClaims(tokenType, token)
 }

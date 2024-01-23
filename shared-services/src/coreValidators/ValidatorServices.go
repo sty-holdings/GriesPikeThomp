@@ -1,4 +1,4 @@
-// Package coreValidators
+// Package sharedServices
 /*
 This is the STY-Holdings shared services
 
@@ -32,13 +32,15 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package coreValidators
+package sharedServices
 
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
+	ch "GriesPikeThomp/shared-services/src/coreHelpers"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -100,33 +102,40 @@ import (
 // 	return
 // }
 
-// CheckFileExistsAndReadable - works on any file.
+// DoesFileExistsAndReadable - works on any file. If the filename is not fully qualified
+// the working directory will be prepended to the filename.
+//
 //	Customer Messages: None
-//	Errors: None
+//	Errors: ErrFileMissing, ErrFileUnreadable
 //	Verifications: None
-// func CheckFileExistsAndReadable(FQN, fileLabel string) (errorInfo cpi.ErrorInfo) {
-//
-// 	errorInfo.AdditionalInfo = fmt.Sprintf("File: %v  Config File Label: %v", FQN, fileLabel)
-//
-// 	if FQN == rcv.VAL_EMPTY {
-// 		errorInfo.AdditionalInfo = fileLabel + rcv.TXT_IS_EMPTY
-// 		errorInfo.Error = cpi.ErrFileMissing
-// 		cpi.PrintErrorInfo(errorInfo)
-// 	} else if DoesFileExist(FQN) == false {
-// 		errorInfo.Error = cpi.ErrFileMissing
-// 		cpi.PrintError(errorInfo)
-// 	} else {
-// 		if IsFileReadable(FQN) == false { // File is not readable
-// 			errorInfo.Error = cpi.ErrFileUnreadable
-// 			cpi.PrintError(errorInfo)
-// 		}
-// 	}
-//
-// 	return
-// }
+func DoesFileExistsAndReadable(filename, fileLabel string) (errorInfo cpi.ErrorInfo) {
+
+	var (
+		fqn = ch.PrependWorkingDirectory(filename)
+	)
+
+	if fileLabel == rcv.VAL_EMPTY {
+		fileLabel = rcv.TXT_NO_LABEL_PROVIDED
+	}
+	errorInfo.AdditionalInfo = fmt.Sprintf("File: %v  Config File Label: %v", filename, fileLabel)
+
+	if filename == rcv.VAL_EMPTY {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrFileMissing, errorInfo.AdditionalInfo)
+		return
+	}
+	if DoesFileExist(fqn) == false {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrFileMissing, errorInfo.AdditionalInfo)
+		return
+	}
+	if IsFileReadable(fqn) == false { // File is not readable
+		errorInfo = cpi.NewErrorInfo(cpi.ErrFileUnreadable, errorInfo.AdditionalInfo)
+	}
+
+	return
+}
 
 // CheckFileValidJSON - reads the file and checks the contents
-// func CheckFileValidJSON(FQN, fileLabel string) (errorInfo coreError.ErrorInfo) {
+// func CheckFileValidJSON(FQN, fileLabel string) (errorInfo cpi.ErrorInfo) {
 //
 // 	var (
 // 		jsonData           []byte
@@ -134,19 +143,19 @@ import (
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
-// 	coreError.PrintDebugTrail(tFunctionName)
-// 	errorInfo = coreError.GetFunctionInfo()
+// 	cpi.PrintDebugTrail(tFunctionName)
+// 	errorInfo = cpi.GetFunctionInfo()
 // 	errorInfo.AdditionalInfo = fmt.Sprintf("File: %v  Config File Label: %v", FQN, fileLabel)
 //
 // 	if jsonData, errorInfo.Error = os.ReadFile(FQN); errorInfo.Error != nil {
-// 		errorInfo.Error = coreError.ErrFileUnreadable
+// 		errorInfo.Error = cpi.ErrFileUnreadable
 // 		errorInfo.AdditionalInfo = fmt.Sprintf("FQN: %v File Label: %v", FQN, fileLabel)
-// 		coreError.PrintError(errorInfo)
+// 		cpi.PrintError(errorInfo)
 // 	} else {
 // 		if _isJSON := IsJSONValid(jsonData); _isJSON == false {
-// 			errorInfo.Error = coreError.ErrFileUnreadable
+// 			errorInfo.Error = cpi.ErrFileUnreadable
 // 			errorInfo.AdditionalInfo = fmt.Sprintf("FQN: %v File Label: %v", FQN, fileLabel)
-// 			coreError.PrintError(errorInfo)
+// 			cpi.PrintError(errorInfo)
 // 		}
 // 	}
 //
@@ -177,20 +186,24 @@ func DoesFileExist(fileName string) bool {
 	return false
 }
 
-// IsDomainValid
-// func IsDomainValid(domain string) bool {
+// IsDomainValid - checks if domain naming is followed
 //
-// 	if strings.ToLower(domain) == rcv.LOCAL_HOST {
-// 		return true
-// 	} else {
-// 		regex := regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$`)
-// 		if regex.MatchString(domain) {
-// 			return true
-// 		}
-// 	}
-//
-// 	return false
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func IsDomainValid(domain string) bool {
+
+	if strings.ToLower(domain) == rcv.LOCAL_HOST {
+		return true
+	} else {
+		regex := regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$`)
+		if regex.MatchString(domain) {
+			return true
+		}
+	}
+
+	return false
+}
 
 // IsEnvironmentValid - checks that the value is valid. This function input is case-insensitive
 //
@@ -223,15 +236,19 @@ func IsEnvironmentValid(environment string) bool {
 // 	return true
 // }
 
-// IsFileReadable
-// func IsFileReadable(fileName string) bool {
+// IsFileReadable - tries to open the file using 0644 permissions
 //
-// 	if _, err := os.OpenFile(fileName, os.O_RDONLY, 0644); err == nil {
-// 		return true
-// 	}
-//
-// 	return false
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func IsFileReadable(fileName string) bool {
+
+	if _, err := os.OpenFile(fileName, os.O_RDONLY, 0644); err == nil {
+		return true
+	}
+
+	return false
+}
 
 // IsIPAddressValid - checks if the data provide is a valid IP address
 // func IsIPAddressValid(ipAddress any) bool {
@@ -283,7 +300,7 @@ func IsEnvironmentValid(environment string) bool {
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
-// 	coreError.PrintDebugTrail(tFunctionName)
+// 	cpi.PrintDebugTrail(tFunctionName)
 //
 // 	return json.Unmarshal(jsonIn, &jsonString) == nil
 // }
@@ -372,14 +389,14 @@ func IsEnvironmentValid(environment string) bool {
 // }
 
 // ValidateAuthenticatorService - Firebase is not support at this time
-// func ValidateAuthenticatorService(authenticatorService string) (errorInfo coreError.ErrorInfo) {
+// func ValidateAuthenticatorService(authenticatorService string) (errorInfo cpi.ErrorInfo) {
 //
 // 	var (
 // 		tFunction, _, _, _ = runtime.Caller(0)
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
-// 	coreError.PrintDebugTrail(tFunctionName)
+// 	cpi.PrintDebugTrail(tFunctionName)
 //
 // 	switch strings.ToUpper(authenticatorService) {
 // 	case rcv.AUTH_COGNITO:
@@ -416,14 +433,14 @@ func ValidateDirectory(directory string) (errorInfo cpi.ErrorInfo) {
 }
 
 // ValidateTransferMethod
-// func ValidateTransferMethod(transferMethod string) (errorInfo coreError.ErrorInfo) {
+// func ValidateTransferMethod(transferMethod string) (errorInfo cpi.ErrorInfo) {
 //
 // 	var (
 // 		tFunction, _, _, _ = runtime.Caller(0)
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
-// 	coreError.PrintDebugTrail(tFunctionName)
+// 	cpi.PrintDebugTrail(tFunctionName)
 //
 // 	switch strings.ToUpper(transferMethod) {
 // 	case rcv.TRANFER_STRIPE:
@@ -431,7 +448,7 @@ func ValidateDirectory(directory string) (errorInfo cpi.ErrorInfo) {
 // 	case rcv.TRANFER_CHECK:
 // 	case rcv.TRANFER_ZELLE:
 // 	default:
-// 		errorInfo.Error = coreError.ErrTransferMethodInvalid
+// 		errorInfo.Error = cpi.ErrTransferMethodInvalid
 // 		if transferMethod == rcv.VAL_EMPTY {
 // 			errorInfo.AdditionalInfo = "Transfer Method parameter is empty"
 // 		} else {

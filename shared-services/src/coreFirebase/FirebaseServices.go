@@ -43,7 +43,6 @@ import (
 	"strings"
 
 	"albert/constants"
-	"albert/core/coreError"
 	"albert/core/coreValidators"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -55,14 +54,14 @@ var (
 )
 
 // FindFirebaseAuthUser - determines if the user exists in the Firebase Auth database. If so, then pointer to the user is return, otherwise, an error.
-func FindFirebaseAuthUser(authPtr *auth.Client, requestorId string) (userRecordPtr *auth.UserRecord, errorInfo coreError.ErrorInfo) {
+func FindFirebaseAuthUser(authPtr *auth.Client, requestorId string) (userRecordPtr *auth.UserRecord, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
 	if userRecordPtr, errorInfo.Error = authPtr.GetUser(CTXBackground, requestorId); errorInfo.Error != nil {
 		errorInfo.Error = errors.New(fmt.Sprintf("An error while getting Requestor Id: %v from Firebase Auth. Error: %v", requestorId, errorInfo.Error.Error()))
@@ -73,7 +72,7 @@ func FindFirebaseAuthUser(authPtr *auth.Client, requestorId string) (userRecordP
 }
 
 // GetFirebaseFirestoreConnection
-func GetFirebaseAppAuthConnection(credentialsLocation string) (appPtr *firebase.App, authPtr *auth.Client, errorInfo coreError.ErrorInfo) {
+func GetFirebaseAppAuthConnection(credentialsLocation string) (appPtr *firebase.App, authPtr *auth.Client, errorInfo cpi.ErrorInfo) {
 
 	if appPtr, errorInfo = NewFirebaseApp(credentialsLocation); errorInfo.Error == nil {
 		authPtr, errorInfo = GetFirebaseAuthConnection(appPtr)
@@ -83,7 +82,7 @@ func GetFirebaseAppAuthConnection(credentialsLocation string) (appPtr *firebase.
 }
 
 // GetFirebaseIdTokenPayload
-func GetFirebaseIdTokenPayload(authPtr *auth.Client, idToken string) (tokenPayload map[any]interface{}, errorInfo coreError.ErrorInfo) {
+func GetFirebaseIdTokenPayload(authPtr *auth.Client, idToken string) (tokenPayload map[any]interface{}, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
@@ -91,17 +90,17 @@ func GetFirebaseIdTokenPayload(authPtr *auth.Client, idToken string) (tokenPaylo
 		tIdTokenPtr        *auth.Token
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
 	tokenPayload = make(map[any]interface{})
 	if tIdTokenPtr, errorInfo = GetIdTokenPtr(authPtr, idToken); errorInfo.Error == nil {
-		tokenPayload[constants.PAYLOAD_SUBJECT_FN] = tIdTokenPtr.Subject
-		tokenPayload[constants.PAYLOAD_CLAIMS_FN] = tIdTokenPtr.Claims
-		tokenPayload[constants.PAYLOAD_AUDIENCE_FN] = tIdTokenPtr.Audience
-		tokenPayload[constants.PAYLOAD_REQUESTOR_ID_FN] = tIdTokenPtr.UID
-		tokenPayload[constants.PAYLOAD_EXPIRES_FN] = tIdTokenPtr.Expires
-		tokenPayload[constants.PAYLOAD_ISSUER_FN] = tIdTokenPtr.Issuer
-		tokenPayload[constants.PAYLOAD_ISSUED_AT_FN] = tIdTokenPtr.IssuedAt
+		tokenPayload[rcv.PAYLOAD_SUBJECT_FN] = tIdTokenPtr.Subject
+		tokenPayload[rcv.PAYLOAD_CLAIMS_FN] = tIdTokenPtr.Claims
+		tokenPayload[rcv.PAYLOAD_AUDIENCE_FN] = tIdTokenPtr.Audience
+		tokenPayload[rcv.PAYLOAD_REQUESTOR_ID_FN] = tIdTokenPtr.UID
+		tokenPayload[rcv.PAYLOAD_EXPIRES_FN] = tIdTokenPtr.Expires
+		tokenPayload[rcv.PAYLOAD_ISSUER_FN] = tIdTokenPtr.Issuer
+		tokenPayload[rcv.PAYLOAD_ISSUED_AT_FN] = tIdTokenPtr.IssuedAt
 	} else {
 		errorInfo.Error = errors.New(fmt.Sprintf("The provided idTokenPtr is invalid. ERROR: %v", errorInfo.Error.Error()))
 	}
@@ -110,14 +109,14 @@ func GetFirebaseIdTokenPayload(authPtr *auth.Client, idToken string) (tokenPaylo
 }
 
 // GetIdTokenPtr
-func GetIdTokenPtr(authPtr *auth.Client, idToken string) (IdTokenPtr *auth.Token, errorInfo coreError.ErrorInfo) {
+func GetIdTokenPtr(authPtr *auth.Client, idToken string) (IdTokenPtr *auth.Token, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
 	if IdTokenPtr, errorInfo.Error = authPtr.VerifyIDToken(CTXBackground, idToken); errorInfo.Error != nil {
 		log.Println(errorInfo.Error.Error())
@@ -138,34 +137,34 @@ func IsFirebaseIdTokenValid(authPtr *auth.Client, idToken string) bool {
 }
 
 // NewFirebaseApp - creates a new Firebase App
-func NewFirebaseApp(credentialsLocation string) (appPtr *firebase.App, errorInfo coreError.ErrorInfo) {
+func NewFirebaseApp(credentialsLocation string) (appPtr *firebase.App, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
 	if appPtr, errorInfo.Error = firebase.NewApp(CTXBackground, nil, option.WithCredentialsFile(credentialsLocation)); errorInfo.Error != nil {
-		log.Println(errorInfo.Error.Error(), constants.ENDING_EXECUTION)
+		log.Println(errorInfo.Error.Error(), rcv.ENDING_EXECUTION)
 	}
 
 	return
 }
 
 // GetFirebaseAuthConnection - creates a new Firebase Auth Connection
-func GetFirebaseAuthConnection(appPtr *firebase.App) (authPtr *auth.Client, errorInfo coreError.ErrorInfo) {
+func GetFirebaseAuthConnection(appPtr *firebase.App) (authPtr *auth.Client, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
 	if authPtr, errorInfo.Error = appPtr.Auth(CTXBackground); errorInfo.Error != nil {
-		log.Println(errorInfo.Error.Error(), constants.ENDING_EXECUTION)
+		log.Println(errorInfo.Error.Error(), rcv.ENDING_EXECUTION)
 	} else {
 		log.Println("The Firebase Auth client has been created.")
 	}
@@ -174,7 +173,7 @@ func GetFirebaseAuthConnection(appPtr *firebase.App) (authPtr *auth.Client, erro
 }
 
 // SetFirebaseAuthEmailVerified - This will set the Firebase Auth email verify flag to true
-func SetFirebaseAuthEmailVerified(authPtr *auth.Client, requestorId string) (errorInfo coreError.ErrorInfo) {
+func SetFirebaseAuthEmailVerified(authPtr *auth.Client, requestorId string) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
@@ -182,7 +181,7 @@ func SetFirebaseAuthEmailVerified(authPtr *auth.Client, requestorId string) (err
 		tUserRecordPtr     *auth.UserRecord
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
 	if tUserRecordPtr, errorInfo = FindFirebaseAuthUser(authPtr, requestorId); tUserRecordPtr != nil {
 		params := (&auth.UserToUpdate{}).EmailVerified(true)
@@ -196,7 +195,7 @@ func SetFirebaseAuthEmailVerified(authPtr *auth.Client, requestorId string) (err
 }
 
 // ValidateFirebaseJWTPayload - Firebase ID Token that is returned when a user logs on successfully
-func ValidateFirebaseJWTPayload(tokenPayload map[any]interface{}, audience, issuer string) (errorInfo coreError.ErrorInfo) {
+func ValidateFirebaseJWTPayload(tokenPayload map[any]interface{}, audience, issuer string) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tFindings          string
@@ -206,29 +205,29 @@ func ValidateFirebaseJWTPayload(tokenPayload map[any]interface{}, audience, issu
 		tSubject           string
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
+	cpi.PrintDebugTrail(tFunctionName)
 
-	if tFindings = coreValidators.AreMapKeysValuesPopulated(tokenPayload); tFindings != constants.GOOD {
-		errorInfo.Error = coreError.GetMapKeyPopulatedError(tFindings)
+	if tFindings = coreValidators.AreMapKeysValuesPopulated(tokenPayload); tFindings != rcv.GOOD {
+		errorInfo.Error = cpi.GetMapKeyPopulatedError(tFindings)
 	} else {
-		if audience == constants.EMPTY || issuer == constants.EMPTY {
-			errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v' %v: '%v'", constants.FN_AUDIENCE, audience, constants.FN_ISSUER, issuer))
+		if audience == rcv.EMPTY || issuer == rcv.EMPTY {
+			errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v' %v: '%v'", rcv.FN_AUDIENCE, audience, rcv.FN_ISSUER, issuer))
 		} else {
 			for key, value := range tokenPayload {
 				switch strings.ToUpper(key.(string)) {
-				case constants.PAYLOAD_AUDIENCE_FN:
+				case rcv.PAYLOAD_AUDIENCE_FN:
 					if value != audience {
 						errorInfo.Error = errors.New("The audience of the ID Token is invalid.")
 						log.Println(errorInfo.Error.Error())
 					}
-				case constants.PAYLOAD_ISSUER_FN:
+				case rcv.PAYLOAD_ISSUER_FN:
 					if value != issuer {
 						errorInfo.Error = errors.New("The issuer of the ID Token is invalid.")
 						log.Println(errorInfo.Error.Error())
 					}
-				case constants.PAYLOAD_SUBJECT_FN:
+				case rcv.PAYLOAD_SUBJECT_FN:
 					tSubject = value.(string)
-				case constants.PAYLOAD_REQUESTOR_ID_FN:
+				case rcv.PAYLOAD_REQUESTOR_ID_FN:
 					tRequestorId = value.(string)
 				}
 			}

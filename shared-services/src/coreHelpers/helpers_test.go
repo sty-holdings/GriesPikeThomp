@@ -1,4 +1,4 @@
-// Package shared_services
+// Package sharedServices
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package shared_services
+package sharedServices
 
 import (
 	"fmt"
@@ -62,7 +62,7 @@ var (
 // 	}
 //
 // 	var (
-// 		errorInfo  coreError.ErrorInfo
+// 		errorInfo  cpi.ErrorInfo
 // 		gotError   bool
 // 		tJSONReply []byte
 // 	)
@@ -76,8 +76,8 @@ var (
 // 			name: "Positive Case: Successful!",
 // 			arguments: arguments{
 // 				reply: GoodReply{
-// 					Name: constants.TEST_FIELD_NAME,
-// 					Blah: constants.TEST_STRING,
+// 					Name: rcv.TEST_FIELD_NAME,
+// 					Blah: rcv.TEST_STRING,
 // 				},
 // 			},
 // 			wantError: false,
@@ -92,7 +92,7 @@ var (
 // 		{
 // 			name: "Negative Case: Empty Reply!",
 // 			arguments: arguments{
-// 				reply: constants.TEST_STRING,
+// 				reply: rcv.TEST_STRING,
 // 			},
 // 			wantError: true,
 // 		},
@@ -100,7 +100,7 @@ var (
 //
 // 	for _, ts := range tests {
 // 		tPtr.Run(ts.name, func(t *testing.T) {
-// 			if tJSONReply = BuildJSONReply(ts.arguments.reply, constants.EMPTY, constants.EMPTY); len(tJSONReply) == 0 {
+// 			if tJSONReply = BuildJSONReply(ts.arguments.reply, rcv.EMPTY, rcv.EMPTY); len(tJSONReply) == 0 {
 // 				gotError = true
 // 			} else {
 // 				gotError = false
@@ -138,7 +138,7 @@ var (
 // This is needed, because GIT must have read access for push,
 // and it must be the first test in this file.
 // func TestCreateUnreadableFile(tPtr *testing.T) {
-// 	_, _ = os.OpenFile(constants.TEST_UNREADABLE_FQN, os.O_CREATE, 0333)
+// 	_, _ = os.OpenFile(rcv.TEST_UNREADABLE_FQN, os.O_CREATE, 0333)
 // }
 
 // func TestDoesDirectoryExist(tPtr *testing.T) {
@@ -149,12 +149,12 @@ var (
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		if coreValidators.DoesDirectoryExist(constants.TEST_GOOD_FQN) == false {
-// 			tPtr.Errorf("%v Failed: DoesDirectoryExist returned false for %v which should exist.", tFunctionName, constants.TEST_GOOD_FQN)
+// 		if coreValidators.DoesDirectoryExist(rcv.TEST_GOOD_FQN) == false {
+// 			tPtr.Errorf("%v Failed: DoesDirectoryExist returned false for %v which should exist.", tFunctionName, rcv.TEST_GOOD_FQN)
 // 		}
-// 		_ = os.Remove(constants.TEST_NO_SUCH_FILE)
-// 		if coreValidators.DoesDirectoryExist(constants.TEST_NO_SUCH_FILE) {
-// 			tPtr.Errorf("%v Failed: DoesDirectoryExist returned true for %v afer it was removed.", tFunctionName, constants.TEST_NO_SUCH_FILE)
+// 		_ = os.Remove(rcv.TEST_NO_SUCH_FILE)
+// 		if coreValidators.DoesDirectoryExist(rcv.TEST_NO_SUCH_FILE) {
+// 			tPtr.Errorf("%v Failed: DoesDirectoryExist returned true for %v afer it was removed.", tFunctionName, rcv.TEST_NO_SUCH_FILE)
 // 		}
 // 	})
 // }
@@ -167,12 +167,12 @@ var (
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		if coreValidators.DoesFileExist(constants.TEST_GOOD_FQN) == false {
-// 			tPtr.Errorf("%v Failed: DoesFileExist returned false for %v which should exist.", tFunctionName, constants.TEST_GOOD_FQN)
+// 		if coreValidators.DoesFileExist(rcv.TEST_GOOD_FQN) == false {
+// 			tPtr.Errorf("%v Failed: DoesFileExist returned false for %v which should exist.", tFunctionName, rcv.TEST_GOOD_FQN)
 // 		}
-// 		_ = os.Remove(constants.TEST_NO_SUCH_FILE)
-// 		if coreValidators.DoesFileExist(constants.TEST_NO_SUCH_FILE) {
-// 			tPtr.Errorf("%v Failed: DoesFileExist returned true for %v afer it was removed.", tFunctionName, constants.TEST_NO_SUCH_FILE)
+// 		_ = os.Remove(rcv.TEST_NO_SUCH_FILE)
+// 		if coreValidators.DoesFileExist(rcv.TEST_NO_SUCH_FILE) {
+// 			tPtr.Errorf("%v Failed: DoesFileExist returned true for %v afer it was removed.", tFunctionName, rcv.TEST_NO_SUCH_FILE)
 // 		}
 // 	})
 // }
@@ -185,7 +185,7 @@ var (
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(t *testing.T) {
-// 		if FloatToPennies(constants.TEST_FLOAT_123_01) != constants.TEST_FLOAT_123_01*100 {
+// 		if FloatToPennies(rcv.TEST_FLOAT_123_01) != rcv.TEST_FLOAT_123_01*100 {
 // 			tPtr.Errorf("%v Failed: Expected the numbers to match", tFunctionName)
 // 		}
 // 	})
@@ -201,7 +201,7 @@ var (
 // 	}
 //
 // 	var (
-// 		errorInfo          coreError.ErrorInfo
+// 		errorInfo          cpi.ErrorInfo
 // 		gotError           bool
 // 		tFunction, _, _, _ = runtime.Caller(0)
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -216,8 +216,8 @@ var (
 // 		{
 // 			name: "Positive Case: Successful Secure, localhost, 1234",
 // 			arguments: arguments{
-// 				protocol: constants.HTTP_PROTOCOL_SECURE,
-// 				domain:   constants.HTTP_DOMAIN_LOCALHOST,
+// 				protocol: rcv.HTTP_PROTOCOL_SECURE,
+// 				domain:   rcv.HTTP_DOMAIN_LOCALHOST,
 // 				port:     1234,
 // 			},
 // 			wantError: false,
@@ -225,8 +225,8 @@ var (
 // 		{
 // 			name: "Positive Case: Successful Non-Secure, localhost, 1234",
 // 			arguments: arguments{
-// 				protocol: constants.HTTP_PROTOCOL_NON_SECURE,
-// 				domain:   constants.HTTP_DOMAIN_LOCALHOST,
+// 				protocol: rcv.HTTP_PROTOCOL_NON_SECURE,
+// 				domain:   rcv.HTTP_DOMAIN_LOCALHOST,
 // 				port:     1234,
 // 			},
 // 			wantError: false,
@@ -234,8 +234,8 @@ var (
 // 		{
 // 			name: "Positive Case: Successful Secure, api-dev.savup.com, 1234",
 // 			arguments: arguments{
-// 				protocol: constants.HTTP_PROTOCOL_SECURE,
-// 				domain:   constants.HTTP_DOMAIN_API_DEV,
+// 				protocol: rcv.HTTP_PROTOCOL_SECURE,
+// 				domain:   rcv.HTTP_DOMAIN_API_DEV,
 // 				port:     1234,
 // 			},
 // 			wantError: false,
@@ -243,8 +243,8 @@ var (
 // 		{
 // 			name: "Positive Case: Successful Non-Secure, api-dev.savup.com, 1234",
 // 			arguments: arguments{
-// 				protocol: constants.HTTP_PROTOCOL_NON_SECURE,
-// 				domain:   constants.HTTP_DOMAIN_API_DEV,
+// 				protocol: rcv.HTTP_PROTOCOL_NON_SECURE,
+// 				domain:   rcv.HTTP_DOMAIN_API_DEV,
 // 				port:     1234,
 // 			},
 // 			wantError: false,
@@ -282,7 +282,7 @@ var (
 // 		if tEnd = GenerateEndDate("2024-01-10", 0); tEnd != "2024-01-10" {
 // 			tPtr.Errorf("%v Failed: End date was not equal to start date.", tFunctionName)
 // 		}
-// 		if tEnd = GenerateEndDate("", 0); tEnd != constants.EMPTY {
+// 		if tEnd = GenerateEndDate("", 0); tEnd != rcv.EMPTY {
 // 			tPtr.Errorf("%v Failed: End date was not empty.", tFunctionName)
 // 		}
 // 	})
@@ -348,42 +348,42 @@ var (
 // 		{
 // 			name: "Positive Case: Successful local and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_LOCAL,
+// 				environment: rcv.ENVIRONMENT_LOCAL,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful local and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_LOCAL,
+// 				environment: rcv.ENVIRONMENT_LOCAL,
 // 				secure:      false,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful development and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_DEVELOPMENT,
+// 				environment: rcv.ENVIRONMENT_DEVELOPMENT,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful development and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_DEVELOPMENT,
+// 				environment: rcv.ENVIRONMENT_DEVELOPMENT,
 // 				secure:      false,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful production and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_PRODUCTION,
+// 				environment: rcv.ENVIRONMENT_PRODUCTION,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful production and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_PRODUCTION,
+// 				environment: rcv.ENVIRONMENT_PRODUCTION,
 // 				secure:      false,
 // 			},
 // 		},
@@ -413,42 +413,42 @@ var (
 // 		{
 // 			name: "Positive Case: Successful local and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_LOCAL,
+// 				environment: rcv.ENVIRONMENT_LOCAL,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful local and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_LOCAL,
+// 				environment: rcv.ENVIRONMENT_LOCAL,
 // 				secure:      false,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful development and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_DEVELOPMENT,
+// 				environment: rcv.ENVIRONMENT_DEVELOPMENT,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful development and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_DEVELOPMENT,
+// 				environment: rcv.ENVIRONMENT_DEVELOPMENT,
 // 				secure:      false,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful production and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_PRODUCTION,
+// 				environment: rcv.ENVIRONMENT_PRODUCTION,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful production and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_PRODUCTION,
+// 				environment: rcv.ENVIRONMENT_PRODUCTION,
 // 				secure:      false,
 // 			},
 // 		},
@@ -478,42 +478,42 @@ var (
 // 		{
 // 			name: "Positive Case: Successful local and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_LOCAL,
+// 				environment: rcv.ENVIRONMENT_LOCAL,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful local and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_LOCAL,
+// 				environment: rcv.ENVIRONMENT_LOCAL,
 // 				secure:      false,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful development and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_DEVELOPMENT,
+// 				environment: rcv.ENVIRONMENT_DEVELOPMENT,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful development and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_DEVELOPMENT,
+// 				environment: rcv.ENVIRONMENT_DEVELOPMENT,
 // 				secure:      false,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful production and secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_PRODUCTION,
+// 				environment: rcv.ENVIRONMENT_PRODUCTION,
 // 				secure:      true,
 // 			},
 // 		},
 // 		{
 // 			name: "Positive Case: Successful production and non-secure",
 // 			arguments: arguments{
-// 				environment: constants.ENVIRONMENT_PRODUCTION,
+// 				environment: rcv.ENVIRONMENT_PRODUCTION,
 // 				secure:      false,
 // 			},
 // 		},
@@ -583,7 +583,7 @@ var (
 //
 // 	for _, ts := range tests {
 // 		tPtr.Run(ts.name, func(t *testing.T) {
-// 			if tLegalName := BuildLegalName(ts.arguments.firstName, ts.arguments.lastName); tLegalName == constants.EMPTY {
+// 			if tLegalName := BuildLegalName(ts.arguments.firstName, ts.arguments.lastName); tLegalName == rcv.EMPTY {
 // 				gotError = true
 // 			} else {
 // 				gotError = false
@@ -679,14 +679,14 @@ var (
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		if coreValidators.IsFileReadable(constants.TEST_GOOD_FQN) == false {
+// 		if coreValidators.IsFileReadable(rcv.TEST_GOOD_FQN) == false {
 // 			tPtr.Errorf("%v Failed: File is not readable.", tFunctionName)
 // 		}
-// 		_, _ = os.ReadFile(constants.TEST_NO_SUCH_FILE)
-// 		if coreValidators.IsFileReadable(constants.TEST_NO_SUCH_FILE) == true {
+// 		_, _ = os.ReadFile(rcv.TEST_NO_SUCH_FILE)
+// 		if coreValidators.IsFileReadable(rcv.TEST_NO_SUCH_FILE) == true {
 // 			tPtr.Errorf("%v Failed: File is not readable.", tFunctionName)
 // 		}
-// 		if coreValidators.IsFileReadable(constants.TEST_UNREADABLE_FQN) == true {
+// 		if coreValidators.IsFileReadable(rcv.TEST_UNREADABLE_FQN) == true {
 // 			tPtr.Errorf("%v Failed: File is not readable.", tFunctionName)
 // 		}
 // 	})
@@ -701,8 +701,8 @@ var (
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		if tAmount = PenniesToFloat(constants.TEST_NUMBER_44); tAmount != constants.TEST_NUMBER_44/100 {
-// 			tPtr.Errorf("%v Failed: Was expected %v and got error.", tFunctionName, constants.TEST_NUMBER_44/100)
+// 		if tAmount = PenniesToFloat(rcv.TEST_NUMBER_44); tAmount != rcv.TEST_NUMBER_44/100 {
+// 			tPtr.Errorf("%v Failed: Was expected %v and got error.", tFunctionName, rcv.TEST_NUMBER_44/100)
 // 		}
 // 		if tAmount = PenniesToFloat(0); tAmount != 0 {
 // 			tPtr.Errorf("%v Failed: Was expected zero and got %v.", tFunctionName, tAmount)
@@ -723,7 +723,7 @@ var (
 // 		if tLogFileHandlerPtr, _ = RedirectLogOutput("/tmp"); tLogFileHandlerPtr == nil {
 // 			tPtr.Errorf("%v Failed: Was expecting a pointer to be returned and got nil.", tFunctionName)
 // 		}
-// 		if _, tLogFQN = RedirectLogOutput("/tmp"); tLogFQN == constants.EMPTY {
+// 		if _, tLogFQN = RedirectLogOutput("/tmp"); tLogFQN == rcv.EMPTY {
 // 			tPtr.Errorf("%v Failed: Was expecting the LogFQN to be populated and it was empty.", tFunctionName)
 // 		}
 // 	})
@@ -736,7 +736,7 @@ var (
 // 	}
 //
 // 	var (
-// 		errorInfo          coreError.ErrorInfo
+// 		errorInfo          cpi.ErrorInfo
 // 		tFunction, _, _, _ = runtime.Caller(0)
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 		tTestStruct        = testStruct{
@@ -765,7 +765,7 @@ var (
 // 	}
 //
 // 	var (
-// 		errorInfo coreError.ErrorInfo
+// 		errorInfo cpi.ErrorInfo
 // 		gotError  bool
 // 	)
 //
@@ -777,21 +777,21 @@ var (
 // 		{
 // 			name: "Positive Case: Successful!",
 // 			arguments: arguments{
-// 				service: constants.AUTH_COGNITO,
+// 				service: rcv.AUTH_COGNITO,
 // 			},
 // 			wantError: false,
 // 		},
 // 		{
 // 			name: "Negative Case: Not Supported!",
 // 			arguments: arguments{
-// 				service: constants.AUTH_FIREBASE,
+// 				service: rcv.AUTH_FIREBASE,
 // 			},
 // 			wantError: true,
 // 		},
 // 		{
 // 			name: "Negative Case: Empty method!",
 // 			arguments: arguments{
-// 				service: constants.EMPTY,
+// 				service: rcv.EMPTY,
 // 			},
 // 			wantError: true,
 // 		},
@@ -816,16 +816,16 @@ var (
 // func TestValidateDirectory(tPtr *testing.T) {
 //
 // 	var (
-// 		errorInfo          coreError.ErrorInfo
+// 		errorInfo          cpi.ErrorInfo
 // 		tFunction, _, _, _ = runtime.Caller(0)
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		if errorInfo = coreValidators.ValidateDirectory(constants.TEST_PID_DIRECTORY); errorInfo.Error != nil {
+// 		if errorInfo = coreValidators.ValidateDirectory(rcv.TEST_PID_DIRECTORY); errorInfo.Error != nil {
 // 			tPtr.Errorf("%v Failed: Expected err to be 'nil' and got %v.", tFunctionName, errorInfo.Error.Error())
 // 		}
-// 		if errorInfo = coreValidators.ValidateDirectory(constants.TEST_STRING); errorInfo.Error == nil {
+// 		if errorInfo = coreValidators.ValidateDirectory(rcv.TEST_STRING); errorInfo.Error == nil {
 // 			tPtr.Errorf("%v Failed: Expected an error and got nil.", tFunctionName)
 // 		}
 // 	})
@@ -838,7 +838,7 @@ var (
 // 	}
 //
 // 	var (
-// 		errorInfo coreError.ErrorInfo
+// 		errorInfo cpi.ErrorInfo
 // 		gotError  bool
 // 	)
 //
@@ -850,35 +850,35 @@ var (
 // 		{
 // 			name: "Positive Case: Successful!",
 // 			arguments: arguments{
-// 				method: constants.TRANFER_STRIPE,
+// 				method: rcv.TRANFER_STRIPE,
 // 			},
 // 			wantError: false,
 // 		},
 // 		{
 // 			name: "Positive Case: Successful!",
 // 			arguments: arguments{
-// 				method: constants.TRANFER_WIRE,
+// 				method: rcv.TRANFER_WIRE,
 // 			},
 // 			wantError: false,
 // 		},
 // 		{
 // 			name: "Positive Case: Successful!",
 // 			arguments: arguments{
-// 				method: constants.TRANFER_CHECK,
+// 				method: rcv.TRANFER_CHECK,
 // 			},
 // 			wantError: false,
 // 		},
 // 		{
 // 			name: "Positive Case: Successful!",
 // 			arguments: arguments{
-// 				method: constants.TRANFER_ZELLE,
+// 				method: rcv.TRANFER_ZELLE,
 // 			},
 // 			wantError: false,
 // 		},
 // 		{
 // 			name: "Negative Case: Empty method!",
 // 			arguments: arguments{
-// 				method: constants.EMPTY,
+// 				method: rcv.EMPTY,
 // 			},
 // 			wantError: true,
 // 		},
@@ -903,27 +903,27 @@ var (
 // func TestWritePidFile(tPtr *testing.T) {
 //
 // 	var (
-// 		errorInfo          coreError.ErrorInfo
+// 		errorInfo          cpi.ErrorInfo
 // 		tFunction, _, _, _ = runtime.Caller(0)
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
 // 		// Create PID file
-// 		if errorInfo = WritePidFile(constants.TEST_PID_DIRECTORY); errorInfo.Error != nil {
+// 		if errorInfo = WritePidFile(rcv.TEST_PID_DIRECTORY); errorInfo.Error != nil {
 // 			tPtr.Errorf("%v Failed: Expected err to be 'nil'.", tFunctionName)
 // 		}
 // 		// PID directory is not provided
-// 		if errorInfo = WritePidFile(constants.EMPTY); errorInfo.Error == nil {
+// 		if errorInfo = WritePidFile(rcv.EMPTY); errorInfo.Error == nil {
 // 			tPtr.Errorf("%v Failed: Expected err to be 'nil'.", tFunctionName)
 // 		}
 // 		// PID file exists
-// 		if errorInfo = WritePidFile(constants.TEST_PID_DIRECTORY); errorInfo.Error != nil {
+// 		if errorInfo = WritePidFile(rcv.TEST_PID_DIRECTORY); errorInfo.Error != nil {
 // 			tPtr.Errorf("%v Failed: Expected err to be 'nil'.", tFunctionName)
 // 		}
 // 	})
 //
-// 	_ = RemovePidFile(constants.TEST_PID_DIRECTORY)
+// 	_ = RemovePidFile(rcv.TEST_PID_DIRECTORY)
 //
 // }
 

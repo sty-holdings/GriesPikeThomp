@@ -43,7 +43,6 @@ import (
 	"time"
 
 	"albert/constants"
-	"albert/core/coreError"
 	"albert/core/coreFirebase"
 	"albert/core/coreFirestore"
 	"albert/core/coreHelpers"
@@ -61,13 +60,13 @@ func StartTest() (myAWS AWSHelper, myFireBase coreHelpers.FirebaseFirestoreHelpe
 
 	var (
 		err       error
-		errorInfo coreError.ErrorInfo
+		errorInfo cpi.ErrorInfo
 	)
 
-	myAWS, errorInfo = NewAWSSession(constants.TEST_AWS_INFORMATION_FQN)
+	myAWS, errorInfo = NewAWSSession(rcv.TEST_AWS_INFORMATION_FQN)
 
 	if errorInfo.Error == nil {
-		myFireBase.CredentialsLocation = constants.TEST_FIREBASE_CREDENTIALS
+		myFireBase.CredentialsLocation = rcv.TEST_FIREBASE_CREDENTIALS
 		if myFireBase.AppPtr, myFireBase.AuthPtr, errorInfo = coreFirebase.GetFirebaseAppAuthConnection(myFireBase.CredentialsLocation); errorInfo.Error == nil {
 			myFireBase.FirestoreClientPtr, errorInfo = coreFirestore.GetFirestoreClientConnection(myFireBase.AppPtr)
 		}
@@ -83,24 +82,24 @@ func StartTest() (myAWS AWSHelper, myFireBase coreHelpers.FirebaseFirestoreHelpe
 
 func StopTest(myFireBase coreHelpers.FirebaseFirestoreHelper) {
 
-	_ = coreFirestore.RemoveDocumentById(myFireBase.FirestoreClientPtr, constants.DATASTORE_USERS, constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
+	_ = coreFirestore.RemoveDocumentById(myFireBase.FirestoreClientPtr, rcv.DATASTORE_USERS, rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
 
 }
 
 func BuildTestUser(myFireBase coreHelpers.FirebaseFirestoreHelper) {
 
 	testUser := map[any]interface{}{
-		constants.FN_REQUESTOR_ID:     constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-		constants.FN_FIRST_NAME:       constants.TEST_USER_FIRST_NAME,
-		constants.FN_LAST_NAME:        constants.TEST_USER_LAST_NAME,
-		constants.FN_EMAIL:            constants.TEST_USER_EMAIL,
-		constants.FN_AREA_CODE:        constants.TEST_USER_AREA_CODE,
-		constants.FN_PHONE_NUMBER:     constants.TEST_USER_PHONE_NUMBER,
-		constants.FN_USERNAME:         constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
-		constants.FN_CREATE_TIMESTAMP: time.Now(),
+		rcv.FN_REQUESTOR_ID:     rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+		rcv.FN_FIRST_NAME:       rcv.TEST_USER_FIRST_NAME,
+		rcv.FN_LAST_NAME:        rcv.TEST_USER_LAST_NAME,
+		rcv.FN_EMAIL:            rcv.TEST_USER_EMAIL,
+		rcv.FN_AREA_CODE:        rcv.TEST_USER_AREA_CODE,
+		rcv.FN_PHONE_NUMBER:     rcv.TEST_USER_PHONE_NUMBER,
+		rcv.FN_USERNAME:         rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
+		rcv.FN_CREATE_TIMESTAMP: time.Now(),
 	}
 
-	_ = coreFirestore.SetDocument(myFireBase.FirestoreClientPtr, constants.DATASTORE_USERS, constants.TEST_USERNAME_SAVUP_REQUESTOR_ID, testUser)
+	_ = coreFirestore.SetDocument(myFireBase.FirestoreClientPtr, rcv.DATASTORE_USERS, rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID, testUser)
 
 }
 
@@ -131,23 +130,23 @@ func loadTestingTokens(myAWS AWSHelper, firestoreClientPtr *firestore.Client) er
 	)
 
 	// Load raw token files
-	if tAWSTokens, err = os.ReadFile(constants.TEST_AWS_TEST_TOKEN_FQN); err != nil {
-		err = errors.New(fmt.Sprintf("Not able to read the AWS Token file: %v.", constants.TEST_AWS_TEST_TOKEN_FQN))
+	if tAWSTokens, err = os.ReadFile(rcv.TEST_AWS_TEST_TOKEN_FQN); err != nil {
+		err = errors.New(fmt.Sprintf("Not able to read the AWS Token file: %v.", rcv.TEST_AWS_TEST_TOKEN_FQN))
 		log.Println(err.Error())
 	} else {
 		tAWSTokens = tAWSTokens[16:]
 		tTokens = strings.Split(string(tAWSTokens), "&")
 		for _, token := range tTokens {
 			tNameValue = strings.Split(token, "_token=")
-			if tNameValue[0] == constants.TOKEN_TYPE_ACCESS {
-				if err = os.WriteFile(constants.TEST_AWS_RAW_ACCESS_TOKEN_FQN, []byte(tNameValue[1]), 0666); err != nil {
-					err = errors.New(fmt.Sprintf("Not able to write the AWS Access Token file: %v.", constants.TEST_AWS_RAW_ACCESS_TOKEN_FQN))
+			if tNameValue[0] == rcv.TOKEN_TYPE_ACCESS {
+				if err = os.WriteFile(rcv.TEST_AWS_RAW_ACCESS_TOKEN_FQN, []byte(tNameValue[1]), 0666); err != nil {
+					err = errors.New(fmt.Sprintf("Not able to write the AWS Access Token file: %v.", rcv.TEST_AWS_RAW_ACCESS_TOKEN_FQN))
 					log.Println(err.Error())
 				}
 			}
-			if tNameValue[0] == constants.TOKEN_TYPE_ID {
-				if err = os.WriteFile(constants.TEST_AWS_RAW_ID_TOKEN_FQN, []byte(tNameValue[1]), 0666); err != nil {
-					err = errors.New(fmt.Sprintf("Not able to write the AWS Id Token file: %v.", constants.TEST_AWS_RAW_ID_TOKEN_FQN))
+			if tNameValue[0] == rcv.TOKEN_TYPE_ID {
+				if err = os.WriteFile(rcv.TEST_AWS_RAW_ID_TOKEN_FQN, []byte(tNameValue[1]), 0666); err != nil {
+					err = errors.New(fmt.Sprintf("Not able to write the AWS Id Token file: %v.", rcv.TEST_AWS_RAW_ID_TOKEN_FQN))
 					log.Println(err.Error())
 				}
 			}
@@ -155,25 +154,25 @@ func loadTestingTokens(myAWS AWSHelper, firestoreClientPtr *firestore.Client) er
 	}
 
 	// Checking that test ACCESS token is valid
-	if testingAccessTokenValid, err = os.ReadFile(constants.TEST_AWS_RAW_ACCESS_TOKEN_FQN); err == nil {
-		if tValid, _ = myAWS.ValidAWSJWT(firestoreClientPtr, constants.TOKEN_TYPE_ACCESS, string(testingAccessTokenValid)); tValid == false {
+	if testingAccessTokenValid, err = os.ReadFile(rcv.TEST_AWS_RAW_ACCESS_TOKEN_FQN); err == nil {
+		if tValid, _ = myAWS.ValidAWSJWT(firestoreClientPtr, rcv.TOKEN_TYPE_ACCESS, string(testingAccessTokenValid)); tValid == false {
 			err = errors.New("ACCESS Token loading failed")
-			fmt.Println(constants.EMPTY)
-			fmt.Printf("NOTE: Make sure to create user %v in the USERS datastorel.\n", constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
-			fmt.Println(constants.EMPTY)
-			fmt.Printf("NOTE: The username must be %v or tests will fail.\n", constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
+			fmt.Println(rcv.EMPTY)
+			fmt.Printf("NOTE: Make sure to create user %v in the USERS datastorel.\n", rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
+			fmt.Println(rcv.EMPTY)
+			fmt.Printf("NOTE: The username must be %v or tests will fail.\n", rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
 			fmt.Printf("The access token is not valid! You need to create one using \n%v and paste the URL into the \n%v file.\n", AWS_TEST_LOGIN_UI, AWS_TOKENS_FILE)
 		}
 	}
 
 	// Checking that test ID token is valid
-	if testingIdTokenValid, err = os.ReadFile(constants.TEST_AWS_RAW_ID_TOKEN_FQN); err == nil {
-		if tValid, _ = myAWS.ValidAWSJWT(firestoreClientPtr, constants.TOKEN_TYPE_ID, string(testingIdTokenValid)); tValid == false {
+	if testingIdTokenValid, err = os.ReadFile(rcv.TEST_AWS_RAW_ID_TOKEN_FQN); err == nil {
+		if tValid, _ = myAWS.ValidAWSJWT(firestoreClientPtr, rcv.TOKEN_TYPE_ID, string(testingIdTokenValid)); tValid == false {
 			err = errors.New("ID Token loading failed")
-			fmt.Println(constants.EMPTY)
-			fmt.Printf("NOTE: Make sure to create user %v in the USERS datastorel.\n", constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
-			fmt.Println(constants.EMPTY)
-			fmt.Printf("NOTE: The username must be %v or tests will fail.\n", constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
+			fmt.Println(rcv.EMPTY)
+			fmt.Printf("NOTE: Make sure to create user %v in the USERS datastorel.\n", rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
+			fmt.Println(rcv.EMPTY)
+			fmt.Printf("NOTE: The username must be %v or tests will fail.\n", rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE)
 			fmt.Printf("The Id token is not valid! You need to create one using (%v) and paste the URL into the %v file.\n", AWS_TEST_LOGIN_UI, AWS_TOKENS_FILE)
 		}
 	}
@@ -182,7 +181,7 @@ func loadTestingTokens(myAWS AWSHelper, firestoreClientPtr *firestore.Client) er
 }
 
 func RemoveTestUser(myFireBase coreHelpers.FirebaseFirestoreHelper) {
-	_ = coreFirestore.RemoveDocumentById(myFireBase.FirestoreClientPtr, constants.DATASTORE_USERS, constants.TEST_USERNAME_SAVUP_REQUESTOR_ID)
+	_ = coreFirestore.RemoveDocumentById(myFireBase.FirestoreClientPtr, rcv.DATASTORE_USERS, rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID)
 }
 
 func SetValidTestingAccessToken(accessToken []byte) {
@@ -198,17 +197,17 @@ func SetValidTestingIdToken(accessToken []byte) {
 func getToken(tokenType, token string) string {
 
 	switch strings.ToUpper(token) {
-	case constants.INVALID:
-		return constants.TEST_STRING
-	case constants.VALID:
-		if tokenType == constants.TOKEN_TYPE_ACCESS {
+	case rcv.INVALID:
+		return rcv.TEST_STRING
+	case rcv.VALID:
+		if tokenType == rcv.TOKEN_TYPE_ACCESS {
 			return GetValidTestingAccessToken()
 		} else {
 			return GetValidTestingIdToken()
 		}
-	case constants.MISSING:
-		return constants.EMPTY
+	case rcv.MISSING:
+		return rcv.EMPTY
 	}
 
-	return constants.EMPTY
+	return rcv.EMPTY
 }

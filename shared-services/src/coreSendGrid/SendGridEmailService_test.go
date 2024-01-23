@@ -42,7 +42,6 @@ import (
 	"time"
 
 	"albert/constants"
-	"albert/core/coreError"
 	"github.com/plaid/plaid-go/v9/plaid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
@@ -85,7 +84,7 @@ var (
 	TestMultipleBCCRecipientList   = []EmailItem{TestBCCListOne, TestBCCListTwo}
 	//
 	TestAccountBaseOne = plaid.AccountBase{
-		AccountId:            constants.TEST_USER_BANK_ACCOUNT_ID_1,
+		AccountId:            rcv.TEST_USER_BANK_ACCOUNT_ID_1,
 		Balances:             plaid.AccountBalance{},
 		Mask:                 plaid.NullableString{},
 		Name:                 "Plaid Checking",
@@ -97,7 +96,7 @@ var (
 	}
 	//
 	TestAccountBaseTwo = plaid.AccountBase{
-		AccountId:            constants.TEST_USER_BANK_ACCOUNT_ID_2,
+		AccountId:            rcv.TEST_USER_BANK_ACCOUNT_ID_2,
 		Balances:             plaid.AccountBalance{},
 		Mask:                 plaid.NullableString{},
 		Name:                 "Plaid Savings",
@@ -116,7 +115,7 @@ var (
 
 func TestNewSendGridServer(tPtr *testing.T) {
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		tEmailServerPtr    *EmailServer
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -124,11 +123,11 @@ func TestNewSendGridServer(tPtr *testing.T) {
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
 		// Success
-		if tEmailServerPtr, errorInfo = NewSendGridServer(constants.TEST_EMAIL_ADDRESS, constants.TEST_STRING, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_STRING); errorInfo.Error != nil && tEmailServerPtr != nil {
+		if tEmailServerPtr, errorInfo = NewSendGridServer(rcv.TEST_EMAIL_ADDRESS, rcv.TEST_STRING, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_STRING); errorInfo.Error != nil && tEmailServerPtr != nil {
 			tPtr.Errorf("%v Failed: Was not expecting no error but got %v.", tFunctionName, errorInfo)
 		}
 		// Missing default sender email
-		if _, errorInfo = NewSendGridServer(constants.EMPTY, constants.TEST_STRING, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_STRING); errorInfo.Error == nil {
+		if _, errorInfo = NewSendGridServer(rcv.EMPTY, rcv.TEST_STRING, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_STRING); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was not expecting an error but got %v.", tFunctionName, errorInfo)
 		}
 	})
@@ -137,14 +136,14 @@ func TestNewSendGridServer(tPtr *testing.T) {
 func TestEmail_newPersonalization(tPtr *testing.T) {
 
 	var (
-		errorInfo           coreError.ErrorInfo
+		errorInfo           cpi.ErrorInfo
 		tEmailServer        *EmailServer
 		tFunction, _, _, _  = runtime.Caller(0)
 		tFunctionName       = runtime.FuncForPC(tFunction).Name()
 		tPersonalizationPtr = mail.NewPersonalization()
 	)
 
-	tEmailServer, _ = NewSendGridServer(constants.TEST_EMAIL_ADDRESS, constants.TEST_STRING, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_SENDGRID_KEY_FILE)
+	tEmailServer, _ = NewSendGridServer(rcv.TEST_EMAIL_ADDRESS, rcv.TEST_STRING, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_SENDGRID_KEY_FILE)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
 		// Missing Tolist
@@ -179,7 +178,7 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		gotError           bool
 		tEmailServer       *EmailServer
 		tFunction, _, _, _ = runtime.Caller(0)
@@ -195,14 +194,14 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Positive Case: Successful!",
 			arguments: arguments{
 				from:    TestFromEmail,
-				subject: constants.TEST_EMAIL_SUBJECT,
-				body:    constants.TEST_STRING,
+				subject: rcv.TEST_EMAIL_SUBJECT,
+				body:    rcv.TEST_STRING,
 				toList:  TestMultipleTORecipientList,
 				ccList:  TestMultipleCCRecipientList,
 				bccList: TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -211,14 +210,14 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Negative Case: Missing subject!",
 			arguments: arguments{
 				from:    TestFromEmail,
-				subject: constants.EMPTY,
-				body:    constants.TEST_STRING,
+				subject: rcv.EMPTY,
+				body:    rcv.TEST_STRING,
 				toList:  TestMultipleTORecipientList,
 				ccList:  TestMultipleCCRecipientList,
 				bccList: TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: true,
@@ -227,14 +226,14 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Negative Case: Missing body!",
 			arguments: arguments{
 				from:    TestFromEmail,
-				subject: constants.TEST_EMAIL_SUBJECT,
-				body:    constants.EMPTY,
+				subject: rcv.TEST_EMAIL_SUBJECT,
+				body:    rcv.EMPTY,
 				toList:  TestMultipleTORecipientList,
 				ccList:  TestMultipleCCRecipientList,
 				bccList: TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: true,
@@ -243,14 +242,14 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Negative Case: Missing toList!",
 			arguments: arguments{
 				from:    TestFromEmail,
-				subject: constants.TEST_EMAIL_SUBJECT,
-				body:    constants.TEST_STRING,
+				subject: rcv.TEST_EMAIL_SUBJECT,
+				body:    rcv.TEST_STRING,
 				toList:  TestMultipleEmptyRecipientList,
 				ccList:  TestMultipleCCRecipientList,
 				bccList: TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: true,
@@ -259,14 +258,14 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Positive Case: Missing ccList!",
 			arguments: arguments{
 				from:    TestFromEmail,
-				subject: constants.TEST_EMAIL_SUBJECT,
-				body:    constants.TEST_STRING,
+				subject: rcv.TEST_EMAIL_SUBJECT,
+				body:    rcv.TEST_STRING,
 				toList:  TestMultipleTORecipientList,
 				ccList:  TestMultipleEmptyRecipientList,
 				bccList: TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -275,14 +274,14 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Positive Case: Missing bccList!",
 			arguments: arguments{
 				from:    TestFromEmail,
-				subject: constants.TEST_EMAIL_SUBJECT,
-				body:    constants.TEST_STRING,
+				subject: rcv.TEST_EMAIL_SUBJECT,
+				body:    rcv.TEST_STRING,
 				toList:  TestMultipleTORecipientList,
 				ccList:  TestMultipleBCCRecipientList,
 				bccList: TestMultipleEmptyRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -291,14 +290,14 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Positive Case: Missing from!",
 			arguments: arguments{
 				from:    TestEmptyList,
-				subject: constants.TEST_EMAIL_SUBJECT,
-				body:    constants.TEST_STRING,
+				subject: rcv.TEST_EMAIL_SUBJECT,
+				body:    rcv.TEST_STRING,
 				toList:  TestMultipleTORecipientList,
 				ccList:  TestMultipleBCCRecipientList,
 				bccList: TestMultipleEmptyRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -307,8 +306,8 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 			name: "Negative Case: Missing relyTo!",
 			arguments: arguments{
 				from:    TestFromEmail,
-				subject: constants.TEST_EMAIL_SUBJECT,
-				body:    constants.TEST_STRING,
+				subject: rcv.TEST_EMAIL_SUBJECT,
+				body:    rcv.TEST_STRING,
 				toList:  TestMultipleEmptyRecipientList,
 				ccList:  TestMultipleCCRecipientList,
 				bccList: TestMultipleBCCRecipientList,
@@ -318,7 +317,7 @@ func TestEmail_sendEmailUsingPlainText(tPtr *testing.T) {
 		},
 	}
 
-	tEmailServer, _ = NewSendGridServer(constants.TEST_EMAIL_ADDRESS, constants.TEST_STRING, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_SENDGRID_KEY_FILE)
+	tEmailServer, _ = NewSendGridServer(rcv.TEST_EMAIL_ADDRESS, rcv.TEST_STRING, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_SENDGRID_KEY_FILE)
 
 	for _, ts := range tests {
 		tPtr.Run(tFunctionName, func(t *testing.T) {
@@ -350,7 +349,7 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		gotError           bool
 		tEmailServer       *EmailServer
 		tFunction, _, _, _ = runtime.Caller(0)
@@ -366,15 +365,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Positive Case: Successful!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleTORecipientList,
 				ccList:       TestMultipleCCRecipientList,
 				bccList:      TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -383,15 +382,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Negative Case: Missing subject!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.EMPTY,
-				templateId:   constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
+				subject:      rcv.EMPTY,
+				templateId:   rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleTORecipientList,
 				ccList:       TestMultipleCCRecipientList,
 				bccList:      TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: true,
@@ -400,15 +399,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Negative Case: Missing template id!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.EMPTY,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.EMPTY,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleTORecipientList,
 				ccList:       TestMultipleCCRecipientList,
 				bccList:      TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: true,
@@ -417,15 +416,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Negative Case: Missing template data!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.EMPTY,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.EMPTY,
 				templateData: map[any]interface{}{"su_first_name": nil},
 				toList:       TestMultipleTORecipientList,
 				ccList:       TestMultipleCCRecipientList,
 				bccList:      TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: true,
@@ -434,15 +433,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Negative Case: Missing toList!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleEmptyRecipientList,
 				ccList:       TestMultipleCCRecipientList,
 				bccList:      TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: true,
@@ -451,15 +450,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Positive Case: Missing ccList!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleTORecipientList,
 				ccList:       TestMultipleEmptyRecipientList,
 				bccList:      TestMultipleBCCRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -468,15 +467,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Positive Case: Missing bccList!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleTORecipientList,
 				ccList:       TestMultipleBCCRecipientList,
 				bccList:      TestMultipleEmptyRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -485,15 +484,15 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Positive Case: Missing from!",
 			arguments: arguments{
 				from:         TestEmptyList,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleTORecipientList,
 				ccList:       TestMultipleBCCRecipientList,
 				bccList:      TestMultipleEmptyRecipientList,
 				replyTo: EmailItem{
-					Name:    constants.TEST_EMAIL_NAME,
-					Address: constants.TEST_EMAIL_ADDRESS,
+					Name:    rcv.TEST_EMAIL_NAME,
+					Address: rcv.TEST_EMAIL_ADDRESS,
 				},
 			},
 			wantError: false,
@@ -502,8 +501,8 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 			name: "Negative Case: Missing relyTo!",
 			arguments: arguments{
 				from:         TestFromEmail,
-				subject:      constants.TEST_EMAIL_SUBJECT,
-				templateId:   constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
+				subject:      rcv.TEST_EMAIL_SUBJECT,
+				templateId:   rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID,
 				templateData: map[any]interface{}{"su_first_name": "Scott"},
 				toList:       TestMultipleEmptyRecipientList,
 				ccList:       TestMultipleCCRecipientList,
@@ -514,7 +513,7 @@ func TestEmail_sendEmailUsingTemplate(tPtr *testing.T) {
 		},
 	}
 
-	tEmailServer, _ = NewSendGridServer(constants.TEST_EMAIL_ADDRESS, constants.TEST_STRING, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_SENDGRID_KEY_FILE)
+	tEmailServer, _ = NewSendGridServer(rcv.TEST_EMAIL_ADDRESS, rcv.TEST_STRING, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_SENDGRID_KEY_FILE)
 
 	for _, ts := range tests {
 		tPtr.Run(tFunctionName, func(t *testing.T) {
@@ -545,7 +544,7 @@ func TestGenerateBankRegisteredEmail(tPtr *testing.T) {
 	var (
 		err                error
 		gotError           bool
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		tEmailServer       *EmailServer
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -559,9 +558,9 @@ func TestGenerateBankRegisteredEmail(tPtr *testing.T) {
 		{
 			name: "Positive Case: Successful!",
 			arguments: arguments{
-				firstName:      constants.TEST_USER_FIRST_NAME,
-				lastName:       constants.TEST_USER_LAST_NAME,
-				email:          constants.TEST_USER_EMAIL,
+				firstName:      rcv.TEST_USER_FIRST_NAME,
+				lastName:       rcv.TEST_USER_LAST_NAME,
+				email:          rcv.TEST_USER_EMAIL,
 				accountDetails: TestAccounts,
 			},
 			wantError: false,
@@ -569,20 +568,20 @@ func TestGenerateBankRegisteredEmail(tPtr *testing.T) {
 		{
 			name: "Positive Case: Empty Account Details!",
 			arguments: arguments{
-				firstName:      constants.TEST_USER_FIRST_NAME,
-				lastName:       constants.TEST_USER_LAST_NAME,
-				email:          constants.TEST_USER_EMAIL,
+				firstName:      rcv.TEST_USER_FIRST_NAME,
+				lastName:       rcv.TEST_USER_LAST_NAME,
+				email:          rcv.TEST_USER_EMAIL,
 				accountDetails: []plaid.AccountBase{},
 			},
 			wantError: false,
 		},
 	}
 
-	tEmailServer, _ = NewSendGridServer(constants.TEST_EMAIL_ADDRESS, constants.TEST_SENDER_NAME, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_SENDGRID_KEY_FILE)
+	tEmailServer, _ = NewSendGridServer(rcv.TEST_EMAIL_ADDRESS, rcv.TEST_SENDER_NAME, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_SENDGRID_KEY_FILE)
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			if errorInfo = GenerateBankRegisteredEmail(tEmailServer, constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID, ts.arguments.firstName, ts.arguments.lastName, ts.arguments.email, constants.TEST_INSTITUTION_CITIZEN_BANK, ts.arguments.accountDetails, false); errorInfo.Error == nil {
+			if errorInfo = GenerateBankRegisteredEmail(tEmailServer, rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID, ts.arguments.firstName, ts.arguments.lastName, ts.arguments.email, rcv.TEST_INSTITUTION_CITIZEN_BANK, ts.arguments.accountDetails, false); errorInfo.Error == nil {
 				gotError = false
 			} else {
 				gotError = true
@@ -606,7 +605,7 @@ func TestGenerateTransferRequestEmail(tPtr *testing.T) {
 	var (
 		err                error
 		gotError           bool
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		tEmailServer       *EmailServer
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -621,9 +620,9 @@ func TestGenerateTransferRequestEmail(tPtr *testing.T) {
 		{
 			name: "Positive Case: Successful!",
 			arguments: arguments{
-				firstName:       constants.TEST_USER_FIRST_NAME,
-				lastName:        constants.TEST_USER_LAST_NAME,
-				email:           constants.TEST_USER_EMAIL,
+				firstName:       rcv.TEST_USER_FIRST_NAME,
+				lastName:        rcv.TEST_USER_LAST_NAME,
+				email:           rcv.TEST_USER_EMAIL,
 				transferRequest: tTestMapData,
 			},
 			wantError: false,
@@ -631,24 +630,24 @@ func TestGenerateTransferRequestEmail(tPtr *testing.T) {
 		{
 			name: "Positive Case: Empty Account Details!",
 			arguments: arguments{
-				firstName:       constants.TEST_USER_FIRST_NAME,
-				lastName:        constants.TEST_USER_LAST_NAME,
-				email:           constants.TEST_USER_EMAIL,
+				firstName:       rcv.TEST_USER_FIRST_NAME,
+				lastName:        rcv.TEST_USER_LAST_NAME,
+				email:           rcv.TEST_USER_EMAIL,
 				transferRequest: make(map[string]string),
 			},
 			wantError: true,
 		},
 	}
 
-	tEmailServer, _ = NewSendGridServer(constants.TEST_EMAIL_ADDRESS, constants.TEST_SENDER_NAME, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_SENDGRID_KEY_FILE)
+	tEmailServer, _ = NewSendGridServer(rcv.TEST_EMAIL_ADDRESS, rcv.TEST_SENDER_NAME, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_SENDGRID_KEY_FILE)
 	tTestMapData["direction"] = "into"
 	tTestMapData["amount"] = strconv.FormatFloat(123.45, 'g', 5, 64)
-	tTestMapData["method"] = strings.ToTitle(constants.TRANFER_WIRE)
+	tTestMapData["method"] = strings.ToTitle(rcv.TRANFER_WIRE)
 	tTestMapData["completion"] = time.Now().AddDate(0, 2, 0).Format("Mon Jan 2, 2006")
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			if errorInfo = GenerateTransferRequestEmail(tEmailServer, constants.TEST_EMAIL_TEMPLATE_VERIFACTION_ID, ts.arguments.firstName, ts.arguments.lastName, ts.arguments.email, ts.arguments.transferRequest, true); errorInfo.Error == nil {
+			if errorInfo = GenerateTransferRequestEmail(tEmailServer, rcv.TEST_EMAIL_TEMPLATE_VERIFACTION_ID, ts.arguments.firstName, ts.arguments.lastName, ts.arguments.email, ts.arguments.transferRequest, true); errorInfo.Error == nil {
 				gotError = false
 			} else {
 				gotError = true
@@ -672,7 +671,7 @@ func TestGenerateVerifyEmail(tPtr *testing.T) {
 	var (
 		err                error
 		gotError           bool
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		tEmailServer       *EmailServer
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -687,16 +686,16 @@ func TestGenerateVerifyEmail(tPtr *testing.T) {
 		{
 			name: "Positive Case: Successful!",
 			arguments: arguments{
-				firstName: constants.TEST_USER_FIRST_NAME,
-				lastName:  constants.TEST_USER_LAST_NAME,
-				email:     constants.TEST_USER_EMAIL,
-				shortURL:  constants.TEST_URL_VALID,
+				firstName: rcv.TEST_USER_FIRST_NAME,
+				lastName:  rcv.TEST_USER_LAST_NAME,
+				email:     rcv.TEST_USER_EMAIL,
+				shortURL:  rcv.TEST_URL_VALID,
 			},
 			wantError: false,
 		},
 	}
 
-	tEmailServer, _ = NewSendGridServer(constants.TEST_EMAIL_ADDRESS, constants.TEST_SENDER_NAME, constants.ENVIRONMENT_DEVELOPMENT, constants.TEST_SENDGRID_KEY_FILE)
+	tEmailServer, _ = NewSendGridServer(rcv.TEST_EMAIL_ADDRESS, rcv.TEST_SENDER_NAME, rcv.ENVIRONMENT_DEVELOPMENT, rcv.TEST_SENDGRID_KEY_FILE)
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
@@ -720,7 +719,7 @@ func TestAddRecipientList(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo           coreError.ErrorInfo
+		errorInfo           cpi.ErrorInfo
 		gotError            bool
 		tFunction, _, _, _  = runtime.Caller(0)
 		tFunctionName       = runtime.FuncForPC(tFunction).Name()
@@ -779,7 +778,7 @@ func TestAddRecipientList(tPtr *testing.T) {
 			arguments: arguments{
 				myList: []EmailItem{{
 					Name:    "Scott",
-					Address: constants.EMPTY,
+					Address: rcv.EMPTY,
 				}},
 			},
 			wantError: true,
@@ -808,7 +807,7 @@ func TestEmailAddress(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -829,7 +828,7 @@ func TestEmailAddress(tPtr *testing.T) {
 		{
 			name: "Negative Case: Address is empty",
 			arguments: arguments{
-				address: constants.EMPTY,
+				address: rcv.EMPTY,
 			},
 			wantError: true,
 		},
@@ -885,7 +884,7 @@ func TestValidateSubject(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -906,7 +905,7 @@ func TestValidateSubject(tPtr *testing.T) {
 		{
 			name: "Negative Case: Subject is empty",
 			arguments: arguments{
-				subject: constants.EMPTY,
+				subject: rcv.EMPTY,
 			},
 			wantError: true,
 		},

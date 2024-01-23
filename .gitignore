@@ -1,3 +1,5 @@
 .DS_Store
 unreadable-skeleton-config-file.json
 /servers/nats-connect/logs/
+/servers/nats-connect/.run/server.pid
+/shared-services/src/coreValidators/unreadable_file.txt

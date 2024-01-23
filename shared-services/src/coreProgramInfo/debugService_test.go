@@ -1,4 +1,4 @@
-// package shared_services
+// package sharedServices
 /*
 NOTES:
     None
@@ -18,7 +18,7 @@ COPYRIGHT:
 	limitations under the License.
 
 */
-package shared_services
+package sharedServices
 
 import (
 	"runtime"

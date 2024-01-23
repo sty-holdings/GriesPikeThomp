@@ -1,4 +1,4 @@
-// Package shared_services
+// Package sharedServices
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package shared_services
+package sharedServices
 
 import (
 	// Add imports here
@@ -67,6 +67,7 @@ const (
 	DIRECTORY_NOT_FULLY_QUALIFIED  = "The directory doesn't start and end with slash."
 	DOCUMENT_NOT_FOUND             = "The document was not found."
 	DOCUMENTS_NONE_FOUND           = "No documents were found."
+	DOMAIN_INVALID                 = "The domain value is invalid."
 	EVIRNOMENT_INVALID             = "The environment value is invalid."
 	ERROR_MISSING                  = "ERROR MISSING"
 	FALSE_SHOULD_BE_TRUE           = "The result should have been true."
@@ -86,7 +87,7 @@ const (
 	MAP_MISSING_VALUE              = "Provided map has a nil or empty value."
 	MAX_THREADS_INVALID            = "The config file max threads value is invalid."
 	MESSAGE_JSON_INVALID           = "The message body is not valid JSON."
-	MESSAGE_PREFIX_INVALID         = "The Message Prefix value is invalid."
+	MESSAGE_NAMESPACE_INVALID      = "The Message namespace value is invalid."
 	MISSING_SERVER_NAME            = "The server name in main.go is empty."
 	NATS_URL_INVALID               = "The NATS URL value is invalid."
 	NATS_CONNECTION_FAILED         = "Connecting to NATS server failed"
@@ -167,6 +168,7 @@ var (
 	ErrDirectoryNotFullyQualified = errors.New(DIRECTORY_NOT_FULLY_QUALIFIED)
 	ErrDocumentNotFound           = errors.New(DOCUMENT_NOT_FOUND)
 	ErrDocumentsNoneFound         = errors.New(DOCUMENTS_NONE_FOUND)
+	ErrDomainInvalid              = errors.New(DOMAIN_INVALID)
 	ErrEnvironmentInvalid         = errors.New(EVIRNOMENT_INVALID)
 	ErrErrorMissing               = errors.New(ERROR_MISSING)
 	ErrFalseShouldBeTrue          = errors.New(FALSE_SHOULD_BE_TRUE)
@@ -186,7 +188,7 @@ var (
 	ErrMapIsMissingValue          = errors.New(MAP_MISSING_VALUE)
 	ErrMaxThreadsInvalid          = errors.New(MAX_THREADS_INVALID)
 	ErrMessageJSONInvalid         = errors.New(MESSAGE_JSON_INVALID)
-	ErrMessagePrefixInvalid       = errors.New(MESSAGE_PREFIX_INVALID)
+	ErrMessageNamespaceInvalid    = errors.New(MESSAGE_NAMESPACE_INVALID)
 	ErrMissingServerName          = errors.New(MISSING_SERVER_NAME)
 	ErrNATSURLInvalid             = errors.New(NATS_URL_INVALID)
 	ErrNATSConnectionFailed       = errors.New(NATS_CONNECTION_FAILED)

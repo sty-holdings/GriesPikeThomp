@@ -40,7 +40,6 @@ import (
 	"testing"
 
 	"albert/constants"
-	"albert/core/coreError"
 	"albert/core/coreHelpers"
 )
 
@@ -48,16 +47,16 @@ import (
 func TestNewAWSSession(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		function, _, _, _ = runtime.Caller(0)
 		tFunctionName     = runtime.FuncForPC(function).Name()
 	)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if _, errorInfo = NewAWSSession(constants.TEST_AWS_INFORMATION_FQN); errorInfo.Error != nil {
+		if _, errorInfo = NewAWSSession(rcv.TEST_AWS_INFORMATION_FQN); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if _, errorInfo = NewAWSSession(constants.EMPTY); errorInfo.Error == nil {
+		if _, errorInfo = NewAWSSession(rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -67,19 +66,19 @@ func TestNewAWSSession(tPtr *testing.T) {
 func TestAWSHelper_ConfirmUser(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		tAWSHelper        AWSHelper
 		function, _, _, _ = runtime.Caller(0)
 		tFunctionName     = runtime.FuncForPC(function).Name()
 	)
 
-	tAWSHelper, _ = NewAWSSession(constants.TEST_AWS_INFORMATION_FQN)
+	tAWSHelper, _ = NewAWSSession(rcv.TEST_AWS_INFORMATION_FQN)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if errorInfo = tAWSHelper.ConfirmUser(constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE); errorInfo.Error != nil {
+		if errorInfo = tAWSHelper.ConfirmUser(rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if errorInfo = tAWSHelper.ConfirmUser(constants.EMPTY); errorInfo.Error == nil {
+		if errorInfo = tAWSHelper.ConfirmUser(rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -90,7 +89,7 @@ func TestAWSHelper_ConfirmUser(tPtr *testing.T) {
 func TestAWSHelper_GetRequestorEmailPhoneFromIdTokenClaims(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myAWS             AWSHelper
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		function, _, _, _ = runtime.Caller(0)
@@ -104,10 +103,10 @@ func TestAWSHelper_GetRequestorEmailPhoneFromIdTokenClaims(tPtr *testing.T) {
 		if _, _, _, errorInfo = myAWS.GetRequestorEmailPhoneFromIdTokenClaims(myFireBase.FirestoreClientPtr, string(testingIdTokenValid)); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if _, _, _, errorInfo = myAWS.GetRequestorEmailPhoneFromIdTokenClaims(myFireBase.FirestoreClientPtr, constants.TEST_TOKEN_INVALID); errorInfo.Error == nil {
+		if _, _, _, errorInfo = myAWS.GetRequestorEmailPhoneFromIdTokenClaims(myFireBase.FirestoreClientPtr, rcv.TEST_TOKEN_INVALID); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
-		if _, _, _, errorInfo = myAWS.GetRequestorEmailPhoneFromIdTokenClaims(myFireBase.FirestoreClientPtr, constants.EMPTY); errorInfo.Error == nil {
+		if _, _, _, errorInfo = myAWS.GetRequestorEmailPhoneFromIdTokenClaims(myFireBase.FirestoreClientPtr, rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -120,7 +119,7 @@ func TestAWSHelper_GetRequestorEmailPhoneFromIdTokenClaims(tPtr *testing.T) {
 func TestAWSHelper_GetRequestorFromAccessTokenClaims(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myAWS             AWSHelper
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		function, _, _, _ = runtime.Caller(0)
@@ -134,10 +133,10 @@ func TestAWSHelper_GetRequestorFromAccessTokenClaims(tPtr *testing.T) {
 		if _, errorInfo = myAWS.GetRequestorFromAccessTokenClaims(myFireBase.FirestoreClientPtr, string(testingAccessTokenValid)); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if _, errorInfo = myAWS.GetRequestorFromAccessTokenClaims(myFireBase.FirestoreClientPtr, constants.TEST_TOKEN_INVALID); errorInfo.Error == nil {
+		if _, errorInfo = myAWS.GetRequestorFromAccessTokenClaims(myFireBase.FirestoreClientPtr, rcv.TEST_TOKEN_INVALID); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
-		if _, errorInfo = myAWS.GetRequestorFromAccessTokenClaims(myFireBase.FirestoreClientPtr, constants.EMPTY); errorInfo.Error == nil {
+		if _, errorInfo = myAWS.GetRequestorFromAccessTokenClaims(myFireBase.FirestoreClientPtr, rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -155,7 +154,7 @@ func TestAWSHelper_ParseAWSJWTWithClaims(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		gotError           bool
 		myAWS              AWSHelper
 		myFireBase         coreHelpers.FirebaseFirestoreHelper
@@ -172,7 +171,7 @@ func TestAWSHelper_ParseAWSJWTWithClaims(tPtr *testing.T) {
 		{
 			name: "Positive Case: Successful id token!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ID,
+				tokenType: rcv.TOKEN_TYPE_ID,
 				token:     "valid",
 			},
 			wantError: false,
@@ -180,7 +179,7 @@ func TestAWSHelper_ParseAWSJWTWithClaims(tPtr *testing.T) {
 		{
 			name: "Positive Case: Successful access token!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ACCESS,
+				tokenType: rcv.TOKEN_TYPE_ACCESS,
 				token:     "valid",
 			},
 			wantError: false,
@@ -188,7 +187,7 @@ func TestAWSHelper_ParseAWSJWTWithClaims(tPtr *testing.T) {
 		{
 			name: "Negative Case: Missing token type!",
 			arguments: arguments{
-				tokenType: constants.EMPTY,
+				tokenType: rcv.EMPTY,
 				token:     "valid",
 			},
 			wantError: true,
@@ -196,15 +195,15 @@ func TestAWSHelper_ParseAWSJWTWithClaims(tPtr *testing.T) {
 		{
 			name: "Negative Case: Missing token!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ACCESS,
-				token:     constants.EMPTY,
+				tokenType: rcv.TOKEN_TYPE_ACCESS,
+				token:     rcv.EMPTY,
 			},
 			wantError: true,
 		},
 		{
 			name: "Negative Case: Invalid id token!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ID,
+				tokenType: rcv.TOKEN_TYPE_ID,
 				token:     "invalid",
 			},
 			wantError: true,
@@ -212,7 +211,7 @@ func TestAWSHelper_ParseAWSJWTWithClaims(tPtr *testing.T) {
 		{
 			name: "Negative Case: Invalid access token!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ACCESS,
+				tokenType: rcv.TOKEN_TYPE_ACCESS,
 				token:     "invalid",
 			},
 			wantError: true,
@@ -244,7 +243,7 @@ func TestAWSHelper_ParseAWSJWTWithClaims(tPtr *testing.T) {
 func TestAWSHelper_ParseJWT(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myAWS             AWSHelper
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		function, _, _, _ = runtime.Caller(0)
@@ -257,7 +256,7 @@ func TestAWSHelper_ParseJWT(tPtr *testing.T) {
 		if _, errorInfo = myAWS.ParseAWSJWT(string(testingAccessTokenValid)); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if _, errorInfo = myAWS.ParseAWSJWT(constants.EMPTY); errorInfo.Error == nil {
+		if _, errorInfo = myAWS.ParseAWSJWT(rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -270,7 +269,7 @@ func TestAWSHelper_ParseJWT(tPtr *testing.T) {
 func TestAWSHelper_PullCognitoUserInfo(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myAWS             AWSHelper
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		function, _, _, _ = runtime.Caller(0)
@@ -280,10 +279,10 @@ func TestAWSHelper_PullCognitoUserInfo(tPtr *testing.T) {
 	myAWS, myFireBase = StartTest()
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if _, errorInfo = myAWS.PullCognitoUserInfo(constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE); errorInfo.Error != nil {
+		if _, errorInfo = myAWS.PullCognitoUserInfo(rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if _, errorInfo = myAWS.PullCognitoUserInfo(constants.EMPTY); errorInfo.Error == nil {
+		if _, errorInfo = myAWS.PullCognitoUserInfo(rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -298,7 +297,7 @@ func TestAWSHelper_PullCognitoUserInfo(tPtr *testing.T) {
 func TestAWSHelper_ResetUserPassword(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myAWS             AWSHelper
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		resetByPass       = true
@@ -309,14 +308,14 @@ func TestAWSHelper_ResetUserPassword(tPtr *testing.T) {
 	myAWS, myFireBase = StartTest()
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if errorInfo = myAWS.ResetUserPassword(constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE, resetByPass); errorInfo.Error != nil {
-			if errorInfo.Error.Error() == coreError.ATTEMPTS_EXCEEDED {
-				fmt.Println(coreError.ATTEMPTS_EXCEEDED)
+		if errorInfo = myAWS.ResetUserPassword(rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE, resetByPass); errorInfo.Error != nil {
+			if errorInfo.Error.Error() == cpi.ATTEMPTS_EXCEEDED {
+				fmt.Println(cpi.ATTEMPTS_EXCEEDED)
 			} else {
 				tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 			}
 		}
-		if errorInfo = myAWS.ResetUserPassword(constants.EMPTY, resetByPass); errorInfo.Error == nil {
+		if errorInfo = myAWS.ResetUserPassword(rcv.EMPTY, resetByPass); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -328,16 +327,16 @@ func TestAWSHelper_ResetUserPassword(tPtr *testing.T) {
 // to login. This will output an access and id token for the user.
 func TestAWSHelper_UpdateAWSEmailVerifyFlag(tPtr *testing.T) {
 	//
-	// NOTE: The Id and Access token must match the username in constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE
+	// NOTE: The Id and Access token must match the username in rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE
 	//
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myAWS             AWSHelper
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		function, _, _, _ = runtime.Caller(0)
 		tFunctionName     = runtime.FuncForPC(function).Name()
-		tUsername         = constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE
+		tUsername         = rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE
 	)
 
 	myAWS, myFireBase = StartTest()
@@ -346,7 +345,7 @@ func TestAWSHelper_UpdateAWSEmailVerifyFlag(tPtr *testing.T) {
 		if errorInfo = myAWS.UpdateAWSEmailVerifyFlag(tUsername); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if errorInfo = myAWS.UpdateAWSEmailVerifyFlag(constants.EMPTY); errorInfo.Error == nil {
+		if errorInfo = myAWS.UpdateAWSEmailVerifyFlag(rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
 	})
@@ -364,7 +363,7 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myAWS             AWSHelper
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		function, _, _, _ = runtime.Caller(0)
@@ -381,7 +380,7 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 		{
 			name: "Positive Case: Access Successful!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ACCESS,
+				tokenType: rcv.TOKEN_TYPE_ACCESS,
 				token:     "valid",
 			},
 			shouldBeValid: true,
@@ -389,7 +388,7 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 		{
 			name: "Positive Case: Id Successful!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ID,
+				tokenType: rcv.TOKEN_TYPE_ID,
 				token:     "valid",
 			},
 			shouldBeValid: true,
@@ -397,7 +396,7 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 		{
 			name: "Negative Case: Access invalid!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ACCESS,
+				tokenType: rcv.TOKEN_TYPE_ACCESS,
 				token:     "invalid",
 			},
 			shouldBeValid: false,
@@ -405,7 +404,7 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 		{
 			name: "Negative Case: Id invalid!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ID,
+				tokenType: rcv.TOKEN_TYPE_ID,
 				token:     "invalid",
 			},
 			shouldBeValid: false,
@@ -413,7 +412,7 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 		{
 			name: "Negative Case: Access missing!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ACCESS,
+				tokenType: rcv.TOKEN_TYPE_ACCESS,
 				token:     "missing",
 			},
 			shouldBeValid: false,
@@ -421,7 +420,7 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 		{
 			name: "Negative Case: Id missing!",
 			arguments: arguments{
-				tokenType: constants.TOKEN_TYPE_ID,
+				tokenType: rcv.TOKEN_TYPE_ID,
 				token:     "missing",
 			},
 			shouldBeValid: false,
@@ -446,20 +445,20 @@ func TestAWSHelper_ValidAWSJWT(tPtr *testing.T) {
 func TestGetPublicKeySet(tPtr *testing.T) {
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		function, _, _, _ = runtime.Caller(0)
 		tFunctionName     = runtime.FuncForPC(function).Name()
-		tKeySetURL        = fmt.Sprintf(constants.TEST_AWS_KEYSET_URL, constants.TEST_USER_POOL_ID)
+		tKeySetURL        = fmt.Sprintf(rcv.TEST_AWS_KEYSET_URL, rcv.TEST_USER_POOL_ID)
 	)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
 		if _, errorInfo = getPublicKeySet(tKeySetURL); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo.Error.Error())
 		}
-		if _, errorInfo = getPublicKeySet(constants.EMPTY); errorInfo.Error == nil {
+		if _, errorInfo = getPublicKeySet(rcv.EMPTY); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, errorInfo.Error.Error(), "nil")
 		}
-		if _, errorInfo = getPublicKeySet(constants.TEST_URL_INVALID); errorInfo.Error == nil {
+		if _, errorInfo = getPublicKeySet(rcv.TEST_URL_INVALID); errorInfo.Error == nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, `errorInfo.Error.Error()`, "nil")
 		}
 	})
@@ -473,12 +472,12 @@ func TestValidAWSClaims(tPtr *testing.T) {
 		subject       string
 		email         string
 		username      string
-		emailVerified bool // emailVerified is only checked for constants.TOKEN_TYPE_ID
+		emailVerified bool // emailVerified is only checked for rcv.TOKEN_TYPE_ID
 		tokenUse      string
 	}
 
 	var (
-		errorInfo         coreError.ErrorInfo
+		errorInfo         cpi.ErrorInfo
 		myFireBase        coreHelpers.FirebaseFirestoreHelper
 		function, _, _, _ = runtime.Caller(0)
 		tFunctionName     = runtime.FuncForPC(function).Name()
@@ -493,77 +492,77 @@ func TestValidAWSClaims(tPtr *testing.T) {
 		{
 			name: "Positive Case: Successful Id Token!",
 			arguments: arguments{
-				subject:       constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				email:         constants.TEST_USER_EMAIL,
-				username:      constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
+				subject:       rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				email:         rcv.TEST_USER_EMAIL,
+				username:      rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
 				emailVerified: true,
-				tokenUse:      constants.TOKEN_TYPE_ID,
+				tokenUse:      rcv.TOKEN_TYPE_ID,
 			},
 			shouldBeValid: true,
 		},
 		{
 			name: "Positive Case: Successful Access Token!",
 			arguments: arguments{
-				subject:       constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				email:         constants.TEST_USER_EMAIL,
-				username:      constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
+				subject:       rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				email:         rcv.TEST_USER_EMAIL,
+				username:      rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
 				emailVerified: true,
-				tokenUse:      constants.TOKEN_TYPE_ACCESS,
+				tokenUse:      rcv.TOKEN_TYPE_ACCESS,
 			},
 			shouldBeValid: true,
 		},
 		{
 			name: "Negative Case: Email not verified!",
 			arguments: arguments{
-				subject:       constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				email:         constants.TEST_USER_EMAIL,
-				username:      constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
+				subject:       rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				email:         rcv.TEST_USER_EMAIL,
+				username:      rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
 				emailVerified: false,
-				tokenUse:      constants.TOKEN_TYPE_ID,
+				tokenUse:      rcv.TOKEN_TYPE_ID,
 			},
 			shouldBeValid: false,
 		},
 		{
 			name: "Negative Case: Token type missing!",
 			arguments: arguments{
-				subject:       constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				email:         constants.TEST_USER_EMAIL,
-				username:      constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
+				subject:       rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				email:         rcv.TEST_USER_EMAIL,
+				username:      rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
 				emailVerified: true,
-				tokenUse:      constants.EMPTY,
+				tokenUse:      rcv.EMPTY,
 			},
 			shouldBeValid: false,
 		},
 		{
 			name: "Negative Case: subject is missing!",
 			arguments: arguments{
-				subject:       constants.EMPTY,
-				email:         constants.TEST_USER_EMAIL,
-				username:      constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
+				subject:       rcv.EMPTY,
+				email:         rcv.TEST_USER_EMAIL,
+				username:      rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
 				emailVerified: true,
-				tokenUse:      constants.EMPTY,
+				tokenUse:      rcv.EMPTY,
 			},
 			shouldBeValid: false,
 		},
 		{
 			name: "Negative Case: email is missing!",
 			arguments: arguments{
-				subject:       constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				email:         constants.EMPTY,
-				username:      constants.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
+				subject:       rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				email:         rcv.EMPTY,
+				username:      rcv.TEST_USERNAME_SAVUP_TEST_DO_NOT_DELETE,
 				emailVerified: true,
-				tokenUse:      constants.EMPTY,
+				tokenUse:      rcv.EMPTY,
 			},
 			shouldBeValid: false,
 		},
 		{
 			name: "Negative Case: username is missing!",
 			arguments: arguments{
-				subject:       constants.TEST_USERNAME_SAVUP_REQUESTOR_ID,
-				email:         constants.TEST_USER_EMAIL,
-				username:      constants.EMPTY,
+				subject:       rcv.TEST_USERNAME_SAVUP_REQUESTOR_ID,
+				email:         rcv.TEST_USER_EMAIL,
+				username:      rcv.EMPTY,
 				emailVerified: true,
-				tokenUse:      constants.EMPTY,
+				tokenUse:      rcv.EMPTY,
 			},
 			shouldBeValid: false,
 		},

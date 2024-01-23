@@ -1,4 +1,4 @@
-// Package coreJWT
+// Package sharedServices
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package coreJWT
+package sharedServices
 
 import (
 	"crypto"
@@ -41,14 +41,10 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"runtime"
-	"strings"
-	"time"
 
-	"albert/constants"
-	"albert/core/coreError"
-	"albert/core/coreValidators"
+	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	jwt2 "github.com/golang-jwt/jwt/v4"
+	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
 type GenerateCertificate struct {
@@ -63,74 +59,66 @@ type GenerateCertificate struct {
 	ValidFor           string
 }
 
-// TLS Options for SavUp server.
+// TLSInfo files
 type TLSInfo struct {
-	TLSCert     string `json:"TLS_Certificate_FQN"`
-	TLSKey      string `json:"TLS_Private_Key_FQN"`
-	TLSCABundle string `json:"TLS_CABundle_FQN"`
+	TLSCert       string `json:"TLS_Certificate_FQN"`
+	TLSPrivateKey string `json:"TLS_Private_Key_FQN"`
+	TLSCABundle   string `json:"TLS_CABundle_FQN"`
 }
 
 // GenerateJWT
 // Create a new token object, specifying signing method and the claims
 // you would like it to contain.
-func GenerateJWT(privateKey, requestorId, period string, duration int64) (jwt string, errorInfo coreError.ErrorInfo) {
-
-	var (
-		tDuration          time.Duration
-		tFunction, _, _, _ = runtime.Caller(0)
-		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-		tPrivateKey        *rsa.PrivateKey
-		tRawPrivateKey     []byte
-	)
-
-	coreError.PrintDebugTrail(tFunctionName)
-
-	if privateKey == constants.EMPTY {
-		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v'", constants.FN_PRIVATE_KEY, constants.EMPTY))
-		log.Println(errorInfo.Error)
-	} else {
-		if requestorId == constants.EMPTY || period == constants.EMPTY || duration < 1 {
-			errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v' %v: '%v' %v: '%v'", constants.FN_REQUESTOR_ID, requestorId, constants.FN_PERIOD, period, constants.FN_DURATION, duration))
-			log.Println(errorInfo.Error)
-		} else {
-			if coreValidators.IsPeriodValid(period) && duration > 0 {
-				tRawPrivateKey = []byte(privateKey)
-				if tPrivateKey, errorInfo = ParsePrivateKey(tRawPrivateKey); errorInfo.Error == nil {
-					switch strings.ToUpper(period) {
-					case "M":
-						tDuration = time.Minute * time.Duration(duration)
-					case "H":
-						tDuration = time.Hour * time.Duration(duration)
-					case "D":
-						tDuration = time.Hour * time.Duration(duration*24)
-					default:
-						tDuration = time.Hour * time.Duration(duration)
-					}
-					jwt, errorInfo.Error = jwt2.NewWithClaims(jwt2.SigningMethodRS512, jwt2.MapClaims{
-						"requestorId": requestorId,
-						"Issuer":      constants.CERT_ISSUER,
-						"Subject":     requestorId,
-						"ExpiresAt":   time.Now().Add(tDuration).String(),
-						"NotBefore":   time.Now(),
-					}).SignedString(tPrivateKey)
-				}
-			}
-		}
-	}
-
-	return
-}
+// func GenerateJWT(privateKey, requestorId, period string, duration int64) (jwt string, errorInfo cpi.ErrorInfo) {
+//
+// 	var (
+// 		tDuration      time.Duration
+// 		tPrivateKey    *rsa.PrivateKey
+// 		tRawPrivateKey []byte
+// 	)
+//
+// 	if privateKey == rcv.VAL_EMPTY {
+// 		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v'", rcv.FN_PRIVATE_KEY, rcv.VAL_EMPTY))
+// 		log.Println(errorInfo.Error)
+// 	} else {
+// 		if requestorId == rcv.VAL_EMPTY || period == rcv.VAL_EMPTY || duration < 1 {
+// 			errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v' %v: '%v' %v: '%v'", rcv.FN_REQUESTOR_ID, requestorId, rcv.FN_PERIOD, period, rcv.FN_DURATION, duration))
+// 			log.Println(errorInfo.Error)
+// 		} else {
+// 			if cv.IsPeriodValid(period) && duration > 0 {
+// 				tRawPrivateKey = []byte(privateKey)
+// 				if tPrivateKey, errorInfo = ParsePrivateKey(tRawPrivateKey); errorInfo.Error == nil {
+// 					switch strings.ToUpper(period) {
+// 					case "M":
+// 						tDuration = time.Minute * time.Duration(duration)
+// 					case "H":
+// 						tDuration = time.Hour * time.Duration(duration)
+// 					case "D":
+// 						tDuration = time.Hour * time.Duration(duration*24)
+// 					default:
+// 						tDuration = time.Hour * time.Duration(duration)
+// 					}
+// 					jwt, errorInfo.Error = jwt2.NewWithClaims(jwt2.SigningMethodRS512, jwt2.MapClaims{
+// 						"requestorId": requestorId,
+// 						"Issuer":      rcv.CERT_ISSUER,
+// 						"Subject":     requestorId,
+// 						"ExpiresAt":   time.Now().Add(tDuration).String(),
+// 						"NotBefore":   time.Now(),
+// 					}).SignedString(tPrivateKey)
+// 				}
+// 			}
+// 		}
+// 	}
+//
+// 	return
+// }
 
 // GenerateRSAKey
-func GenerateRSAKey(rsaBits int) (privateKey crypto.PrivateKey, publicKey crypto.PublicKey, errorInfo coreError.ErrorInfo) {
+func GenerateRSAKey(rsaBits int) (privateKey crypto.PrivateKey, publicKey crypto.PublicKey, errorInfo cpi.ErrorInfo) {
 
 	var (
-		_PrivateKey        *rsa.PrivateKey
-		tFunction, _, _, _ = runtime.Caller(0)
-		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		_PrivateKey *rsa.PrivateKey
 	)
-
-	coreError.PrintDebugTrail(tFunctionName)
 
 	if _PrivateKey, errorInfo.Error = rsa.GenerateKey(rand.Reader, rsaBits); errorInfo.Error != nil {
 		log.Println(errorInfo.Error)
@@ -146,14 +134,7 @@ func GenerateRSAKey(rsaBits int) (privateKey crypto.PrivateKey, publicKey crypto
 }
 
 // ParsePrivateKey
-func ParsePrivateKey(tRawPrivateKey []byte) (privateKey *rsa.PrivateKey, errorInfo coreError.ErrorInfo) {
-
-	var (
-		tFunction, _, _, _ = runtime.Caller(0)
-		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-	)
-
-	coreError.PrintDebugTrail(tFunctionName)
+func ParsePrivateKey(tRawPrivateKey []byte) (privateKey *rsa.PrivateKey, errorInfo cpi.ErrorInfo) {
 
 	if privateKey, errorInfo.Error = jwt2.ParseRSAPrivateKeyFromPEM(tRawPrivateKey); errorInfo.Error != nil {
 		errorInfo.Error = errors.New("Unable to parse the private key referred to in the configuration file.")
@@ -164,20 +145,16 @@ func ParsePrivateKey(tRawPrivateKey []byte) (privateKey *rsa.PrivateKey, errorIn
 }
 
 // ValidateSavUpJWT
-func ValidateSavUpJWT(privateKey []byte, jwt string) (errorInfo coreError.ErrorInfo) {
+func ValidateSavUpJWT(privateKey []byte, jwt string) (errorInfo cpi.ErrorInfo) {
 
 	var (
-		tParsedPrivateKey  *rsa.PrivateKey
-		tFunction, _, _, _ = runtime.Caller(0)
-		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tParsedPrivateKey *rsa.PrivateKey
 		//  ToDo is this needed?
 		// tToken         *jwt2.Token
 	)
 
-	coreError.PrintDebugTrail(tFunctionName)
-
-	if len(privateKey) == 0 || jwt == constants.EMPTY {
-		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v' %v: '%v'", constants.FN_PRIVATE_KEY, privateKey, constants.FN_JWT, jwt))
+	if len(privateKey) == 0 || jwt == rcv.VAL_EMPTY {
+		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v' %v: '%v'", rcv.FN_PRIVATE_KEY, privateKey, rcv.FN_JWT, jwt))
 		log.Println(errorInfo.Error)
 	} else {
 		if tParsedPrivateKey, errorInfo = ParsePrivateKey(privateKey); errorInfo.Error == nil {

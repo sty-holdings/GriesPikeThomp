@@ -40,7 +40,6 @@ import (
 	"strings"
 
 	"albert/constants"
-	"albert/core/coreError"
 	"albert/core/coreValidators"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -77,33 +76,33 @@ type Row pgx.Row
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func GetPostgresConnection(dbName, user, password, host, sslMode string, port, timeout, poolMaxConns int) (DBPoolPtr *pgxpool.Pool, errorInfo coreError.ErrorInfo) {
+func GetPostgresConnection(dbName, user, password, host, sslMode string, port, timeout, poolMaxConns int) (DBPoolPtr *pgxpool.Pool, errorInfo cpi.ErrorInfo) {
 
-	if dbName == constants.EMPTY || user == constants.EMPTY || password == constants.EMPTY || host == constants.EMPTY || coreValidators.IsPostgresSSLModeValid(sslMode) {
-		errorInfo.Error = coreError.ErrRequiredArgumentMissing
-		coreError.PrintError(errorInfo)
+	if dbName == rcv.EMPTY || user == rcv.EMPTY || password == rcv.EMPTY || host == rcv.EMPTY || coreValidators.IsPostgresSSLModeValid(sslMode) {
+		errorInfo.Error = cpi.ErrRequiredArgumentMissing
+		cpi.PrintError(errorInfo)
 		return
 	}
 
 	if port == 0 || timeout == 0 || poolMaxConns == 0 {
-		errorInfo.Error = coreError.ErrRequiredArgumentMissing
-		coreError.PrintError(errorInfo)
+		errorInfo.Error = cpi.ErrRequiredArgumentMissing
+		cpi.PrintError(errorInfo)
 		return
 	}
 
 	if coreValidators.IsPostgresSSLModeValid(sslMode) == false {
-		errorInfo.Error = coreError.ErrPostgresSSLMode
-		coreError.PrintError(errorInfo)
+		errorInfo.Error = cpi.ErrPostgresSSLMode
+		cpi.PrintError(errorInfo)
 		return
 	}
 
 	if DBPoolPtr, errorInfo.Error = pgxpool.New(context.Background(), setConnectionValues(dbName, user, password, host, sslMode, port, timeout, poolMaxConns)); errorInfo.Error != nil {
 		if strings.Contains(errorInfo.Error.Error(), "dial") {
-			errorInfo.Error = coreError.ErrPostgresConnFailed
-			coreError.PrintError(errorInfo)
+			errorInfo.Error = cpi.ErrPostgresConnFailed
+			cpi.PrintError(errorInfo)
 		} else {
-			errorInfo.Error = coreError.ErrServiceFailedPOSTGRES
-			coreError.PrintError(errorInfo)
+			errorInfo.Error = cpi.ErrServiceFailedPOSTGRES
+			cpi.PrintError(errorInfo)
 		}
 	}
 
@@ -112,26 +111,26 @@ func GetPostgresConnection(dbName, user, password, host, sslMode string, port, t
 
 func setConnectionValues(dbName, user, password, host, sslMode string, port, timeout, poolMaxConns int) (dbConnString string) {
 
-	return fmt.Sprintf(constants.POSTGRES__CONN_STRING, dbName, user, password, host, port, timeout, sslMode, poolMaxConns)
+	return fmt.Sprintf(rcv.POSTGRES__CONN_STRING, dbName, user, password, host, port, timeout, sslMode, poolMaxConns)
 
 }
 
 // Verify that the pointer to the database connection is active.
-func VerifyConnection(dbPoolPtr *pgxpool.Pool, dbName string) (errorInfo coreError.ErrorInfo) {
+func VerifyConnection(dbPoolPtr *pgxpool.Pool, dbName string) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tRows Rows
 	)
 
 	if dbPoolPtr == nil {
-		errorInfo.Error = coreError.ErrPostgresConnEmpty
-		coreError.PrintError(errorInfo)
+		errorInfo.Error = cpi.ErrPostgresConnEmpty
+		cpi.PrintError(errorInfo)
 	} else {
 		qStmt := "SELECT * FROM pg_stat_activity WHERE datname = $1 and state = 'active';"
 		tRows, errorInfo.Error = dbPoolPtr.Query(CTXBackground, qStmt, dbName)
 		if errorInfo.Error != nil {
-			errorInfo.Error = coreError.ErrPostgresConnFailed
-			coreError.PrintError(errorInfo)
+			errorInfo.Error = cpi.ErrPostgresConnFailed
+			cpi.PrintError(errorInfo)
 		}
 		defer tRows.Close()
 	}

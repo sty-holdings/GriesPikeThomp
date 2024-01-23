@@ -33,7 +33,5 @@ package sharedServices
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	TEST_FILE_NAME              = "test_file.txt"
-	TEST_DIRECTORY              = "/tmp"
-	TEST_DIRECTORY_ENDING_SLASH = "/tmp/"
+	NATS_INTERNAL = "internal_nats"
 )

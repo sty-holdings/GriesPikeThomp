@@ -1,0 +1,8 @@
+{
+  "skeleton_config_filename": "",
+  "debug_mode_on": true,
+  "Environment": "LOCAL",
+  "log_directory": "servers/nats-connect/logs",
+  "max_threads": 5,
+  "pid_directory": "servers/nats-connect/.run"
+}

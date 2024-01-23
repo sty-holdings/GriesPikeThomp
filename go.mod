@@ -15,7 +15,7 @@ require (
 	github.com/plaid/plaid-go/v9 v9.0.0
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
-	github.com/sty-holdings/resuable-const-vars v2024.5.4+incompatible
+	github.com/sty-holdings/resuable-const-vars v2024.6.9+incompatible
 	golang.org/x/text v0.14.0
 	google.golang.org/api v0.156.0
 )

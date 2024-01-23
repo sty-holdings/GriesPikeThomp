@@ -1,4 +1,4 @@
-// Package shared_services
+// Package sharedServices
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package shared_services
+package sharedServices
 
 import (
 	"fmt"
@@ -44,7 +44,6 @@ import (
 	"time"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	cv "GriesPikeThomp/shared-services/src/coreValidators"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -105,7 +104,7 @@ import (
 // BuildLegalName
 // func BuildLegalName(firstName, lastName string) (legalName string) {
 //
-// 	if firstName != constants.EMPTY && lastName != constants.EMPTY {
+// 	if firstName != rcv.EMPTY && lastName != rcv.EMPTY {
 // 		legalName = fmt.Sprintf("%v %v", firstName, lastName)
 // 	}
 //
@@ -115,8 +114,8 @@ import (
 // CapitalizeFirstLetter - will make the first letter of the string to upper case and the other letters to lower
 // func CapitalizeFirstLetter(stringIn string) string {
 //
-// 	if stringIn == constants.EMPTY {
-// 		return constants.EMPTY
+// 	if stringIn == rcv.EMPTY {
+// 		return rcv.EMPTY
 // 	}
 //
 // 	x := []byte(stringIn)
@@ -153,8 +152,8 @@ import (
 //	Example: http://verifyemail.savup.com:2134, https://verifyemail.savup.com:2134, http://localhost:2134, https://localhost:2134
 // func formatURL(protocol, domain string, port uint) (url string) {
 //
-// 	if domain == constants.ENVIRONMENT_LOCAL {
-// 		url = fmt.Sprintf("%v://%v:%v", protocol, constants.HTTP_DOMAIN_LOCALHOST, port)
+// 	if domain == rcv.ENVIRONMENT_LOCAL {
+// 		url = fmt.Sprintf("%v://%v:%v", protocol, rcv.HTTP_DOMAIN_LOCALHOST, port)
 // 	} else {
 // 		url = fmt.Sprintf("%v://%v:%v", protocol, domain, port)
 // 	}
@@ -203,18 +202,18 @@ import (
 // func GenerateURL(environment string, secure bool) (url string) {
 //
 // 	switch fmt.Sprintf("%v,%v", strings.ToUpper(environment), secure) {
-// 	case fmt.Sprintf("%v,%v", constants.ENVIRONMENT_LOCAL, true):
-// 		url = formatURL(constants.HTTP_PROTOCOL_SECURE, constants.HTTP_DOMAIN_API_LOCAL, constants.HTTP_PORT_SECURE)
-// 	case fmt.Sprintf("%v,%v", constants.ENVIRONMENT_LOCAL, false):
-// 		url = formatURL(constants.HTTP_PROTOCOL_NON_SECURE, constants.HTTP_DOMAIN_API_LOCAL, constants.HTTP_PORT_NON_SECURE)
-// 	case fmt.Sprintf("%v,%v", constants.ENVIRONMENT_DEVELOPMENT, true):
-// 		url = formatURL(constants.HTTP_PROTOCOL_SECURE, constants.HTTP_DOMAIN_API_DEV, constants.HTTP_PORT_SECURE)
-// 	case fmt.Sprintf("%v,%v", constants.ENVIRONMENT_DEVELOPMENT, false):
-// 		url = formatURL(constants.HTTP_PROTOCOL_NON_SECURE, constants.HTTP_DOMAIN_API_DEV, constants.HTTP_PORT_NON_SECURE)
-// 	case fmt.Sprintf("%v,%v", constants.ENVIRONMENT_PRODUCTION, true):
-// 		url = formatURL(constants.HTTP_PROTOCOL_SECURE, constants.HTTP_DOMAIN_API_PROD, constants.HTTP_PORT_SECURE)
-// 	case fmt.Sprintf("%v,%v", constants.ENVIRONMENT_PRODUCTION, false):
-// 		url = formatURL(constants.HTTP_PROTOCOL_NON_SECURE, constants.HTTP_DOMAIN_API_PROD, constants.HTTP_PORT_NON_SECURE)
+// 	case fmt.Sprintf("%v,%v", rcv.ENVIRONMENT_LOCAL, true):
+// 		url = formatURL(rcv.HTTP_PROTOCOL_SECURE, rcv.HTTP_DOMAIN_API_LOCAL, rcv.HTTP_PORT_SECURE)
+// 	case fmt.Sprintf("%v,%v", rcv.ENVIRONMENT_LOCAL, false):
+// 		url = formatURL(rcv.HTTP_PROTOCOL_NON_SECURE, rcv.HTTP_DOMAIN_API_LOCAL, rcv.HTTP_PORT_NON_SECURE)
+// 	case fmt.Sprintf("%v,%v", rcv.ENVIRONMENT_DEVELOPMENT, true):
+// 		url = formatURL(rcv.HTTP_PROTOCOL_SECURE, rcv.HTTP_DOMAIN_API_DEV, rcv.HTTP_PORT_SECURE)
+// 	case fmt.Sprintf("%v,%v", rcv.ENVIRONMENT_DEVELOPMENT, false):
+// 		url = formatURL(rcv.HTTP_PROTOCOL_NON_SECURE, rcv.HTTP_DOMAIN_API_DEV, rcv.HTTP_PORT_NON_SECURE)
+// 	case fmt.Sprintf("%v,%v", rcv.ENVIRONMENT_PRODUCTION, true):
+// 		url = formatURL(rcv.HTTP_PROTOCOL_SECURE, rcv.HTTP_DOMAIN_API_PROD, rcv.HTTP_PORT_SECURE)
+// 	case fmt.Sprintf("%v,%v", rcv.ENVIRONMENT_PRODUCTION, false):
+// 		url = formatURL(rcv.HTTP_PROTOCOL_NON_SECURE, rcv.HTTP_DOMAIN_API_PROD, rcv.HTTP_PORT_NON_SECURE)
 // 	}
 //
 // 	return
@@ -259,7 +258,7 @@ import (
 // func GenerateVerifyEmailURLWithUUIDUsername(username, environment string, secure bool) (url, uuid string) {
 //
 // 	uuid = GenerateUUIDType4(false)
-// 	url = fmt.Sprintf("%v?%v=%v&%v=%v", GenerateVerifyEmailURL(environment, secure), constants.FN_UUID, uuid, constants.FN_USERNAME, username)
+// 	url = fmt.Sprintf("%v?%v=%v&%v=%v", GenerateVerifyEmailURL(environment, secure), rcv.FN_UUID, uuid, rcv.FN_USERNAME, username)
 //
 // 	return
 // }
@@ -267,7 +266,7 @@ import (
 // GenerateVerifyEmailURL - return the url.
 // func GenerateVerifyEmailURL(environment string, secure bool) (url string) {
 //
-// 	url = fmt.Sprintf("%v/%v", GenerateURL(environment, secure), constants.ENDPOINT_VERIFY_EMAIL)
+// 	url = fmt.Sprintf("%v/%v", GenerateURL(environment, secure), rcv.ENDPOINT_VERIFY_EMAIL)
 //
 // 	return
 // }
@@ -442,7 +441,8 @@ func RedirectLogOutput(inLogFileHandlerPtr *os.File, redirectTo string) (errorIn
 //	Verifications: None
 func RemovePidFile(pidFQN string) (errorInfo cpi.ErrorInfo) {
 
-	if cv.DoesFileExist(pidFQN) == false {
+	// This doesn't use the coreValidator.DoesFileExist by design.
+	if _, err := os.Stat(pidFQN); err != nil {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrFileMissing, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
 		return
 	}

@@ -16,14 +16,14 @@ NOTES:
 
 COPYRIGHT:
 	Copyright 2022
-	Licensed under the Apache License, Version 2.0 (the "License");
+	Licensed under the Apache License, Version 2.0 (the License);
 	you may not use this file except in compliance with the License.
 	You may obtain a copy of the License at
 
 	http://www.apache.org/licenses/LICENSE-2.0
 
 	Unless required by applicable law or agreed to in writing, software
-	distributed under the License is distributed on an "AS IS" BASIS,
+	distributed under the License is distributed on an AS IS BASIS,
 	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 	See the License for the specific language governing permissions and
 	limitations under the License.
@@ -33,7 +33,15 @@ package sharedServices
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	TEST_FILE_NAME              = "test_file.txt"
-	TEST_DIRECTORY              = "/tmp"
-	TEST_DIRECTORY_ENDING_SLASH = "/tmp/"
+	TEST_CREDENTIALS_FILENAME = "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key"
+	TEST_MESSAGE_ENVIRONMENT  = "local"
+	TEST_MESSAGE_NAMESPACE    = "nci"
+	TEST_URL                  = "savup-local-0030.savup.com"
+	TEST_PORT                 = 4222
+	TEST_PORT_EMPTY           = ""
+	TEST_TLS_CERT             = "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt"
+	TEST_TLS_PRIVATE_KEY      = "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key"
+	TEST_TLS_CA_BUNDLE        = "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt"
+	//
+	TEST_INVALID_URL = "invalid URL"
 )

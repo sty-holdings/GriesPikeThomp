@@ -11,20 +11,19 @@ import (
 	"testing"
 
 	"albert/constants"
-	"albert/core/coreError"
 	"github.com/nats-io/nats-server/v2/server"
 )
 
 var (
 	tTestNameValue = map[string]interface{}{
-		constants.TEST_FIELD_NAME: constants.TEST_FIELD_VALUE,
+		rcv.TEST_FIELD_NAME: rcv.TEST_FIELD_VALUE,
 	}
 )
 
 func TestInitializeNATSMessages(tPtr *testing.T) {
 
 	var (
-		errorInfo          coreError.ErrorInfo
+		errorInfo          cpi.ErrorInfo
 		tServer            *Server
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -32,9 +31,9 @@ func TestInitializeNATSMessages(tPtr *testing.T) {
 
 	tPtr.Run(tFunctionName, func(t *testing.T) {
 		if errorInfo = InitializeNATSMessages(tServer); errorInfo.Error == nil {
-			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, coreError.ERROR, "nil")
+			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, cpi.ERROR, "nil")
 		}
-		tServer, _ = NewServer(constants.TEST_CONFIGURATION_FQN, constants.TEST_VERSION, true)
+		tServer, _ = NewServer(rcv.TEST_CONFIGURATION_FQN, rcv.TEST_VERSION, true)
 		if errorInfo = InitializeNATSMessages(tServer); errorInfo.Error != nil {
 			tPtr.Errorf("%v Failed: Was expecting an err of %v but got %v.", tFunctionName, "nil", errorInfo)
 		}
@@ -55,7 +54,7 @@ func TestListMessages(tPtr *testing.T) {
 	StartTest(tFunctionName, true, false)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		myServer, _ := NewServer(constants.TEST_CONFIGURATION_FQN, server.VERSION, true)
+		myServer, _ := NewServer(rcv.TEST_CONFIGURATION_FQN, server.VERSION, true)
 		myServer.listMessages()
 	})
 }
@@ -63,17 +62,17 @@ func TestListMessages(tPtr *testing.T) {
 func TestNewServer(tPtr *testing.T) {
 
 	var (
-		errorInfos         []coreError.ErrorInfo
+		errorInfos         []cpi.ErrorInfo
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if _, errorInfos = NewServer(constants.TEST_CONFIGURATION_FQN, constants.TEST_VERSION, true); len(errorInfos) > 0 {
-			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, constants.TEST_CONFIGURATION_FQN)
+		if _, errorInfos = NewServer(rcv.TEST_CONFIGURATION_FQN, rcv.TEST_VERSION, true); len(errorInfos) > 0 {
+			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, rcv.TEST_CONFIGURATION_FQN)
 		}
-		if _, errorInfos = NewServer(constants.TEST_CONFIGURATION_WTIH_TLS_FQN, constants.TEST_VERSION, true); len(errorInfos) > 0 {
-			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, constants.TEST_CONFIGURATION_FQN)
+		if _, errorInfos = NewServer(rcv.TEST_CONFIGURATION_WTIH_TLS_FQN, rcv.TEST_VERSION, true); len(errorInfos) > 0 {
+			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, rcv.TEST_CONFIGURATION_FQN)
 		}
 	})
 }
@@ -113,7 +112,7 @@ func TestShutdown(tPtr *testing.T) {
 	)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		myServer, _ := NewServer(constants.TEST_CONFIGURATION_FQN, server.VERSION, true)
+		myServer, _ := NewServer(rcv.TEST_CONFIGURATION_FQN, server.VERSION, true)
 		myServer.Shutdown(true)
 	})
 }
