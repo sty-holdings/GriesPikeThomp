@@ -61,9 +61,9 @@ type GenerateCertificate struct {
 
 // TLSInfo files
 type TLSInfo struct {
-	TLSCert       string `json:"TLS_Certificate_FQN"`
-	TLSPrivateKey string `json:"TLS_Private_Key_FQN"`
-	TLSCABundle   string `json:"TLS_CABundle_FQN"`
+	TLSCert       string `json:"tls_certificate_fqn"`
+	TLSPrivateKey string `json:"tls_private_key_fqn"`
+	TLSCABundle   string `json:"tls_ca_bundle_fqn"`
 }
 
 // GenerateJWT

@@ -32,12 +32,12 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
+	ce "GriesPikeThomp/shared-services/src/coreExtensions"
 	h "GriesPikeThomp/shared-services/src/coreHelpers"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	cv "GriesPikeThomp/shared-services/src/coreValidators"
@@ -51,7 +51,7 @@ type Auth struct {
 // Instance - Some of these values can change over the life of the instance.
 type Instance struct {
 	baseURL           string
-	debugMode         bool
+	debugModeOn       bool
 	hostname          string
 	logFileHandlerPtr *os.File
 	logFQN            string
@@ -71,9 +71,9 @@ type Instance struct {
 }
 
 type Server struct {
-	config        cc.Configuration
+	config        cc.BaseConfiguration
 	instance      Instance
-	extensionPtrs map[string]interface{}
+	extensionPtrs map[string]any
 }
 
 // Run - blocks for requests.
@@ -126,7 +126,7 @@ func (serverPtr *Server) Shutdown() {
 //	Customer Messages: None
 //	Errors: ErrPIDFileExists
 //	Verifications: None
-func InitializeServer(config cc.Configuration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (serverPtr *Server, errorInfo cpi.ErrorInfo) {
+func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (serverPtr *Server, errorInfo cpi.ErrorInfo) {
 
 	log.Printf("Initializing instance of %v server.\n", serverName)
 
@@ -155,7 +155,7 @@ func InitializeServer(config cc.Configuration, serverName, version, logFQN strin
 		log.Println("No extensions defined in the configuration file.")
 	} else {
 		log.Println("Loading extensions.")
-		// serverPtr.extensionPtrs, errorInfo = ce.HandleExtension(config.Extensions)
+		serverPtr.extensionPtrs, errorInfo = ce.HandleExtension(config.Extensions)
 	}
 
 	return
@@ -166,17 +166,12 @@ func InitializeServer(config cc.Configuration, serverName, version, logFQN strin
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func NewServer(config cc.Configuration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (server *Server) {
+func NewServer(config cc.BaseConfiguration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (server *Server) {
+
 	server = &Server{
-		config: cc.Configuration{
-			ConfigFileName:    config.ConfigFileName,
-			SkeletonConfigFQD: config.SkeletonConfigFQD,
-			DebugModeOn:       config.DebugModeOn,
-			Environment:       strings.ToLower(config.Environment),
-			MaxThreads:        config.MaxThreads,
-		},
+		config: config,
 		instance: Instance{
-			debugMode:         config.DebugModeOn,
+			debugModeOn:       config.DebugModeOn,
 			logFileHandlerPtr: logFileHandlerPtr,
 			logFQN:            logFQN,
 			numberCPUS:        runtime.NumCPU(),
@@ -207,14 +202,14 @@ func RunServer(configFileFQN, serverName, version string, testingOn bool) (retur
 	var (
 		errorInfo          cpi.ErrorInfo
 		serverPtr          *Server
-		tConfig            cc.Configuration
+		tConfig            cc.BaseConfiguration
 		tLogFileHandlerPtr *os.File
 		tLogFQD            string
 		tlogFQN            string
 	)
 
 	// See if configuration file exists and is readable, if not, return an error
-	if tConfig, errorInfo = cc.ReadAndParseConfigFile(configFileFQN); errorInfo.Error != nil {
+	if tConfig, errorInfo = cc.ProcessBaseConfigFile(configFileFQN); errorInfo.Error != nil {
 		cpi.PrintErrorInfo(errorInfo)
 		return 1
 	}

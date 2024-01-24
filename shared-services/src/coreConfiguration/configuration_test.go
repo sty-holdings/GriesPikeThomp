@@ -61,7 +61,7 @@ func TestGenerateConfigFileSkeleton(tPtr *testing.T) {
 	})
 }
 
-func TestReadAndParseConfigFile(tPtr *testing.T) {
+func TestProcessBaseConfigFile(tPtr *testing.T) {
 
 	type arguments struct {
 		configFileName string
@@ -106,7 +106,57 @@ func TestReadAndParseConfigFile(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			if _, errorInfo = ReadAndParseConfigFile(ts.arguments.configFileName); errorInfo.Error != nil {
+			if _, errorInfo = ProcessBaseConfigFile(ts.arguments.configFileName); errorInfo.Error != nil {
+				gotError = true
+			} else {
+				gotError = false
+			}
+			if gotError != ts.wantError {
+				tPtr.Errorf(cpi.UNEXPECTED_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+		})
+	}
+}
+
+func TestReadAndParseConfigFile(tPtr *testing.T) {
+
+	type arguments struct {
+		configFileName string
+	}
+
+	var (
+		gotError           bool
+		errorInfo          cpi.ErrorInfo
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	tests := []struct {
+		name      string
+		arguments arguments
+		wantError bool
+	}{
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Valid config file",
+			arguments: arguments{
+				configFileName: fmt.Sprintf("%v%v", DEFAULT_SKELETON_CONFIG_FQD, DEFAULT_SKELETON_CONFIG_FILENAME),
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Unreadable config file",
+			arguments: arguments{
+				configFileName: fmt.Sprintf("%v%v", DEFAULT_SKELETON_CONFIG_FQD, DEFAULT_UNREADABLE_CONFIG_FILENAME),
+			},
+			wantError: true,
+		},
+	}
+
+	fmt.Println(os.Getwd())
+
+	for _, ts := range tests {
+		tPtr.Run(ts.name, func(t *testing.T) {
+			if _, errorInfo = ReadConfigFile(ts.arguments.configFileName); errorInfo.Error != nil {
 				gotError = true
 			} else {
 				gotError = false
@@ -121,7 +171,7 @@ func TestReadAndParseConfigFile(tPtr *testing.T) {
 func TestValidateConfiguration(tPtr *testing.T) {
 
 	type arguments struct {
-		config Configuration
+		config BaseConfiguration
 	}
 
 	var (
@@ -139,7 +189,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "All missing",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  "",
 					LogDirectory: "",
 					MaxThreads:   0,
@@ -151,7 +201,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Local Environment",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  rcv.ENVIRONMENT_LOCAL,
 					LogDirectory: DEFAULT_LOG_DIRECTORY,
 					MaxThreads:   DEFAULT_MAX_THREADS,
@@ -163,7 +213,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Development Environment",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  rcv.ENVIRONMENT_DEVELOPMENT,
 					LogDirectory: DEFAULT_LOG_DIRECTORY,
 					MaxThreads:   DEFAULT_MAX_THREADS,
@@ -175,7 +225,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Production Environment",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  rcv.ENVIRONMENT_PRODUCTION,
 					LogDirectory: DEFAULT_LOG_DIRECTORY,
 					MaxThreads:   DEFAULT_MAX_THREADS,
@@ -187,7 +237,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Directories missing",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  rcv.ENVIRONMENT_PRODUCTION,
 					LogDirectory: rcv.VAL_EMPTY,
 					MaxThreads:   1,
@@ -199,7 +249,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Negative threads",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  rcv.ENVIRONMENT_PRODUCTION,
 					LogDirectory: rcv.VAL_EMPTY,
 					MaxThreads:   -1,
@@ -211,7 +261,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Zero threads",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  rcv.ENVIRONMENT_PRODUCTION,
 					LogDirectory: rcv.VAL_EMPTY,
 					MaxThreads:   0,
@@ -223,7 +273,7 @@ func TestValidateConfiguration(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid settings Greater than threads cap",
 			arguments: arguments{
-				config: Configuration{
+				config: BaseConfiguration{
 					Environment:  rcv.ENVIRONMENT_PRODUCTION,
 					LogDirectory: rcv.VAL_EMPTY,
 					MaxThreads:   THREAD_CAP + 1,

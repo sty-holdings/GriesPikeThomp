@@ -36,4 +36,5 @@ const (
 	TEST_FILE_NAME              = "test_file.txt"
 	TEST_DIRECTORY              = "/tmp"
 	TEST_DIRECTORY_ENDING_SLASH = "/tmp/"
+	TEST_DIRECTORY_NON_ROOT     = "shared-services"
 )

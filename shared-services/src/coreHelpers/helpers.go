@@ -39,6 +39,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -322,45 +323,42 @@ func IsDirectoryFullyQualified(directory string) bool {
 
 // PrependWorkingDirectory - will add the working directory.
 // if the filename first character is a /, the passed value will be returned
+// unmodified.
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func PrependWorkingDirectory(filename string) (fqn string) {
+func PrependWorkingDirectory(filename string) string {
 
 	var (
 		tWorkingDirectory, _ = os.Getwd()
 	)
 
-	if strings.HasPrefix(filename, rcv.FORWARD_SLASH) {
-		fqn = filename
-		return
+	if filepath.IsAbs(filename) {
+		return filename
 	}
 
 	return fmt.Sprintf("%v/%v", tWorkingDirectory, filename)
 }
 
-// PrependWorkingDirectoryWithEndingSlash - will add the working directory with an ending slash.
-// if the filename first and last character is a /, the passed value will be returned
+// PrependWorkingDirectoryWithEndingSlash - will add the working directory, a slash, the directory
+// provided, and an ending slash. If the directory first character is a slash, the passed value will
+// be returned unmodified. The last character is not checked, so you could end up with two slashes.
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func PrependWorkingDirectoryWithEndingSlash(filename string) (fqn string) {
+func PrependWorkingDirectoryWithEndingSlash(directory string) string {
 
 	var (
 		tWorkingDirectory, _ = os.Getwd()
 	)
 
-	if strings.HasPrefix(filename, rcv.FORWARD_SLASH) {
-		if strings.HasSuffix(filename, rcv.FORWARD_SLASH) {
-			fqn = filename
-			return
-		}
-		fqn = fmt.Sprintf("%v/", filename)
+	if filepath.IsAbs(directory) {
+		return directory
 	}
 
-	return fmt.Sprintf("%v/%v/", tWorkingDirectory, filename)
+	return fmt.Sprintf("%v/%v/", tWorkingDirectory, directory)
 }
 
 // printDashLine - will output a given number of dashed lines based on the outputMode.

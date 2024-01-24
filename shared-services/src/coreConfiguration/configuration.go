@@ -38,6 +38,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	cv "GriesPikeThomp/shared-services/src/coreValidators"
@@ -45,19 +46,19 @@ import (
 )
 
 // Configuration is a generic config file structure for application servers.
-type Configuration struct {
-	ConfigFileName    string
-	SkeletonConfigFQD string       `json:"skeleton_config_fqd"`
-	DebugModeOn       bool         `json:"debug_mode_on"`
-	Environment       string       `json:"environment"`
-	LogDirectory      string       `json:"log_directory"`
-	MaxThreads        int          `json:"max_threads"`
-	PIDDirectory      string       `json:"pid_directory"`
-	Extensions        []Extensions `json:"extensions"`
+type BaseConfiguration struct {
+	ConfigFQN         string
+	SkeletonConfigFQD string                 `json:"skeleton_config_fqd"`
+	DebugModeOn       bool                   `json:"debug_mode_on"`
+	Environment       string                 `json:"environment"`
+	LogDirectory      string                 `json:"log_directory"`
+	MaxThreads        int                    `json:"max_threads"`
+	PIDDirectory      string                 `json:"pid_directory"`
+	Extensions        []BaseConfigExtensions `json:"extensions"`
 }
 
-type Extensions struct {
-	ExtensionName  string `json:"extension_name"`
+type BaseConfigExtensions struct {
+	Name           string `json:"name"`
 	ConfigFilename string `json:"config_filename"`
 }
 
@@ -105,41 +106,59 @@ func GenerateConfigFileSkeleton(serverName, SkeletonConfigFQD string) (errorInfo
 	return
 }
 
-// ReadAndParseConfigFile opens the provide file, unmarshal the file and returns the Configuration object.
+// ProcessBaseConfigFile - handles the base configuration file.
 //
 //	Customer Messages: None
-//	Errors: ErrConfigFileMissing, ErrJSONInvalid
+//	Errors: errors returned from ReadConfigFile, ErrJSONInvalid
 //	Verifications: None
-func ReadAndParseConfigFile(configFileFQN string) (config Configuration, errorInfo cpi.ErrorInfo) {
+func ProcessBaseConfigFile(configFileFQN string) (config BaseConfiguration, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFileFQN)
-		tConfigFile     []byte
+		tConfigData     []byte
 	)
 
-	if tConfigFile, errorInfo.Error = os.ReadFile(configFileFQN); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrConfigFileMissing, tAdditionalInfo)
-		return
-	}
-	if errorInfo.Error = json.Unmarshal(tConfigFile, &config); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrJSONInvalid, tAdditionalInfo)
+	if tConfigData, errorInfo = ReadConfigFile(configFileFQN); errorInfo.Error != nil {
 		return
 	}
 
-	fileStat, _ := os.Stat(configFileFQN)
-	config.ConfigFileName = fileStat.Name()
+	if errorInfo.Error = json.Unmarshal(tConfigData, &config); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, tAdditionalInfo)
+		return
+	}
+
+	config.ConfigFQN = configFileFQN
+	config.Environment = strings.ToLower(config.Environment)
 
 	return
 }
 
-// ValidateConfiguration -checks the values in the configuration file are valid. ValidateConfiguration doesn't
-// test if the configuration file exists, readable, or parsable. LogDirectory, MaxThreads, and PIDDirectory will be
-// set to '/var/log/nats-connect', 1, and '/var/run/nats-connect', respectively.
+// ReadConfigFile opens the provide file, unmarshal the file and returns the Configuration object.
+//
+//	Customer Messages: None
+//	Errors: ErrConfigFileMissing, ErrJSONInvalid
+//	Verifications: None
+func ReadConfigFile(configFileFQN string) (configData []byte, errorInfo cpi.ErrorInfo) {
+
+	var (
+		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFileFQN)
+	)
+
+	if configData, errorInfo.Error = os.ReadFile(configFileFQN); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrConfigFileMissing, tAdditionalInfo)
+	}
+
+	return
+}
+
+// ValidateConfiguration - checks the values in the configuration file are valid. ValidateConfiguration doesn't
+// test if the configuration file exists, readable, or parsable. Defaults for LogDirectory, MaxThreads, and PIDDirectory
+// are '/var/log/nats-connect', 1, and '/var/run/nats-connect', respectively.
 //
 //	Customer Messages: None
 //	Errors: ErrEnvironmentInvalid, ErrDirectoryMissing, ErrMaxThreadsInvalid
 //	Verifications: None
-func ValidateConfiguration(config Configuration) (errorInfo cpi.ErrorInfo) {
+func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 
 	if cv.IsEnvironmentValid(config.Environment) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.Environment))

@@ -70,6 +70,7 @@ const (
 	DOMAIN_INVALID                 = "The domain value is invalid."
 	EVIRNOMENT_INVALID             = "The environment value is invalid."
 	ERROR_MISSING                  = "ERROR MISSING"
+	EXTENSION_INVALID              = "The extensioin name is invalid."
 	FALSE_SHOULD_BE_TRUE           = "The result should have been true."
 	FILE_CREATION_FAILED           = "Create the file failed."
 	FILE_MISSING                   = "The file doesn't exist."
@@ -171,6 +172,7 @@ var (
 	ErrDomainInvalid              = errors.New(DOMAIN_INVALID)
 	ErrEnvironmentInvalid         = errors.New(EVIRNOMENT_INVALID)
 	ErrErrorMissing               = errors.New(ERROR_MISSING)
+	ErrExtensionInvalid           = errors.New(EXTENSION_INVALID)
 	ErrFalseShouldBeTrue          = errors.New(FALSE_SHOULD_BE_TRUE)
 	ErrFileCreationFailed         = errors.New(FILE_CREATION_FAILED)
 	ErrFileMissing                = errors.New(FILE_MISSING)

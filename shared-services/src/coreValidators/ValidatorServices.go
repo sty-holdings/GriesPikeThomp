@@ -205,14 +205,15 @@ func IsDomainValid(domain string) bool {
 	return false
 }
 
-// IsEnvironmentValid - checks that the value is valid. This function input is case-insensitive
+// IsEnvironmentValid - checks that the value is valid. This function input is case-sensitive. Valid
+// values are 'local', 'development', and 'production'.
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
 func IsEnvironmentValid(environment string) bool {
 
-	switch strings.ToLower(environment) {
+	switch environment {
 	case rcv.ENVIRONMENT_LOCAL:
 	case rcv.ENVIRONMENT_DEVELOPMENT:
 	case rcv.ENVIRONMENT_PRODUCTION:

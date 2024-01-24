@@ -971,6 +971,52 @@ func TestPrependWorkingDirectory(tPtr *testing.T) {
 	})
 }
 
+func TestPrependWorkingDirectoryWithEndingSlash(tPtr *testing.T) {
+
+	var (
+		tFunction, _, _, _   = runtime.Caller(0)
+		tFunctionName        = runtime.FuncForPC(tFunction).Name()
+		tWorkingDirectory, _ = os.Getwd()
+	)
+
+	var tests = []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "TestFileName",
+			input:    TEST_FILE_NAME,
+			expected: fmt.Sprintf("%v/%v/", tWorkingDirectory, TEST_FILE_NAME),
+		},
+		{
+			name:     "TestDirectory",
+			input:    TEST_DIRECTORY,
+			expected: TEST_DIRECTORY,
+		},
+		{
+			name:     "TestNonRootDirectory",
+			input:    TEST_DIRECTORY_NON_ROOT,
+			expected: fmt.Sprintf("%v/%v/", tWorkingDirectory, TEST_DIRECTORY_NON_ROOT),
+		},
+		{
+			name:     "WorkingDirectory",
+			input:    tWorkingDirectory,
+			expected: tWorkingDirectory,
+		},
+	}
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		for _, tt := range tests {
+			tPtr.Run(tt.name, func(t *testing.T) {
+				if output := PrependWorkingDirectoryWithEndingSlash(tt.input); output != tt.expected {
+					t.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tt.name, rcv.TXT_DID_NOT_MATCH)
+				}
+			})
+		}
+	})
+}
+
 func TestRedirectLogOutput(tPtr *testing.T) {
 
 	var (

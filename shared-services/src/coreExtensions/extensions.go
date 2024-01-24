@@ -38,25 +38,26 @@ import (
 	"fmt"
 	"strings"
 
+	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	ns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-func HandleExtension(extensions map[string]map[string]interface{}) (extensionPtrs map[string]interface{}, errorInfo cpi.ErrorInfo) {
-
-	var (
-		tExtension = make(map[string]interface{})
-	)
+// HandleExtension - will route the extension configuration file.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None/
+func HandleExtension(configExtensions []cc.BaseConfigExtensions) (extensionPtrs map[string]any, errorInfo cpi.ErrorInfo) {
 
 	extensionPtrs = make(map[string]interface{})
-	for extensionName, extensionValues := range extensions {
-		switch strings.ToLower(extensionName) {
+	for _, values := range configExtensions {
+		switch strings.ToLower(values.Name) {
 		case NATS_INTERNAL:
-			tExtension = extensionValues
-			extensionPtrs[NATS_INTERNAL], errorInfo = ns.NewNATS(tExtension)
+			extensionPtrs[NATS_INTERNAL], errorInfo = ns.NewNATS(values.ConfigFilename)
 		default:
-			fmt.Println(rcv.TXT_BAD)
+			errorInfo = cpi.NewErrorInfo(cpi.ErrExtensionInvalid, fmt.Sprintf("%v%v", rcv.TXT_EXTENSION_NAME, values.Name))
 		}
 	}
 
