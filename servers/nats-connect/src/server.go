@@ -71,12 +71,6 @@ type Instance struct {
 	workingDirectory  string
 }
 
-// type natsMessage struct {
-// 	restrictedUsage bool
-// 	handler         nats.MsgHandler
-// 	subscriptionPtr *nats.Subscription
-// }
-
 type Server struct {
 	config        cc.Configuration
 	instance      Instance

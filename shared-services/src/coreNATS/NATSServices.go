@@ -52,16 +52,24 @@ type Configuration struct {
 	credentialsFilename string
 	messageEnvironment  string
 	messageNamespace    string
-	secure              bool
-	url                 string
+	messageRegistry     map[string]RegisteredMessage
 	port                uint
+	secure              bool
 	tlsInfo             cj.TLSInfo
+	url                 string
+}
+
+type RegisteredMessage struct {
+	subject     string
+	description string
 }
 
 type Service struct {
 	config         Configuration
-	ConnPtr        *nats.Conn
+	connPtr        *nats.Conn
 	credentialsFQN string
+	namespace      string
+	subscriptions  map[string]*nats.Subscription
 	secure         bool
 	url            string
 }
@@ -84,6 +92,7 @@ func NewNATS(extensionValues map[string]interface{}) (natsPtr *Service, errorInf
 	}
 
 	natsService.credentialsFQN = ch.PrependWorkingDirectory(natsService.config.credentialsFilename)
+	natsService.namespace = natsService.config.messageNamespace
 	natsService.url = natsService.config.url
 
 	if natsService.config.tlsInfo.TLSCert == rcv.VAL_EMPTY ||
@@ -94,8 +103,21 @@ func NewNATS(extensionValues map[string]interface{}) (natsPtr *Service, errorInf
 		natsService.secure = true
 	}
 
-	natsService.ConnPtr, errorInfo = getConnection(natsService)
+	natsService.connPtr, errorInfo = getConnection(natsService)
 	natsPtr = &natsService
+
+	return
+}
+
+func (service *Service) registerMessageHandler() (errorInfo cpi.ErrorInfo) {
+
+	for messageName, messageInfo := range service.config.messageRegistry {
+		fmt.Println(messageName)
+		fmt.Println(messageInfo)
+		if service.subscriptions[messageName], errorInfo.Error = service.connPtr.Subscribe(messageInfo.subject, getHandler(messageName)); err != nil {
+			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("Subscribe failed on subject: %v", messageInfo.subject))
+		}
+	}
 
 	return
 }
@@ -127,12 +149,28 @@ func getConnection(natsService Service) (connPtr *nats.Conn, errorInfo cpi.Error
 	return
 }
 
+func getHandler(messageName string) *nats.MsgHandler {
+
+	switch strings.ToLower(messageName) {
+	case "turnDebugOn":
+		return debug()
+	}
+}
+
 // populateConfiguration - builds the NATS service configuration
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func populateConfiguration(extensionValues map[string]interface{}) (tConfig Configuration) {
+func populateConfiguration(extensionValues map[string]interface{}) Configuration {
+
+	var (
+		tConfig       Configuration
+		tMessageEntry RegisteredMessage
+		tMessageName  string
+	)
+
+	tConfig.messageRegistry = make(map[string]RegisteredMessage)
 
 	for fieldName, fieldValue := range extensionValues {
 		switch strings.ToLower(fieldName) {
@@ -165,10 +203,27 @@ func populateConfiguration(extensionValues map[string]interface{}) (tConfig Conf
 					}
 				}
 			}
+		case rcv.FN_MESSAGE_REGISTRY:
+			if tMessageRegistry, ok := fieldValue.(map[string]interface{}); ok {
+				for tMRFieldName, tMRFieldValue := range tMessageRegistry {
+					tMessageName = tMRFieldName
+					if tRegisterMessage, ok := tMRFieldValue.(map[string]interface{}); ok {
+						for tRMFieldName, tRMFieldValue := range tRegisterMessage {
+							switch strings.ToLower(tRMFieldName) {
+							case rcv.FN_SUBJECT:
+								tMessageEntry.subject = tRMFieldValue.(string)
+							case rcv.FN_DESCRIPTION:
+								tMessageEntry.description = tRMFieldValue.(string)
+							}
+						}
+					}
+					tConfig.messageRegistry[tMessageName] = tMessageEntry
+				}
+			}
 		}
 	}
 
-	return
+	return tConfig
 }
 
 // validateConfiguration - checks the NATS service configuration is valid.
