@@ -51,29 +51,13 @@ var (
 func TestGenerateConfigFileSkeleton(tPtr *testing.T) {
 
 	var (
-		errorInfo          cpi.ErrorInfo
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		tReader, tWriter, _ := os.Pipe()
-		old := os.Stdout
-		os.Stdout = tWriter
-
 		GenerateConfigFileSkeleton("NATS Connect Test",
-			"GriesPikeThomp/shared-services/src/coreConfiguration",
-			"/skeleton-config-file.")
-
-		tBuffer := make([]byte, 3072)
-		_, _ = tReader.Read(tBuffer)
-
-		_ = tWriter.Close()
-		os.Stdout = old
-
-		if len(tBuffer) == 0 && errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.ErrBufferEmpty)
-		}
+			DEFAULT_SKELETON_CONFIG_FQD)
 	})
 }
 
@@ -98,21 +82,21 @@ func TestReadAndParseConfigFile(tPtr *testing.T) {
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Valid config file",
 			arguments: arguments{
-				configFileName: "skeleton-config-file.json",
+				configFileName: DEFAULT_SKELETON_CONFIG_FILENAME,
 			},
 			wantError: false,
 		},
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Invalid config file",
 			arguments: arguments{
-				configFileName: "invalid-skeleton-config-file.json",
+				configFileName: DEFAULT_INVALID_SKELETON_CONFIG_FILENAME,
 			},
 			wantError: true,
 		},
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Unreadable config file",
 			arguments: arguments{
-				configFileName: "unreadable-skeleton-config-file.json",
+				configFileName: DEFAULT_UNREADABLE_CONFIG_FILENAME,
 			},
 			wantError: true,
 		},

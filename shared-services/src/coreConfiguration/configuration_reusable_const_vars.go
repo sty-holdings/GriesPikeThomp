@@ -33,10 +33,13 @@ package sharedServices
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	DEFAULT_SKELETON_CONFIG_DIRECTORY          = "shared-services/src/coreConfiguration/"
-	DEFAULT_SKELETON_CONFIG_FILENAME_NO_SUFFIX = "skeleton-config-file"
-	DEFAULT_LOG_DIRECTORY                      = "/var/log/nats-connect"
-	DEFAULT_PID_DIRECTORY                      = "/var/run/nats-connect"
-	DEFAULT_MAX_THREADS                        = 1
-	THREAD_CAP                                 = 25 // This is set so system performance can be controlled. Update this as more is learned about the system.
+	DEFAULT_LOG_DIRECTORY                    = "/var/log/nats-connect"
+	DEFAULT_MAX_THREADS                      = 1
+	DEFAULT_PID_DIRECTORY                    = "/var/run/nats-connect"
+	DEFAULT_SKELETON_CONFIG_FQD              = "/Users/syacko/workspace/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration/"
+	DEFAULT_SKELETON_CONFIG_FILENAME         = "skeleton-config-file.json"
+	DEFAULT_SKELETON_CONFIG_NOTE_FILENAME    = "skeleton-config-file.txt"
+	DEFAULT_INVALID_SKELETON_CONFIG_FILENAME = "invalid-skeleton-config-file.json"
+	DEFAULT_UNREADABLE_CONFIG_FILENAME       = "unreadable-skeleton-config-file.json"
+	THREAD_CAP                               = 25 // This is set so system performance can be controlled. Update this as more is learned about the system.
 )

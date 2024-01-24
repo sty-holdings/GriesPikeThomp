@@ -1,5 +1,5 @@
 {
-  "skeleton_config_filename": "",
+  "skeleton_config_fqd": "",
   "debug_mode_on": true,
   "Environment": "LOCAL",
   "log_directory": "servers/nats-connect/logs",

@@ -103,6 +103,11 @@ func main() {
 	fmt.Println()
 	log.Printf("Starting %v server.\n", serverName)
 
+	if generateConfigFile {
+		cc.GenerateConfigFileSkeleton(serverName, cc.DEFAULT_SKELETON_CONFIG_FQD)
+		os.Exit(0)
+	}
+
 	// This is to prevent the serverName from being empty.
 	if serverName == rcv.VAL_EMPTY {
 		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName))
@@ -113,11 +118,6 @@ func main() {
 	if (version == rcv.VAL_EMPTY || version == "9999.9999.9999") && testingOn == false {
 		cpi.PrintError(cpi.ErrVersionInvalid, fmt.Sprintf("%v %v", rcv.TXT_SERVER_VERSION, version))
 		os.Exit(1)
-	}
-
-	if generateConfigFile {
-		cc.GenerateConfigFileSkeleton(serverName, cc.DEFAULT_SKELETON_CONFIG_DIRECTORY, cc.DEFAULT_SKELETON_CONFIG_FILENAME_NO_SUFFIX)
-		os.Exit(0)
 	}
 
 	// Has the config file location and name been provided, if not, return help.

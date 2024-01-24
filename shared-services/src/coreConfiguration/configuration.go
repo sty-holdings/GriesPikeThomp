@@ -46,14 +46,19 @@ import (
 
 // Configuration is a generic config file structure for application servers.
 type Configuration struct {
-	ConfigFileName         string
-	SkeletonConfigFilename string                            `json:"skeleton_config_filename"`
-	DebugModeOn            bool                              `json:"debug_mode_on"`
-	Environment            string                            `json:"environment"`
-	LogDirectory           string                            `json:"log_directory"`
-	MaxThreads             int                               `json:"max_threads"`
-	PIDDirectory           string                            `json:"pid_directory"`
-	Extensions             map[string]map[string]interface{} `json:"extensions"`
+	ConfigFileName    string
+	SkeletonConfigFQD string       `json:"skeleton_config_fqd"`
+	DebugModeOn       bool         `json:"debug_mode_on"`
+	Environment       string       `json:"environment"`
+	LogDirectory      string       `json:"log_directory"`
+	MaxThreads        int          `json:"max_threads"`
+	PIDDirectory      string       `json:"pid_directory"`
+	Extensions        []Extensions `json:"extensions"`
+}
+
+type Extensions struct {
+	ExtensionName  string `json:"extension_name"`
+	ConfigFilename string `json:"config_filename"`
 }
 
 // GenerateConfigFileSkeleton will output to the console a skeleton file with notes.
@@ -61,10 +66,9 @@ type Configuration struct {
 //	Customer Messages: None
 //	Errors: ErrConfigFileMissing
 //	Verifications: None
-func GenerateConfigFileSkeleton(serverName, SkeletonConfigDirectory, SkeletonConfigFilenameNoSuffix string) {
+func GenerateConfigFileSkeleton(serverName, SkeletonConfigFQD string) (errorInfo cpi.ErrorInfo) {
 
 	var (
-		errorInfo                   cpi.ErrorInfo
 		tSkeletonConfigData         []byte
 		tSkeletonConfigNoteData     []byte
 		tSkeletonConfigFilename     string
@@ -75,13 +79,12 @@ func GenerateConfigFileSkeleton(serverName, SkeletonConfigDirectory, SkeletonCon
 		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName))
 		return
 	}
-	if SkeletonConfigDirectory == rcv.VAL_EMPTY || SkeletonConfigFilenameNoSuffix == rcv.VAL_EMPTY {
-		tSkeletonConfigFilename = fmt.Sprintf("%v%v.json", DEFAULT_SKELETON_CONFIG_DIRECTORY, DEFAULT_SKELETON_CONFIG_FILENAME_NO_SUFFIX)
-		tSkeletonConfigNoteFilename = fmt.Sprintf("%v%v.txt", DEFAULT_SKELETON_CONFIG_DIRECTORY, DEFAULT_SKELETON_CONFIG_FILENAME_NO_SUFFIX)
-	} else {
-		tSkeletonConfigFilename = fmt.Sprintf("%v%v.json", SkeletonConfigDirectory, SkeletonConfigFilenameNoSuffix)
-		tSkeletonConfigNoteFilename = fmt.Sprintf("%v%v.txt", SkeletonConfigDirectory, SkeletonConfigFilenameNoSuffix)
+	if SkeletonConfigFQD == rcv.VAL_EMPTY {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrFileMissing, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, SkeletonConfigFQD))
+		return
 	}
+	tSkeletonConfigFilename = fmt.Sprintf("%v%v", SkeletonConfigFQD, DEFAULT_SKELETON_CONFIG_FILENAME)
+	tSkeletonConfigNoteFilename = fmt.Sprintf("%v%v", SkeletonConfigFQD, DEFAULT_SKELETON_CONFIG_NOTE_FILENAME)
 
 	if tSkeletonConfigData, errorInfo.Error = os.ReadFile(tSkeletonConfigFilename); errorInfo.Error != nil {
 		cpi.PrintError(cpi.ErrFileUnreadable, fmt.Sprintf("%v %v", rcv.TXT_FILENAME, tSkeletonConfigFilename))
@@ -141,6 +144,10 @@ func ValidateConfiguration(config Configuration) (errorInfo cpi.ErrorInfo) {
 	if cv.IsEnvironmentValid(config.Environment) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.Environment))
 		return
+	}
+	if cv.DoesDirectoryExist(config.SkeletonConfigFQD) == false {
+		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.SkeletonConfigFQD))
+		config.LogDirectory = DEFAULT_LOG_DIRECTORY
 	}
 	if cv.DoesDirectoryExist(config.LogDirectory) == false {
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_LOG_DIRECTORY))

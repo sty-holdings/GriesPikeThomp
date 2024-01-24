@@ -20,3 +20,8 @@ NOTES:
         pid_directory             is the directory name relative to the working directory or the fully qualified name where pid file will be written.
                                   Do not include a training '/'. The default is /var/log/nats-connect and the value is case-sensitive.
                                   The default is /var/run/nats-connect and the value is NOT case-insensitive.
+
+        extensions                is an array of extensions that will be loaded by the server. The array object has two elements, extension_name and
+                                  config_filename. They are both require string values. If there are no extension, the base server will be started.
+                                  List of valid extension_name:
+                                        internal_nats - this extension allows the server to accept NATS messages from clients.

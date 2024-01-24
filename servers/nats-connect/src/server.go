@@ -38,7 +38,6 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	ce "GriesPikeThomp/shared-services/src/coreExtensions"
 	h "GriesPikeThomp/shared-services/src/coreHelpers"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	cv "GriesPikeThomp/shared-services/src/coreValidators"
@@ -156,7 +155,7 @@ func InitializeServer(config cc.Configuration, serverName, version, logFQN strin
 		log.Println("No extensions defined in the configuration file.")
 	} else {
 		log.Println("Loading extensions.")
-		serverPtr.extensionPtrs, errorInfo = ce.HandleExtension(config.Extensions)
+		// serverPtr.extensionPtrs, errorInfo = ce.HandleExtension(config.Extensions)
 	}
 
 	return
@@ -170,11 +169,11 @@ func InitializeServer(config cc.Configuration, serverName, version, logFQN strin
 func NewServer(config cc.Configuration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (server *Server) {
 	server = &Server{
 		config: cc.Configuration{
-			ConfigFileName:         config.ConfigFileName,
-			SkeletonConfigFilename: config.SkeletonConfigFilename,
-			DebugModeOn:            config.DebugModeOn,
-			Environment:            strings.ToLower(config.Environment),
-			MaxThreads:             config.MaxThreads,
+			ConfigFileName:    config.ConfigFileName,
+			SkeletonConfigFQD: config.SkeletonConfigFQD,
+			DebugModeOn:       config.DebugModeOn,
+			Environment:       strings.ToLower(config.Environment),
+			MaxThreads:        config.MaxThreads,
 		},
 		instance: Instance{
 			debugMode:         config.DebugModeOn,
