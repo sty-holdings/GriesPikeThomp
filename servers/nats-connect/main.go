@@ -53,11 +53,11 @@ import (
 var (
 	// Add Variables here for the file (Remember, they are global)
 	// Start up values for a service
-	configFileFQN      string
-	generateConfigFile bool
-	serverName         = "nats-connect"
-	testingOn          bool
-	version            = "9999.9999.9999"
+	configFileFQN     string
+	generateConfigFQD string
+	serverName        = "nats-connect"
+	testingOn         bool
+	version           = "9999.9999.9999"
 )
 
 func init() {
@@ -86,7 +86,7 @@ func init() {
 
 	// Add a flag to the main program (this will be available in all subcommands as well).
 	flaggy.String(&configFileFQN, "c", "config", "Provides the setup information needed by and is required to start the server.")
-	flaggy.Bool(&generateConfigFile, "g", "genconfig", "This will output a skeleton configuration file.\n\t\t\tThis will cause all other options to be ignored.")
+	flaggy.String(&generateConfigFQD, "g", "genconfig", "This will output a skeleton configuration and note files.\n\t\t\tThis will cause all other options to be ignored.")
 	flaggy.Bool(&testingOn, "t", "testingOn", "This puts the server into testing mode.")
 
 	// Set the version and parse all inputs into variables.
@@ -103,8 +103,8 @@ func main() {
 	fmt.Println()
 	log.Printf("Starting %v server.\n", serverName)
 
-	if generateConfigFile {
-		cc.GenerateConfigFileSkeleton(serverName, cc.DEFAULT_SKELETON_CONFIG_FQD)
+	if len(generateConfigFQD) > 0 {
+		cc.GenerateConfigFileSkeleton(serverName, generateConfigFQD)
 		os.Exit(0)
 	}
 
