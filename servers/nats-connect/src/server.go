@@ -37,11 +37,11 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	ce "GriesPikeThomp/shared-services/src/coreExtensions"
 	h "GriesPikeThomp/shared-services/src/coreHelpers"
 	ns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	cv "GriesPikeThomp/shared-services/src/coreValidators"
+	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -56,6 +56,7 @@ type Instance struct {
 	hostname          string
 	logFileHandlerPtr *os.File
 	logFQN            string
+	messageHandlers   map[string]nats.MsgHandler
 	mu                sync.RWMutex
 	numberCPUS        int
 	outputMode        string
@@ -65,17 +66,19 @@ type Instance struct {
 	running           bool
 	runStartTime      time.Time
 	serverName        string
+	subscriptionPtrs  map[string]*nats.Subscription
 	testingOn         bool
 	threadsAssigned   uint
 	version           string
 	waitGroup         sync.WaitGroup
 	workingDirectory  string
+	Namespace         string
 }
 
 type Server struct {
 	config     cc.BaseConfiguration
 	instance   Instance
-	extensions ce.Extensions[any]
+	extensions map[string]interface{}
 }
 
 // Run - blocks for requests.
@@ -93,7 +96,7 @@ func (serverPtr *Server) Run() {
 	go func() {
 		serverPtr.instance.waitGroup = sync.WaitGroup{}
 		serverPtr.instance.waitGroup.Add(1)
-		_ = serverPtr.messageHandler()
+		serverPtr.messageHandler()
 	}()
 	select {
 	case <-serverPtr.instance.processChannel:
@@ -103,6 +106,10 @@ func (serverPtr *Server) Run() {
 }
 
 // Shutdown - unsubscribes the server to all subjects and removes the pid file.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
 func (serverPtr *Server) Shutdown() {
 
 	var (
@@ -159,7 +166,7 @@ func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN s
 		log.Println("No extensions defined in the configuration file.")
 	} else {
 		log.Println("Loading extensions.")
-		serverPtr.extensions, errorInfo = ce.HandleExtension(config.Extensions)
+		errorInfo = serverPtr.HandleExtension(serverPtr.instance.hostname, config.Extensions)
 	}
 
 	return
@@ -190,10 +197,12 @@ func NewServer(config cc.BaseConfiguration, serverName, version, logFQN string, 
 			version:           version,
 		},
 	}
+	serverPtr.extensions = make(map[string]interface{})
 	serverPtr.instance.hostname, _ = os.Hostname()
-	serverPtr.instance.workingDirectory, _ = os.Getwd()
+	serverPtr.instance.messageHandlers = make(map[string]nats.MsgHandler)
 	serverPtr.instance.pidFQN = h.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
-	serverPtr.extensions = ce.Extensions[any]{ExtensionsData: make(map[string]any)}
+	serverPtr.instance.subscriptionPtrs = make(map[string]*nats.Subscription)
+	serverPtr.instance.workingDirectory, _ = os.Getwd()
 
 	return
 }
@@ -254,24 +263,19 @@ func RunServer(configFileFQN, serverName, version string, testingOn bool) (retur
 //	Customer Messages: None
 //	Errors: ErrSignalUnknown
 //	Verifications: None
-func (serverPtr *Server) messageHandler() (err error) {
+func (serverPtr *Server) messageHandler() {
 
 	// Use a WaitGroup to wait for a message to arrive
 	serverPtr.instance.waitGroup = sync.WaitGroup{}
 	serverPtr.instance.waitGroup.Add(1)
 
-	for subject, serviceInfo := range serverPtr.extensions.ExtensionsData {
-		retrievedService := serviceInfo.(ns.NATSService)
-		fmt.Printf("%s: %v\n", subject, retrievedService.Namespace)
-		// tNATSServicePtr := i.(*ns.Service)
-		// if tNatsMessage.subscriptionPtr, err = serverPtr.MyNATS.NatsConnPtr.Subscribe(subject, message.handler); err != nil {
-		// 	log.Printf("Subscribe failed on subject: %v", subject)
-		// 	log.Fatalln(err.Error() + constants.ENDING_EXECUTION)
-		// } else {
-		// 	tNatsMessage.handler = message.handler
-		// 	tNatsMessage.restrictedUsage = message.restrictedUsage
-		// 	serverPtr.messages[subject] = tNatsMessage
-		// }
+	for serviceName, serviceInfo := range serverPtr.extensions {
+		switch serviceName {
+		case NATS_INTERNAL:
+			retrievedService := serviceInfo.(ns.NATSService)
+			fmt.Printf("%s: %v\n", serviceName, retrievedService.Namespace)
+			serverPtr.getHandlers(retrievedService)
+		}
 	}
 
 	// Waiting for a message to come in for processing.
@@ -303,7 +307,11 @@ func (serverPtr *Server) signalHandler(signal os.Signal) {
 	os.Exit(0)
 }
 
-// initialize signal handler
+// initialize signal handler - handles signals from the console.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
 func initializeSignals(serverPtr *Server) {
 	var (
 		captureSignal = make(chan os.Signal, 1)

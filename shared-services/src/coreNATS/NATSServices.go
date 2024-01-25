@@ -38,6 +38,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	ch "GriesPikeThomp/shared-services/src/coreHelpers"
@@ -69,7 +70,6 @@ type NATSService struct {
 	ConnPtr        *nats.Conn
 	CredentialsFQN string
 	Namespace      string
-	Subscriptions  map[string]*nats.Subscription
 	Secure         bool
 	URL            string
 }
@@ -79,7 +79,7 @@ type NATSService struct {
 //	Customer Messages: None
 //	Errors: error returned by validateConfiguration
 //	Verifications: validateConfiguration
-func NewNATS(configFilename string) (service NATSService, errorInfo cpi.ErrorInfo) {
+func NewNATS(hostname string, configFilename string) (service NATSService, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFilename)
@@ -113,8 +113,7 @@ func NewNATS(configFilename string) (service NATSService, errorInfo cpi.ErrorInf
 		service.Secure = true
 	}
 
-	service.ConnPtr, errorInfo = getConnection(service)
-	service.Subscriptions = make(map[string]*nats.Subscription)
+	service.ConnPtr, errorInfo = getConnection(hostname, service)
 
 	return
 }
@@ -126,11 +125,23 @@ func NewNATS(configFilename string) (service NATSService, errorInfo cpi.ErrorInf
 //	Customer Messages: None
 //	Errors: error returned by nats.Connect
 //	Verifications: None
-func getConnection(service NATSService) (connPtr *nats.Conn, errorInfo cpi.ErrorInfo) {
+func getConnection(hostname string, service NATSService) (connPtr *nats.Conn, errorInfo cpi.ErrorInfo) {
+
+	var (
+		opts []nats.Option
+	)
+
+	opts = []nats.Option{
+		nats.Name(hostname),                 // Set a client name
+		nats.MaxReconnects(5),               // Set maximum reconnection attempts
+		nats.ReconnectWait(5 * time.Second), // Set reconnection wait time
+		nats.UserCredentials(service.CredentialsFQN),
+		nats.RootCAs(service.Config.TLSInfo.TLSCABundle),
+		nats.ClientCert(service.Config.TLSInfo.TLSCert, service.Config.TLSInfo.TLSPrivateKey),
+	}
 
 	if service.Secure {
-		if connPtr, errorInfo.Error = nats.Connect(service.URL, nats.UserCredentials(service.CredentialsFQN), nats.RootCAs(service.Config.TLSInfo.TLSCABundle),
-			nats.ClientCert(service.Config.TLSInfo.TLSCert, service.Config.TLSInfo.TLSPrivateKey)); errorInfo.Error != nil {
+		if connPtr, errorInfo.Error = nats.Connect(service.URL, opts...); errorInfo.Error != nil {
 			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_SECURE_CONNECTION_FAILED))
 			return
 		}
@@ -142,88 +153,10 @@ func getConnection(service NATSService) (connPtr *nats.Conn, errorInfo cpi.Error
 	}
 
 	log.Printf("A connection has been established with the NATS server at %v.", service.URL)
+	log.Printf("URL: %v Server Name: %v Server Id: %v Address: %v", connPtr.ConnectedUrl(), connPtr.ConnectedClusterName(), connPtr.ConnectedServerId(), connPtr.ConnectedAddr())
 
 	return
 }
-
-func getHandler(messageName string) *nats.MsgHandler {
-
-	// switch strings.ToLower(messageName) {
-	// case "turnDebugOn":
-	// 	return debug()
-	// }
-
-	return nil
-}
-
-// populateConfiguration - builds the NATS service configuration
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-// func populateConfiguration(extensionValues map[string]interface{}) Configuration {
-//
-// 	var (
-// 		tConfig       Configuration
-// 		tMessageEntry RegisteredMessage
-// 		tMessageName  string
-// 	)
-//
-// 	tConfig.messageRegistry = make(map[string]RegisteredMessage)
-//
-// 	for fieldName, fieldValue := range extensionValues {
-// 		switch strings.ToLower(fieldName) {
-// 		case rcv.FN_CREDENTIALS_FILENAME:
-// 			tConfig.credentialsFilename = fieldValue.(string)
-// 		case rcv.FN_MESSAGE_ENVIRONMENT:
-// 			tConfig.messageEnvironment = fieldValue.(string)
-// 		case rcv.FN_MESSAGE_NAMESPACE:
-// 			tConfig.messageNamespace = fieldValue.(string)
-// 		case rcv.FN_URL:
-// 			tConfig.URL = fieldValue.(string)
-// 		case rcv.FN_PORT:
-// 			tConfig.port = 4222
-// 			if reflect.TypeOf(fieldValue).String() == rcv.TXT_DATATYPE_FLOAT64 {
-// 				tConfig.port = uint(fieldValue.(float64))
-// 				if tConfig.port == rcv.VAL_ZERO {
-// 					tConfig.port = 4222
-// 				}
-// 			}
-// 		case rcv.FN_TLS_INFO:
-// 			if tTLSInfo, ok := fieldValue.(map[string]interface{}); ok {
-// 				for tFieldName, tFieldValue := range tTLSInfo {
-// 					switch strings.ToLower(tFieldName) {
-// 					case rcv.FN_TLS_CERTIFICATE_FILENAME:
-// 						tConfig.tlsInfo.TLSCert = tFieldValue.(string)
-// 					case rcv.FN_TLS_PRIVATE_KEY_FILENAME:
-// 						tConfig.tlsInfo.TLSPrivateKey = tFieldValue.(string)
-// 					case rcv.FN_TLS_CA_BUNDLE_FILENAME:
-// 						tConfig.tlsInfo.TLSCABundle = tFieldValue.(string)
-// 					}
-// 				}
-// 			}
-// 		case rcv.FN_MESSAGE_REGISTRY:
-// 			if tMessageRegistry, ok := fieldValue.(map[string]interface{}); ok {
-// 				for tMRFieldName, tMRFieldValue := range tMessageRegistry {
-// 					tMessageName = tMRFieldName
-// 					if tRegisterMessage, ok := tMRFieldValue.(map[string]interface{}); ok {
-// 						for tRMFieldName, tRMFieldValue := range tRegisterMessage {
-// 							switch strings.ToLower(tRMFieldName) {
-// 							case rcv.FN_SUBJECT:
-// 								tMessageEntry.subject = tRMFieldValue.(string)
-// 							case rcv.FN_DESCRIPTION:
-// 								tMessageEntry.description = tRMFieldValue.(string)
-// 							}
-// 						}
-// 					}
-// 					tConfig.messageRegistry[tMessageName] = tMessageEntry
-// 				}
-// 			}
-// 		}
-// 	}
-//
-// 	return tConfig
-// }
 
 // validateConfiguration - checks the NATS service configuration is valid.
 //

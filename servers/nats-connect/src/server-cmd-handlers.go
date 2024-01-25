@@ -35,6 +35,74 @@ COPYRIGHT:
 */
 package src
 
+import (
+	"fmt"
+	"strings"
+
+	ns "GriesPikeThomp/shared-services/src/coreNATS"
+	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	"github.com/nats-io/nats.go"
+	rcv "github.com/sty-holdings/resuable-const-vars/src"
+)
+
+// turnDebugOn - puts the server into debug mode
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (serverPtr *Server) turnDebugOn() nats.MsgHandler {
+
+	return func(msg *nats.Msg) {
+		fmt.Println("On")
+
+		serverPtr.instance.debugModeOn = true
+		return
+	}
+}
+
+// turnDebugOff - removes the server out of debug mode
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (serverPtr *Server) turnDebugOff() nats.MsgHandler {
+
+	return func(msg *nats.Msg) {
+		fmt.Println("Off")
+
+		serverPtr.instance.debugModeOn = false
+		return
+	}
+}
+
+func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.ErrorInfo) {
+
+	var (
+		connection *nats.Conn
+	)
+
+	connection = serverPtr.extensions[NATS_INTERNAL].(ns.NATSService).ConnPtr
+
+	for _, handler := range service.Config.SubjectRegistry {
+		fmt.Printf("\nSubject: %v Description: %v\n", handler.Subject, handler.Description)
+		switch strings.ToLower(handler.Subject) {
+		case TURN_DEBUG_ON:
+			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.turnDebugOn()
+		case TURN_DEBUG_OFF:
+			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.turnDebugOff()
+		default:
+			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, handler.Subject))
+		}
+		if errorInfo.Error == nil {
+			if serverPtr.instance.subscriptionPtrs[handler.Subject], errorInfo.Error = connection.Subscribe(handler.Subject, serverPtr.instance.messageHandlers[handler.Subject]); errorInfo.Error != nil {
+				errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectSubscriptionFailed, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, handler.Subject))
+			}
+		}
+	}
+
+	return
+}
+
 // getMessagePrefix
 // func (server *Server) getMessagePrefix() string {
 //
@@ -68,61 +136,6 @@ package src
 // 		executeGetBackendInfo(myServer, msg)
 //
 // 		return
-// 	}
-// }
-
-// signal handler
-// func (myServer *Server) signalHandler(signal os.Signal) {
-//
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	cpi.PrintRequestStart(2)
-// 	cpi.PrintDebugTrail(tFunctionName)
-//
-// 	log.Printf("Caught signal: %+v\n", signal)
-// 	switch signal {
-// 	case syscall.SIGHUP: // kill -SIGHUP XXXX
-// 		fallthrough
-// 	case syscall.SIGINT: // kill -SIGINT XXXX or Ctrl+c
-// 		fallthrough
-// 	case syscall.SIGTERM: // kill -SIGTERM XXXX
-// 		fallthrough
-// 	case syscall.SIGQUIT: // kill -SIGQUIT XXXX
-// 		myServer.Shutdown(false)
-// 	default:
-// 		log.Printf("%v - unknown signal", signal)
-// 	}
-//
-// 	fmt.Println("\nFinished server cleanup")
-// 	os.Exit(0)
-// }
-
-// unsubscribeMessages - will turn off all registered messages and output a message as such to the log.
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-// func (myServer *Server) unsubscribeMessages() {
-//
-// 	var (
-// 		err                error
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	cpi.PrintRequestStart(2)
-// 	cpi.PrintDebugTrail(tFunctionName)
-//
-// 	// Unsubscribing to other messages.
-// 	for subject, message := range myServer.messages {
-// 		if err = message.subscriptionPtr.Unsubscribe(); err == nil {
-// 			log.Printf("Unsubscribing to %v.", subject)
-// 		} else {
-// 			log.Println(err.Error())
-// 		}
 // 	}
 // }
 

@@ -1,4 +1,4 @@
-// Package sharedServices
+// Package src
 /*
 General description of the purpose of the go file.
 
@@ -29,9 +29,16 @@ COPYRIGHT:
 	limitations under the License.
 
 */
-package sharedServices
+package src
 
-//goland:noinspection GoSnakeCaseUsage
+//goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
+	// Services
+	//
 	NATS_INTERNAL = "internal_nats"
+	//
+	// Subject
+	//
+	TURN_DEBUG_ON  = "server_cmd.turn_debug_on"
+	TURN_DEBUG_OFF = "server_cmd.turn_debug_off"
 )

@@ -24,4 +24,5 @@ NOTES:
         extensions                is an array of extensions that will be loaded by the server. The array object has two elements, extension_name and
                                   config_filename. They are both require string values. If there are no extension, the base server will be started.
                                   List of valid extension_name:
-                                        internal_nats - this extension allows the server to accept NATS messages from clients.
+                                        internal_nats - this extension allows the server to accept NATS messages from clients. It also publishes messages
+                                        to manage the server. Examples are 'turnDebugOn' for the server and Stripes 'retrieveBalance'.

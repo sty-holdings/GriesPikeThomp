@@ -120,6 +120,8 @@ const (
 	STRIPE_ONE_TIME_CODE_FAILED    = "Generating the Stripe One Time Use Token failed."
 	STRIPE_OUT_NOT_SUPPORTED       = "Transfers out of SavUp using Stripe are not supported."
 	SUBJECTS_MISSING               = "No subject(s) have been defined for the NATS extension."
+	SUBJECT_SUBSCRIPTION_FAILED    = "Unable to subscribe to the subject."
+	SUBJECT_INVALID                = "The subject is invalid."
 	TLS_FILES_MISSING              = "TLS files are missing."
 	TOKEN_CLAIMS_INVALID           = "The token claims are invalid."
 	TOKEN_EXPIRED                  = "The token has expired."
@@ -221,7 +223,9 @@ var (
 	ErrStripeCreateCustomerFailed = errors.New(STRIPE_CUSTOMER_FAILED)
 	ErrStripeOneTimeCodeFailed    = errors.New(STRIPE_ONE_TIME_CODE_FAILED)
 	ErrStripeOutNotSupported      = errors.New(STRIPE_OUT_NOT_SUPPORTED)
+	ErrSubjectInvalid             = errors.New(SUBJECT_INVALID)
 	ErrSubjectsMissing            = errors.New(SUBJECTS_MISSING)
+	ErrSubjectSubscriptionFailed  = errors.New(SUBJECT_SUBSCRIPTION_FAILED)
 	ErrTLSFilesMissing            = errors.New(TLS_FILES_MISSING)
 	ErrTokenClaimsInvalid         = errors.New(TOKEN_CLAIMS_INVALID)
 	ErrTokenExpired               = errors.New(TOKEN_EXPIRED)

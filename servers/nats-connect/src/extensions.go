@@ -1,4 +1,4 @@
-// Package sharedServices
+// Package src
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package sharedServices
+package src
 
 import (
 	"fmt"
@@ -54,21 +54,22 @@ type Extensions[T any] struct {
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None/
-func HandleExtension(configExtensions []cc.BaseConfigExtensions) (extensionsInfo Extensions[any], errorInfo cpi.ErrorInfo) {
+func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.BaseConfigExtensions) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tNATSService ns.NATSService
 	)
 
-	extensionsInfo.ExtensionsData = make(map[string]any)
-
 	for _, values := range configExtensions {
 		switch strings.ToLower(values.Name) {
 		case NATS_INTERNAL:
-			tNATSService, errorInfo = ns.NewNATS(values.ConfigFilename)
-			extensionsInfo.ExtensionsData[NATS_INTERNAL] = tNATSService
+			tNATSService, errorInfo = ns.NewNATS(hostname, values.ConfigFilename)
+			serverPtr.extensions[NATS_INTERNAL] = tNATSService
 		default:
 			errorInfo = cpi.NewErrorInfo(cpi.ErrExtensionInvalid, fmt.Sprintf("%v%v", rcv.TXT_EXTENSION_NAME, values.Name))
+			log.Printf("%v failed to load. Removing all extensions.", values.Name)
+			serverPtr.extensions = make(map[string]interface{})
+			return
 		}
 		log.Printf("%v is loaded.", values.Name)
 	}
