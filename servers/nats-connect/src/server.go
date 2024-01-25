@@ -39,6 +39,7 @@ import (
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	ce "GriesPikeThomp/shared-services/src/coreExtensions"
 	h "GriesPikeThomp/shared-services/src/coreHelpers"
+	ns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	cv "GriesPikeThomp/shared-services/src/coreValidators"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
@@ -65,15 +66,16 @@ type Instance struct {
 	runStartTime      time.Time
 	serverName        string
 	testingOn         bool
+	threadsAssigned   uint
 	version           string
 	waitGroup         sync.WaitGroup
 	workingDirectory  string
 }
 
 type Server struct {
-	config        cc.BaseConfiguration
-	instance      Instance
-	extensionPtrs map[string]any
+	config     cc.BaseConfiguration
+	instance   Instance
+	extensions ce.Extensions[any]
 }
 
 // Run - blocks for requests.
@@ -91,7 +93,7 @@ func (serverPtr *Server) Run() {
 	go func() {
 		serverPtr.instance.waitGroup = sync.WaitGroup{}
 		serverPtr.instance.waitGroup.Add(1)
-		// _ = serverPtr.instance.messageHandler()
+		_ = serverPtr.messageHandler()
 	}()
 	select {
 	case <-serverPtr.instance.processChannel:
@@ -130,7 +132,9 @@ func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN s
 
 	log.Printf("Initializing instance of %v server.\n", serverName)
 
-	serverPtr = NewServer(config, serverName, version, logFQN, logFileHandlerPtr, testingOn)
+	if serverPtr, errorInfo = NewServer(config, serverName, version, logFQN, logFileHandlerPtr, testingOn); errorInfo.Error != nil {
+		return
+	}
 
 	// Check if a server.pid exists, if so shutdown
 	if cv.DoesFileExist(serverPtr.instance.pidFQN) {
@@ -155,7 +159,7 @@ func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN s
 		log.Println("No extensions defined in the configuration file.")
 	} else {
 		log.Println("Loading extensions.")
-		serverPtr.extensionPtrs, errorInfo = ce.HandleExtension(config.Extensions)
+		serverPtr.extensions, errorInfo = ce.HandleExtension(config.Extensions)
 	}
 
 	return
@@ -166,9 +170,13 @@ func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN s
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func NewServer(config cc.BaseConfiguration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (server *Server) {
+func NewServer(config cc.BaseConfiguration, serverName, version, logFQN string, logFileHandlerPtr *os.File, testingOn bool) (serverPtr *Server, errorInfo cpi.ErrorInfo) {
 
-	server = &Server{
+	if config.MaxThreads > runtime.NumCPU() {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v", rcv.TXT_MAX_THREADS, "exceeds available threads."))
+	}
+
+	serverPtr = &Server{
 		config: config,
 		instance: Instance{
 			debugModeOn:       config.DebugModeOn,
@@ -182,9 +190,10 @@ func NewServer(config cc.BaseConfiguration, serverName, version, logFQN string, 
 			version:           version,
 		},
 	}
-	server.instance.hostname, _ = os.Hostname()
-	server.instance.workingDirectory, _ = os.Getwd()
-	server.instance.pidFQN = h.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
+	serverPtr.instance.hostname, _ = os.Hostname()
+	serverPtr.instance.workingDirectory, _ = os.Getwd()
+	serverPtr.instance.pidFQN = h.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
+	serverPtr.extensions = ce.Extensions[any]{ExtensionsData: make(map[string]any)}
 
 	return
 }
@@ -239,6 +248,37 @@ func RunServer(configFileFQN, serverName, version string, testingOn bool) (retur
 }
 
 // Private Functions
+
+// messageHandler - subscribes subjects to handlers.
+//
+//	Customer Messages: None
+//	Errors: ErrSignalUnknown
+//	Verifications: None
+func (serverPtr *Server) messageHandler() (err error) {
+
+	// Use a WaitGroup to wait for a message to arrive
+	serverPtr.instance.waitGroup = sync.WaitGroup{}
+	serverPtr.instance.waitGroup.Add(1)
+
+	for subject, serviceInfo := range serverPtr.extensions.ExtensionsData {
+		retrievedService := serviceInfo.(ns.NATSService)
+		fmt.Printf("%s: %v\n", subject, retrievedService.Namespace)
+		// tNATSServicePtr := i.(*ns.Service)
+		// if tNatsMessage.subscriptionPtr, err = serverPtr.MyNATS.NatsConnPtr.Subscribe(subject, message.handler); err != nil {
+		// 	log.Printf("Subscribe failed on subject: %v", subject)
+		// 	log.Fatalln(err.Error() + constants.ENDING_EXECUTION)
+		// } else {
+		// 	tNatsMessage.handler = message.handler
+		// 	tNatsMessage.restrictedUsage = message.restrictedUsage
+		// 	serverPtr.messages[subject] = tNatsMessage
+		// }
+	}
+
+	// Waiting for a message to come in for processing.
+	serverPtr.instance.waitGroup.Wait()
+
+	return
+}
 
 // signalHandler - collects keyboard input and manages the server response.
 //

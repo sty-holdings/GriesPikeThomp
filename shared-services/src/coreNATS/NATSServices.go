@@ -49,28 +49,29 @@ import (
 )
 
 type NATSConfiguration struct {
-	CredentialsFilename string                       `json:"credentials_filename"`
-	MessageEnvironment  string                       `json:"message_environment"`
-	MessageNamespace    string                       `json:"message_namespace"`
-	MessageRegistry     map[string]RegisteredMessage `json:"message_registry"`
-	Port                int                          `json:"port"`
-	TLSInfo             cj.TLSInfo                   `json:"tls_info"`
-	URL                 string                       `json:"url"`
+	CredentialsFilename string        `json:"credentials_filename"`
+	MessageEnvironment  string        `json:"message_environment"`
+	MessageNamespace    string        `json:"message_namespace"`
+	Port                int           `json:"port"`
+	RequestedThreads    uint          `json:"requested_threads"`
+	SubjectRegistry     []SubjectInfo `json:"subject_registry"`
+	TLSInfo             cj.TLSInfo    `json:"tls_info"`
+	URL                 string        `json:"url"`
 }
 
-type RegisteredMessage struct {
+type SubjectInfo struct {
 	Subject     string `json:"subject"`
 	Description string `json:"description"`
 }
 
-type Service struct {
-	config         NATSConfiguration
-	connPtr        *nats.Conn
-	credentialsFQN string
-	namespace      string
-	subscriptions  map[string]*nats.Subscription
-	secure         bool
-	url            string
+type NATSService struct {
+	Config         NATSConfiguration
+	ConnPtr        *nats.Conn
+	CredentialsFQN string
+	Namespace      string
+	Subscriptions  map[string]*nats.Subscription
+	Secure         bool
+	URL            string
 }
 
 // NewNATS - creates a new NATS service using the provided extension values.
@@ -78,10 +79,9 @@ type Service struct {
 //	Customer Messages: None
 //	Errors: error returned by validateConfiguration
 //	Verifications: validateConfiguration
-func NewNATS(configFilename string) (natsPtr *Service, errorInfo cpi.ErrorInfo) {
+func NewNATS(configFilename string) (service NATSService, errorInfo cpi.ErrorInfo) {
 
 	var (
-		service         Service
 		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFilename)
 		tConfig         NATSConfiguration
 		tConfigData     []byte
@@ -100,33 +100,21 @@ func NewNATS(configFilename string) (natsPtr *Service, errorInfo cpi.ErrorInfo) 
 		return
 	}
 
-	service.config = tConfig
-	service.credentialsFQN = ch.PrependWorkingDirectory(tConfig.CredentialsFilename)
-	service.url = tConfig.URL
+	service.Config = tConfig
+	service.CredentialsFQN = ch.PrependWorkingDirectory(tConfig.CredentialsFilename)
+	service.Namespace = tConfig.MessageNamespace
+	service.URL = tConfig.URL
 
 	if tConfig.TLSInfo.TLSCert == rcv.VAL_EMPTY ||
 		tConfig.TLSInfo.TLSPrivateKey == rcv.VAL_EMPTY ||
 		tConfig.TLSInfo.TLSCABundle == rcv.VAL_EMPTY {
-		service.secure = false
+		service.Secure = false
 	} else {
-		service.secure = true
+		service.Secure = true
 	}
 
-	service.connPtr, errorInfo = getConnection(service)
-	natsPtr = &service
-
-	return
-}
-
-func (service *Service) registerMessageHandler() (errorInfo cpi.ErrorInfo) {
-
-	// for messageName, messageInfo := range service.config.messageRegistry {
-	// 	fmt.Println(messageName)
-	// 	fmt.Println(messageInfo)
-	// 	if service.subscriptions[messageName], errorInfo.Error = service.connPtr.Subscribe(messageInfo.subject, getHandler(messageName)); err != nil {
-	// 		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("Subscribe failed on subject: %v", messageInfo.subject))
-	// 	}
-	// }
+	service.ConnPtr, errorInfo = getConnection(service)
+	service.Subscriptions = make(map[string]*nats.Subscription)
 
 	return
 }
@@ -138,22 +126,22 @@ func (service *Service) registerMessageHandler() (errorInfo cpi.ErrorInfo) {
 //	Customer Messages: None
 //	Errors: error returned by nats.Connect
 //	Verifications: None
-func getConnection(service Service) (connPtr *nats.Conn, errorInfo cpi.ErrorInfo) {
+func getConnection(service NATSService) (connPtr *nats.Conn, errorInfo cpi.ErrorInfo) {
 
-	if service.secure {
-		if connPtr, errorInfo.Error = nats.Connect(service.url, nats.UserCredentials(service.credentialsFQN), nats.RootCAs(service.config.TLSInfo.TLSCABundle),
-			nats.ClientCert(service.config.TLSInfo.TLSCert, service.config.TLSInfo.TLSPrivateKey)); errorInfo.Error != nil {
+	if service.Secure {
+		if connPtr, errorInfo.Error = nats.Connect(service.URL, nats.UserCredentials(service.CredentialsFQN), nats.RootCAs(service.Config.TLSInfo.TLSCABundle),
+			nats.ClientCert(service.Config.TLSInfo.TLSCert, service.Config.TLSInfo.TLSPrivateKey)); errorInfo.Error != nil {
 			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_SECURE_CONNECTION_FAILED))
 			return
 		}
 	} else {
-		if connPtr, errorInfo.Error = nats.Connect(service.url, nats.UserCredentials(service.credentialsFQN)); errorInfo.Error != nil {
+		if connPtr, errorInfo.Error = nats.Connect(service.URL, nats.UserCredentials(service.CredentialsFQN)); errorInfo.Error != nil {
 			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_NON_SECURE_CONNECTION_FAILED))
 			return
 		}
 	}
 
-	log.Printf("A connection has been established with the NATS server at %v.", service.url)
+	log.Printf("A connection has been established with the NATS server at %v.", service.URL)
 
 	return
 }
@@ -192,7 +180,7 @@ func getHandler(messageName string) *nats.MsgHandler {
 // 		case rcv.FN_MESSAGE_NAMESPACE:
 // 			tConfig.messageNamespace = fieldValue.(string)
 // 		case rcv.FN_URL:
-// 			tConfig.url = fieldValue.(string)
+// 			tConfig.URL = fieldValue.(string)
 // 		case rcv.FN_PORT:
 // 			tConfig.port = 4222
 // 			if reflect.TypeOf(fieldValue).String() == rcv.TXT_DATATYPE_FLOAT64 {
@@ -240,7 +228,7 @@ func getHandler(messageName string) *nats.MsgHandler {
 // validateConfiguration - checks the NATS service configuration is valid.
 //
 //	Customer Messages: None
-//	Errors: ErrEnvironmentInvalid, ErrDomainInvalid, error returned from DoesFileExistsAndReadable
+//	Errors: ErrEnvironmentInvalid, ErrMessageNamespaceInvalid, ErrDomainInvalid, error returned from DoesFileExistsAndReadable, ErrSubjectsMissing
 //	Verifications: None
 func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 
@@ -273,6 +261,9 @@ func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCABundle))
 			return
 		}
+	}
+	if len(config.SubjectRegistry) == rcv.VAL_ZERO {
+		cpi.NewErrorInfo(cpi.ErrSubjectsMissing, rcv.VAL_EMPTY)
 	}
 
 	return
