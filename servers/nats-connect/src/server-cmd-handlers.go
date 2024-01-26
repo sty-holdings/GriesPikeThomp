@@ -39,26 +39,54 @@ import (
 	"fmt"
 	"strings"
 
+	ch "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	ns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-// turnDebugOn - puts the server into debug mode
+type reply struct {
+	Data    string `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
+	Message string `json:"message,omitempty"`
+	Status  string `json:"status"`
+}
+
+// getHandlers - builds the NATS message handlers
 //
 //	Customer Messages: None
-//	Errors: None
+//	Errors: ErrSubjectSubscriptionFailed
 //	Verifications: None
-func (serverPtr *Server) turnDebugOn() nats.MsgHandler {
+func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.ErrorInfo) {
 
-	return func(msg *nats.Msg) {
-		fmt.Println("On")
+	var (
+		connPtr *nats.Conn
+	)
 
-		serverPtr.instance.debugModeOn = true
-		return
+	connPtr = serverPtr.extensions[NATS_INTERNAL].(ns.NATSService).ConnPtr
+
+	for _, subjectInfo := range service.Config.SubjectRegistry {
+		switch strings.ToLower(subjectInfo.Subject) {
+		case TURN_DEBUG_ON:
+			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.turnDebugOn()
+		case TURN_DEBUG_OFF:
+			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.turnDebugOff()
+		default:
+			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
+		}
+		if errorInfo.Error == nil {
+			if serverPtr.instance.subscriptionPtrs[subjectInfo.Subject], errorInfo.Error = connPtr.Subscribe(subjectInfo.Subject, serverPtr.instance.messageHandlers[subjectInfo.Subject]); errorInfo.Error != nil {
+				errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectSubscriptionFailed, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
+			}
+		}
 	}
+
+	return
 }
+
+// Message Handlers go below this line.
+//
 
 // turnDebugOff - removes the server out of debug mode
 //
@@ -68,39 +96,46 @@ func (serverPtr *Server) turnDebugOn() nats.MsgHandler {
 func (serverPtr *Server) turnDebugOff() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
-		fmt.Println("Off")
+
+		var (
+			errorInfo cpi.ErrorInfo
+			tReply    reply
+		)
 
 		serverPtr.instance.debugModeOn = false
+		tReply.Status = rcv.STATUS_SUCCESS
+
+		if errorInfo = ch.SendReply(tReply, msg); errorInfo.Error != nil {
+			cpi.PrintErrorInfo(errorInfo)
+		}
+
 		return
 	}
 }
 
-func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.ErrorInfo) {
+// turnDebugOn - puts the server into debug mode
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (serverPtr *Server) turnDebugOn() nats.MsgHandler {
 
-	var (
-		connection *nats.Conn
-	)
+	return func(msg *nats.Msg) {
 
-	connection = serverPtr.extensions[NATS_INTERNAL].(ns.NATSService).ConnPtr
+		var (
+			errorInfo cpi.ErrorInfo
+			tReply    reply
+		)
 
-	for _, handler := range service.Config.SubjectRegistry {
-		fmt.Printf("\nSubject: %v Description: %v\n", handler.Subject, handler.Description)
-		switch strings.ToLower(handler.Subject) {
-		case TURN_DEBUG_ON:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.turnDebugOn()
-		case TURN_DEBUG_OFF:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.turnDebugOff()
-		default:
-			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, handler.Subject))
+		serverPtr.instance.debugModeOn = true
+		tReply.Status = rcv.STATUS_SUCCESS
+
+		if errorInfo = ch.SendReply(tReply, msg); errorInfo.Error != nil {
+			cpi.PrintErrorInfo(errorInfo)
 		}
-		if errorInfo.Error == nil {
-			if serverPtr.instance.subscriptionPtrs[handler.Subject], errorInfo.Error = connection.Subscribe(handler.Subject, serverPtr.instance.messageHandlers[handler.Subject]); errorInfo.Error != nil {
-				errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectSubscriptionFailed, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, handler.Subject))
-			}
-		}
+
+		return
 	}
-
-	return
 }
 
 // getMessagePrefix
@@ -136,28 +171,5 @@ func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.Erro
 // 		executeGetBackendInfo(myServer, msg)
 //
 // 		return
-// 	}
-// }
-
-// userVerification
-// func (myServer *Server) userVerification() nats.MsgHandler {
-//
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	cpi.PrintDebugTrail(tFunctionName)
-//
-// 	return func(msg *nats.Msg) {
-// 		var (
-// 			tFunction, _, _, _ = runtime.Caller(0)
-// 			tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 		)
-//
-// 		cpi.PrintRequestStart(2)
-// 		cpi.PrintDebugTrail(tFunctionName)
-//
-// 		executeUserVerification(myServer.authenticatorService, myServer.MyAWS, myServer.MyFireBase, msg)
 // 	}
 // }

@@ -470,25 +470,25 @@ func TestIsFileReadable(tPtr *testing.T) {
 	})
 }
 
-// func TestIsJSONValid(tPtr *testing.T) {
-//
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		if IsJSONValid(TestValidJson) == false {
-// 			tPtr.Errorf("%v Failed: Expected JSON string to be valid.", tFunctionName)
-// 		}
-// 		if IsJSONValid([]byte(rcv.EMPTY)) == true {
-// 			tPtr.Errorf("%v Failed: Expected JSON string to be invalid.", tFunctionName)
-// 		}
-// 		if IsJSONValid([]byte(rcv.TEST_STRING)) == true {
-// 			tPtr.Errorf("%v Failed: Expected JSON string to be invalid.", tFunctionName)
-// 		}
-// 	})
-// }
+func TestIsJSONValid(tPtr *testing.T) {
+
+	var (
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if IsJSONValid(testValidJson) == false {
+			tPtr.Error(cpi.FALSE_SHOULD_BE_TRUE)
+		}
+		if IsJSONValid([]byte(rcv.VAL_EMPTY)) == true {
+			tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
+		}
+		if IsJSONValid([]byte(rcv.TXT_EMPTY)) == true {
+			tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
+		}
+	})
+}
 
 // func TestIsURLValid(tPtr *testing.T) {
 //

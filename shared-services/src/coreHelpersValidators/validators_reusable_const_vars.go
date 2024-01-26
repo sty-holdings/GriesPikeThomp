@@ -38,3 +38,7 @@ const (
 	TEST_FILE_UNREADABLE      = "unreadable_file.txt"
 	TEST_INVALID_DOMAIN       = "tmp"
 )
+
+var (
+	testValidJson = []byte("{\"name\": \"Test Name\"}")
+)

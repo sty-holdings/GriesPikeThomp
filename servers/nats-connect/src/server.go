@@ -37,10 +37,9 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	h "GriesPikeThomp/shared-services/src/coreHelpers"
+	h "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	ns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	cv "GriesPikeThomp/shared-services/src/coreValidators"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -112,20 +111,7 @@ func (serverPtr *Server) Run() {
 //	Verifications: None
 func (serverPtr *Server) Shutdown() {
 
-	var (
-		errorInfo cpi.ErrorInfo
-	)
-
-	// Remove pid file
-	if serverPtr.instance.testingOn == false {
-		if errorInfo = h.RemovePidFile(serverPtr.instance.pidFQN); errorInfo.Error != nil {
-			cpi.PrintError(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, serverPtr.instance.pidFQN))
-		}
-	}
-
-	log.Println(rcv.LINE_SHORT)
-	log.Printf("The pid file (%v) has been removed", serverPtr.instance.pidFQN)
-	log.Printf("The %v server has shutdown gracefully.", serverPtr.instance.serverName)
+	shutdown(serverPtr.instance.serverName, serverPtr.instance.pidFQN, serverPtr.instance.testingOn)
 
 	serverPtr.instance.waitGroup.Done() // This must be the last statement in the Shutdown process.
 }
@@ -144,7 +130,7 @@ func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN s
 	}
 
 	// Check if a server.pid exists, if so shutdown
-	if cv.DoesFileExist(serverPtr.instance.pidFQN) {
+	if h.DoesFileExist(serverPtr.instance.pidFQN) {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrPIDFileExists, fmt.Sprintf("PID Directory: %v", serverPtr.instance.pidFQN))
 		return nil, errorInfo
 	}
@@ -273,7 +259,6 @@ func (serverPtr *Server) messageHandler() {
 		switch serviceName {
 		case NATS_INTERNAL:
 			retrievedService := serviceInfo.(ns.NATSService)
-			fmt.Printf("%s: %v\n", serviceName, retrievedService.Namespace)
 			serverPtr.getHandlers(retrievedService)
 		}
 	}
@@ -319,4 +304,27 @@ func initializeSignals(serverPtr *Server) {
 
 	signal.Notify(captureSignal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT)
 	serverPtr.signalHandler(<-captureSignal)
+}
+
+// shutdown
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func shutdown(serverName, pidFQN string, testingOn bool) {
+	var (
+		errorInfo cpi.ErrorInfo
+	)
+
+	// Remove pid file
+	if testingOn == false {
+		if errorInfo = h.RemovePidFile(pidFQN); errorInfo.Error != nil {
+			cpi.PrintError(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
+		}
+	}
+
+	log.Println(rcv.LINE_SHORT)
+	log.Printf("The pid file (%v) has been removed", pidFQN)
+	log.Printf("The %v server has shutdown gracefully.", serverName)
+
 }

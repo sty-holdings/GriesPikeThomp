@@ -35,12 +35,12 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 
-	ch "GriesPikeThomp/shared-services/src/coreHelpers"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -111,7 +111,7 @@ import (
 func DoesFileExistsAndReadable(filename, fileLabel string) (errorInfo cpi.ErrorInfo) {
 
 	var (
-		fqn = ch.PrependWorkingDirectory(filename)
+		fqn = PrependWorkingDirectory(filename)
 	)
 
 	if fileLabel == rcv.VAL_EMPTY {
@@ -292,19 +292,19 @@ func IsFileReadable(fileName string) bool {
 // 	return false
 // }
 
-// IsJSONValid - checks if the data provide is valid JSON
-// func IsJSONValid(jsonIn []byte) bool {
+// IsJSONValid - checks if the data provide is valid JSON.
 //
-// 	var (
-// 		jsonString         map[string]interface{}
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	cpi.PrintDebugTrail(tFunctionName)
-//
-// 	return json.Unmarshal(jsonIn, &jsonString) == nil
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func IsJSONValid(jsonIn []byte) bool {
+
+	var (
+		jsonString map[string]interface{}
+	)
+
+	return json.Unmarshal(jsonIn, &jsonString) == nil
+}
 
 // IsMapPopulated - will determine if the map is populated.
 // func IsMapPopulated(myMap map[any]interface{}) bool {

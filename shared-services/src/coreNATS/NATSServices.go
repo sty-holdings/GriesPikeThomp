@@ -41,10 +41,9 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	ch "GriesPikeThomp/shared-services/src/coreHelpers"
+	ch "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cj "GriesPikeThomp/shared-services/src/coreJWT"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	cv "GriesPikeThomp/shared-services/src/coreValidators"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -52,7 +51,6 @@ import (
 type NATSConfiguration struct {
 	CredentialsFilename string        `json:"credentials_filename"`
 	MessageEnvironment  string        `json:"message_environment"`
-	MessageNamespace    string        `json:"message_namespace"`
 	Port                int           `json:"port"`
 	RequestedThreads    uint          `json:"requested_threads"`
 	SubjectRegistry     []SubjectInfo `json:"subject_registry"`
@@ -61,6 +59,7 @@ type NATSConfiguration struct {
 }
 
 type SubjectInfo struct {
+	Namespace   string `json:"namespace"`
 	Subject     string `json:"subject"`
 	Description string `json:"description"`
 }
@@ -69,7 +68,6 @@ type NATSService struct {
 	Config         NATSConfiguration
 	ConnPtr        *nats.Conn
 	CredentialsFQN string
-	Namespace      string
 	Secure         bool
 	URL            string
 }
@@ -102,7 +100,6 @@ func NewNATS(hostname string, configFilename string) (service NATSService, error
 
 	service.Config = tConfig
 	service.CredentialsFQN = ch.PrependWorkingDirectory(tConfig.CredentialsFilename)
-	service.Namespace = tConfig.MessageNamespace
 	service.URL = tConfig.URL
 
 	if tConfig.TLSInfo.TLSCert == rcv.VAL_EMPTY ||
@@ -165,32 +162,28 @@ func getConnection(hostname string, service NATSService) (connPtr *nats.Conn, er
 //	Verifications: None
 func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 
-	if errorInfo = cv.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
+	if errorInfo = ch.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
 		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
 		return
 	}
-	if cv.IsEnvironmentValid(config.MessageEnvironment) == false {
+	if ch.IsEnvironmentValid(config.MessageEnvironment) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.MessageEnvironment))
 		return
 	}
-	if config.MessageNamespace == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrMessageNamespaceInvalid, fmt.Sprintf("%v%v", rcv.TXT_MESSAGE, config.MessageEnvironment))
-		return
-	}
-	if cv.IsDomainValid(config.URL) == false {
+	if ch.IsDomainValid(config.URL) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.URL))
 		return
 	}
 	if config.TLSInfo.TLSCert != rcv.VAL_EMPTY && config.TLSInfo.TLSPrivateKey != rcv.VAL_EMPTY && config.TLSInfo.TLSCABundle != rcv.VAL_EMPTY {
-		if errorInfo = cv.DoesFileExistsAndReadable(config.TLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
+		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCert))
 			return
 		}
-		if errorInfo = cv.DoesFileExistsAndReadable(config.TLSInfo.TLSPrivateKey, rcv.TXT_FILENAME); errorInfo.Error != nil {
+		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSPrivateKey, rcv.TXT_FILENAME); errorInfo.Error != nil {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSPrivateKey))
 			return
 		}
-		if errorInfo = cv.DoesFileExistsAndReadable(config.TLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
+		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCABundle))
 			return
 		}

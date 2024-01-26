@@ -1,13 +1,14 @@
 {
   "credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
   "message_environment": "local",
-  "message_namespace": "nci",
   "subject_registry": [
     {
+      "message_namespace": "nci",
       "subject": "server_cmd.turn_debug_on",
       "description": "Turns debugging on. Only available to NATS Connect employees."
     },
     {
+      "message_namespace": "nci",
       "subject": "server_cmd.turn_debug_off",
       "description": "Turns debugging off. Only available to NATS Connect employees."
     }

@@ -35,49 +35,21 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
-
-// BuildJSONReply - return a JSON reply object
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-// func BuildJSONReply(reply interface{}, requestorId, message string) (jsonReply []byte) {
-//
-// 	var (
-// 		errorInfo          cpi.ErrorInfo
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	if jsonReply, errorInfo.Error = json.Marshal(reply); errorInfo.Error != nil {
-// 		errorInfo.AdditionalInfo = errorInfo.Error.Error()
-// 		errorInfo.Error = cpi.ErrJSONGenrationFailed
-// 		cpi.PrintError(errorInfo)
-// 		// 	todo Error Handling & Notification
-// 	}
-//
-// 	if coreValidators.IsJSONValid(jsonReply) == false {
-// 		jsonReply = nil // Initializing the field
-// 		errorInfo.AdditionalInfo = errorInfo.Error.Error()
-// 		errorInfo.Error = cpi.ErrJSONInvalid
-// 		cpi.PrintError(errorInfo)
-// 		// 	todo Error Handling & Notification
-// 	}
-//
-// 	return
-// }
 
 // BuildJSONRequest
 // func BuildJSONRequest(request interface{}) (jsonRequest []byte) {
@@ -453,24 +425,28 @@ func RemovePidFile(pidFQN string) (errorInfo cpi.ErrorInfo) {
 	return
 }
 
-// SendReply
-// func SendReply(functionName string, jsonReply []byte, msg *nats.Msg) (errorInfo cpi.ErrorInfo) {
+// SendReply - will build a json object and send out the reply
 //
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 	)
-//
-// 	cpi.PrintDebugTrail(tFunctionName)
-//
-// 	if errorInfo.Error = msg.Respond(jsonReply); errorInfo.Error != nil {
-// 		errorInfo.Error = errors.New(fmt.Sprintf("Failed to create reply for the executed %v request! ERROR: %v", functionName, errorInfo.Error.Error()))
-// 		log.Println(errorInfo.Error.Error())
-// 		// ToDo Handle Error & Notification
-// 	}
-//
-// 	return
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func SendReply(reply interface{}, msg *nats.Msg) (errorInfo cpi.ErrorInfo) {
+
+	var (
+		tJSONReply []byte
+	)
+
+	if tJSONReply, errorInfo = buildJSONReply(reply); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v%v%v", rcv.TXT_SUBJECT, msg.Subject, rcv.TXT_MESSAGE_HEADER, msg.Header))
+		return
+	}
+
+	if errorInfo.Error = msg.Respond(tJSONReply); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v%v%v", rcv.TXT_SUBJECT, msg.Subject, rcv.TXT_MESSAGE_HEADER, msg.Header))
+	}
+
+	return
+}
 
 // UnmarshalMessageData - reads the message data into the pointer. The second argument must be a pointer. If you pass something else, the unmarshal will fail.
 // func UnmarshalMessageData(msg *nats.Msg, requestPtr any) (errorInfo cpi.ErrorInfo) {
@@ -507,6 +483,23 @@ func WritePidFile(pidFQN string, pid int) (errorInfo cpi.ErrorInfo) {
 
 	if errorInfo = WriteFile(pidFQN, []byte(strconv.Itoa(pid)), 0766); errorInfo.Error == nil {
 		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
+	}
+
+	return
+}
+
+// Private Functions
+
+// buildJSONReply - return a JSON reply object
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func buildJSONReply(reply interface{}) (jsonReply []byte, errorInfo cpi.ErrorInfo) {
+
+	if jsonReply, errorInfo.Error = json.Marshal(reply); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_REPLY_TYPE, reflect.ValueOf(reply).Type().String()))
+		return
 	}
 
 	return
