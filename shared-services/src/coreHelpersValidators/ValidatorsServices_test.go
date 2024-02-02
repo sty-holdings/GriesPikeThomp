@@ -35,6 +35,7 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
+	"bytes"
 	"os"
 	"runtime"
 	"strings"
@@ -159,6 +160,40 @@ var (
 // 		}
 // 	})
 // }
+
+func TestBase64Decode(tPtr *testing.T) {
+
+	var (
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		tValue             []byte
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if tValue, _ = Base64Decode(TEST_BASE64_STRING); bytes.Equal(tValue, TEST_BYTE_ARRAY) {
+		} else {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.VAL_EMPTY)
+		}
+		if tValue, _ = Base64Decode(TEST_STRING); bytes.Equal(tValue, TEST_BYTE_ARRAY) {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+	})
+}
+
+func TestBase64Encode(tPtr *testing.T) {
+
+	var (
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		// Adds working directory to file name
+		if Base64Encode(TEST_STRING) != TEST_BASE64_STRING {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.VAL_EMPTY)
+		}
+	})
+}
 
 func TestCheckFileExistsAndReadable(tPtr *testing.T) {
 
@@ -318,6 +353,27 @@ func TestDoesFileExist(tPtr *testing.T) {
 	})
 }
 
+func TestIsBase64Encode(tPtr *testing.T) {
+
+	var (
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if IsBase64Encode(TEST_STRING) {
+			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+		}
+		if IsBase64Encode(TEST_BASE64_STRING) == false {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+		}
+		if IsBase64Encode(rcv.VAL_EMPTY) == false {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+		}
+	})
+
+}
+
 func TestIsDomainValid(tPtr *testing.T) {
 
 	type arguments struct {
@@ -368,6 +424,29 @@ func TestIsDomainValid(tPtr *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIsGinModeValid(tPtr *testing.T) {
+
+	var (
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
+		if IsGinModeValid(rcv.MODE_DEBUG) == false {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+		}
+		if IsGinModeValid(rcv.MODE_RELEASE) == false {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+		}
+		if IsGinModeValid(rcv.TXT_EMPTY) {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.TRUE_SHOULD_BE_FALSE)
+		}
+		if IsGinModeValid(rcv.VAL_EMPTY) {
+			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.TRUE_SHOULD_BE_FALSE)
+		}
+	})
 }
 
 func TestIsEnvironmentValid(tPtr *testing.T) {

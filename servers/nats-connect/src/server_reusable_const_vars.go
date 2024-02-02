@@ -35,7 +35,8 @@ package src
 const (
 	// Services
 	//
-	NATS_INTERNAL = "internal_nats"
+	NATS_INTERNAL = "nats_internal"
+	HTTP_INBOUND  = "http_inbound"
 	//
 	// Subject
 	//

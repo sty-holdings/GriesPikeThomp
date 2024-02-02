@@ -39,26 +39,26 @@ import (
 	"fmt"
 	"strings"
 
-	ch "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	ns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-type reply struct {
+type natsReply struct {
 	Data    string `json:"data,omitempty"`
 	Error   string `json:"error,omitempty"`
 	Message string `json:"message,omitempty"`
 	Status  string `json:"status"`
 }
 
-// getHandlers - builds the NATS message handlers
+// getNATSHandlers - builds the NATS message handlers
 //
 //	Customer Messages: None
 //	Errors: ErrSubjectSubscriptionFailed
 //	Verifications: None
-func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.ErrorInfo) {
+func (serverPtr *Server) getNATSHandlers(service ns.NATSService) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		connPtr *nats.Conn
@@ -69,9 +69,9 @@ func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.Erro
 	for _, subjectInfo := range service.Config.SubjectRegistry {
 		switch strings.ToLower(subjectInfo.Subject) {
 		case TURN_DEBUG_ON:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.turnDebugOn()
+			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.natsTurnDebugOn()
 		case TURN_DEBUG_OFF:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.turnDebugOff()
+			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.natsTurnDebugOff()
 		default:
 			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
 		}
@@ -85,27 +85,27 @@ func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.Erro
 	return
 }
 
-// Message Handlers go below this line.
+// NATS Message Handlers go below this line.
 //
 
-// turnDebugOff - removes the server out of debug mode
+// natsTurnDebugOff - removes the server out of debug mode via a nats message
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) turnDebugOff() nats.MsgHandler {
+func (serverPtr *Server) natsTurnDebugOff() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    reply
+			tReply    natsReply
 		)
 
 		serverPtr.instance.debugModeOn = false
 		tReply.Status = rcv.STATUS_SUCCESS
 
-		if errorInfo = ch.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
 		}
 
@@ -113,24 +113,24 @@ func (serverPtr *Server) turnDebugOff() nats.MsgHandler {
 	}
 }
 
-// turnDebugOn - puts the server into debug mode
+// natsTurnDebugOn - puts the server into debug mode via a nats message
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) turnDebugOn() nats.MsgHandler {
+func (serverPtr *Server) natsTurnDebugOn() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    reply
+			tReply    natsReply
 		)
 
 		serverPtr.instance.debugModeOn = true
 		tReply.Status = rcv.STATUS_SUCCESS
 
-		if errorInfo = ch.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
 		}
 

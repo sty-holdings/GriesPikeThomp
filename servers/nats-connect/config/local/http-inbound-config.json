@@ -1,7 +1,9 @@
 {
   "credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
+  "gin_mode": "debug",
+  "http_domain": "dev.inbound.natsconnect.com",
   "message_environment": "local",
-  "port": 4222,
+  "port": 8433,
   "requested_threads": 3,
   "subject_registry": [
     {
@@ -19,6 +21,5 @@
     "tls_certificate_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
     "tls_private_key_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
     "tls_ca_bundle_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt"
-  },
-  "url": "savup-local-0030.savup.com"
+  }
 }

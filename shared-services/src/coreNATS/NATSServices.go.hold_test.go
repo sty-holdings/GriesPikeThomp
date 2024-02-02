@@ -149,7 +149,7 @@ func TestGetNATSConnection(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			if _, errorInfo = GetConnection(ts.arguments.URL, ts.arguments.credentialsLocation, ts.arguments.myTLS); errorInfo.Error != nil {
+			if _, errorInfo = getConnection(ts.arguments.URL, ts.arguments.credentialsLocation, ts.arguments.myTLS); errorInfo.Error != nil {
 				gotError = true
 				errorInfo = cpi.ErrorInfo{
 					Error: errors.New(fmt.Sprintf("Failed - NATS connection was not created for Test: %v", tFunctionName)),

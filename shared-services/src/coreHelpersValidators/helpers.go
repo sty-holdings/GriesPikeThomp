@@ -35,6 +35,7 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
+	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -50,6 +51,33 @@ import (
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
+
+// Base64Decode - will decode a base64 string to a string. If there is an error,
+// the first 20 characters of the base64 string are logged.
+// REMINDER: If the base64 string has sensitivity information, empty out the
+// ErrorInfo.AdditionalInfo field before logging or outputting the error.
+//
+//	Customer Messages: None
+//	Errors: error returned by StdEncoding.DecodeString
+//	Verifications: None
+func Base64Decode(base64Value string) (value []byte, errorInfo cpi.ErrorInfo) {
+
+	if value, errorInfo.Error = b64.StdEncoding.DecodeString(base64Value); errorInfo.Error != nil {
+		errorInfo.AdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_BASE64, base64Value[:20])
+	}
+
+	return
+}
+
+// Base64Encode - will encode a string to a base64 string
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func Base64Encode(value string) string {
+
+	return b64.StdEncoding.EncodeToString([]byte(value))
+}
 
 // BuildJSONRequest
 // func BuildJSONRequest(request interface{}) (jsonRequest []byte) {
@@ -261,23 +289,6 @@ import (
 // func GetTime() string {
 // 	return time.Now().Format("15-04-05.00000")
 // }
-
-// IsDirectoryFullyQualified - checks to see if the directory starts and ends with a slash.
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func IsDirectoryFullyQualified(directory string) bool {
-
-	if strings.HasPrefix(directory, rcv.FORWARD_SLASH) {
-		if strings.HasSuffix(directory, rcv.FORWARD_SLASH) {
-			return true
-		}
-	}
-
-	return false
-
-}
 
 // PenniesToFloat
 // func PenniesToFloat(pennies int64) float64 {

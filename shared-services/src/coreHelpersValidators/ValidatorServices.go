@@ -186,6 +186,41 @@ func DoesFileExist(fileName string) bool {
 	return false
 }
 
+// IsBase64Encode - will check if string is a valid base64 string.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func IsBase64Encode(base64Value string) bool {
+
+	var (
+		errorInfo cpi.ErrorInfo
+	)
+
+	if _, errorInfo = Base64Decode(base64Value); errorInfo.Error == nil {
+		return true
+	}
+
+	return false
+}
+
+// IsDirectoryFullyQualified - checks to see if the directory starts and ends with a slash.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func IsDirectoryFullyQualified(directory string) bool {
+
+	if strings.HasPrefix(directory, rcv.FORWARD_SLASH) {
+		if strings.HasSuffix(directory, rcv.FORWARD_SLASH) {
+			return true
+		}
+	}
+
+	return false
+
+}
+
 // IsDomainValid - checks if domain naming is followed
 //
 //	Customer Messages: None
@@ -225,17 +260,17 @@ func IsEnvironmentValid(environment string) bool {
 }
 
 // IsGinModeValid validates that the Gin HTTP framework mode is correctly set.
-// func IsGinModeValid(mode string) bool {
-//
-// 	switch strings.ToUpper(mode) {
-// 	case rcv.DEBUG_MODE:
-// 	case rcv.RELEASE_MODE:
-// 	default:
-// 		return false
-// 	}
-//
-// 	return true
-// }
+func IsGinModeValid(mode string) bool {
+
+	switch strings.ToLower(mode) {
+	case rcv.MODE_DEBUG:
+	case rcv.MODE_RELEASE:
+	default:
+		return false
+	}
+
+	return true
+}
 
 // IsFileReadable - tries to open the file using 0644 permissions
 //

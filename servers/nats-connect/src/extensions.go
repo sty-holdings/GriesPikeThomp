@@ -40,6 +40,7 @@ import (
 	"strings"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
+	hs "GriesPikeThomp/shared-services/src/coreHTTP"
 	ns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
@@ -58,6 +59,7 @@ func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.
 
 	var (
 		tNATSService ns.NATSService
+		tHTTPService hs.HTTPService
 	)
 
 	for _, values := range configExtensions {
@@ -65,6 +67,9 @@ func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.
 		case NATS_INTERNAL:
 			tNATSService, errorInfo = ns.NewNATS(hostname, values.ConfigFilename)
 			serverPtr.extensions[NATS_INTERNAL] = tNATSService
+		case HTTP_INBOUND:
+			tHTTPService, errorInfo = hs.NewHTTP(values.ConfigFilename)
+			serverPtr.extensions[HTTP_INBOUND] = tHTTPService
 		default:
 			errorInfo = cpi.NewErrorInfo(cpi.ErrExtensionInvalid, fmt.Sprintf("%v%v", rcv.TXT_EXTENSION_NAME, values.Name))
 			log.Printf("%v failed to load. Removing all extensions.", values.Name)

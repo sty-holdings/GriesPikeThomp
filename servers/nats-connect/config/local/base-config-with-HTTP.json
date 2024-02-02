@@ -7,8 +7,8 @@
   "pid_directory": "servers/nats-connect/.run",
   "extensions": [
     {
-      "name": "nats_internal",
-      "config_filename": "servers/nats-connect/config/local/nats-config.json"
+      "name": "http_inbound",
+      "config_filename": "servers/nats-connect/config/local/http-inbound-config.json"
     }
   ]
 }

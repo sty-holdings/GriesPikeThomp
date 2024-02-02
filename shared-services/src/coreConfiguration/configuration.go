@@ -40,7 +40,7 @@ import (
 	"os"
 	"strings"
 
-	cv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -160,15 +160,15 @@ func ReadConfigFile(configFileFQN string) (configData []byte, errorInfo cpi.Erro
 //	Verifications: None
 func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 
-	if cv.IsEnvironmentValid(config.Environment) == false {
+	if chv.IsEnvironmentValid(config.Environment) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.Environment))
 		return
 	}
-	if cv.DoesDirectoryExist(config.SkeletonConfigFQD) == false {
+	if chv.DoesDirectoryExist(config.SkeletonConfigFQD) == false {
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.SkeletonConfigFQD))
 		config.LogDirectory = DEFAULT_LOG_DIRECTORY
 	}
-	if cv.DoesDirectoryExist(config.LogDirectory) == false {
+	if chv.DoesDirectoryExist(config.LogDirectory) == false {
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_LOG_DIRECTORY))
 		config.LogDirectory = DEFAULT_LOG_DIRECTORY
 	}
@@ -176,7 +176,7 @@ func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 		cpi.PrintError(cpi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_MAX_THREADS, config.LogDirectory, DEFAULT_MAX_THREADS))
 		config.MaxThreads = DEFAULT_MAX_THREADS
 	}
-	if cv.DoesDirectoryExist(config.PIDDirectory) == false {
+	if chv.DoesDirectoryExist(config.PIDDirectory) == false {
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_PID_DIRECTORY))
 		config.PIDDirectory = DEFAULT_PID_DIRECTORY
 	}

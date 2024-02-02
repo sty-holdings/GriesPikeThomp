@@ -37,51 +37,54 @@ package sharedServices
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"time"
+	"net/http"
+	"strings"
+
+	// "net/http"
+	// "os"
+	// "time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cj "GriesPikeThomp/shared-services/src/coreJWT"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-type NATSConfiguration struct {
-	CredentialsFilename string        `json:"credentials_filename"`
-	MessageEnvironment  string        `json:"message_environment"`
-	Port                int           `json:"port"`
-	RequestedThreads    uint          `json:"requested_threads"`
-	SubjectRegistry     []SubjectInfo `json:"subject_registry"`
-	TLSInfo             cj.TLSInfo    `json:"tls_info"`
-	URL                 string        `json:"url"`
+type HTTPConfiguration struct {
+	CredentialsFilename string      `json:"credentials_filename"`
+	GinMode             string      `json:"gin_mode"`
+	HTTPDomain          string      `json:"http_domain"`
+	MessageEnvironment  string      `json:"message_environment"`
+	Port                int         `json:"port"`
+	RequestedThreads    uint        `json:"requested_threads"`
+	RouteRegistry       []RouteInfo `json:"route_registry"`
+	TLSInfo             cj.TLSInfo  `json:"tls_info"`
 }
 
-type SubjectInfo struct {
+type RouteInfo struct {
 	Namespace   string `json:"namespace"`
 	Subject     string `json:"subject"`
 	Description string `json:"description"`
 }
 
-type NATSService struct {
-	Config         NATSConfiguration
-	ConnPtr        *nats.Conn
+type HTTPService struct {
+	Config         HTTPConfiguration
 	CredentialsFQN string
+	HTTPServerPtr  *http.Server
 	Secure         bool
-	URL            string
 }
 
-// NewNATS - creates a new NATS service using the provided extension values.
+// NewHTTP - creates a new HTTP service using the provided extension values.
 //
 //	Customer Messages: None
 //	Errors: error returned by validateConfiguration
 //	Verifications: validateConfiguration
-func NewNATS(hostname string, configFilename string) (service NATSService, errorInfo cpi.ErrorInfo) {
+func NewHTTP(configFilename string) (service HTTPService, errorInfo cpi.ErrorInfo) {
 
 	var (
 		tAdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_FILENAME, configFilename)
-		tConfig         NATSConfiguration
+		tConfig         HTTPConfiguration
 		tConfigData     []byte
 	)
 
@@ -100,7 +103,6 @@ func NewNATS(hostname string, configFilename string) (service NATSService, error
 
 	service.Config = tConfig
 	service.CredentialsFQN = chv.PrependWorkingDirectory(tConfig.CredentialsFilename)
-	service.URL = tConfig.URL
 
 	if tConfig.TLSInfo.TLSCert == rcv.VAL_EMPTY ||
 		tConfig.TLSInfo.TLSPrivateKey == rcv.VAL_EMPTY ||
@@ -110,47 +112,35 @@ func NewNATS(hostname string, configFilename string) (service NATSService, error
 		service.Secure = true
 	}
 
-	service.ConnPtr, errorInfo = getConnection(hostname, service)
+	service.HTTPServerPtr, errorInfo = startListening(service)
 
 	return
 }
 
 //  Private Functions
 
-// getConnection - will connect to a NATS leaf server with either a ssl or non-ssl connection.
+// startListening - will start listening to request and serving them.
 //
 //	Customer Messages: None
 //	Errors: error returned by nats.Connect
 //	Verifications: None
-func getConnection(hostname string, service NATSService) (connPtr *nats.Conn, errorInfo cpi.ErrorInfo) {
+func startListening(service HTTPService) (httpServerPtr *http.Server, errorInfo cpi.ErrorInfo) {
 
-	var (
-		opts []nats.Option
-	)
+	var ()
 
-	opts = []nats.Option{
-		nats.Name(hostname),                 // Set a client name
-		nats.MaxReconnects(5),               // Set maximum reconnection attempts
-		nats.ReconnectWait(5 * time.Second), // Set reconnection wait time
-		nats.UserCredentials(service.CredentialsFQN),
-		nats.RootCAs(service.Config.TLSInfo.TLSCABundle),
-		nats.ClientCert(service.Config.TLSInfo.TLSCert, service.Config.TLSInfo.TLSPrivateKey),
+	// Start server
+	httpServerPtr = &http.Server{
+		Addr: fmt.Sprintf(":%v", service.Config.Port),
+		// Handler: setRoutes(service),
 	}
 
 	if service.Secure {
-		if connPtr, errorInfo.Error = nats.Connect(service.URL, opts...); errorInfo.Error != nil {
-			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_SECURE_CONNECTION_FAILED))
-			return
-		}
-	} else {
-		if connPtr, errorInfo.Error = nats.Connect(service.URL, nats.UserCredentials(service.CredentialsFQN)); errorInfo.Error != nil {
-			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_NON_SECURE_CONNECTION_FAILED))
+		// The SSL Cert is from an authority, so the CA bundle must be used.
+		if errorInfo.Error = httpServerPtr.ListenAndServeTLS(service.Config.TLSInfo.TLSCABundle, service.Config.TLSInfo.TLSPrivateKey); errorInfo.Error != nil {
 			return
 		}
 	}
-
-	log.Printf("A connection has been established with the NATS server at %v.", service.URL)
-	log.Printf("URL: %v Server Name: %v Server Id: %v Address: %v", connPtr.ConnectedUrl(), connPtr.ConnectedClusterName(), connPtr.ConnectedServerId(), connPtr.ConnectedAddr())
+	errorInfo.Error = httpServerPtr.ListenAndServe()
 
 	return
 }
@@ -160,18 +150,28 @@ func getConnection(hostname string, service NATSService) (connPtr *nats.Conn, er
 //	Customer Messages: None
 //	Errors: ErrEnvironmentInvalid, ErrMessageNamespaceInvalid, ErrDomainInvalid, error returned from DoesFileExistsAndReadable, ErrSubjectsMissing
 //	Verifications: None
-func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
+func validateConfiguration(config HTTPConfiguration) (errorInfo cpi.ErrorInfo) {
 
 	if errorInfo = chv.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
 		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
+		return
+	}
+	if chv.IsBase64Encode(config.CredentialsFilename) == false {
+		cpi.NewErrorInfo(cpi.ErrBase64Invalid, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
+		return
+	}
+	if chv.IsGinModeValid(config.GinMode) == false {
+		cpi.NewErrorInfo(cpi.ErrBase64Invalid, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
 		return
 	}
 	if chv.IsEnvironmentValid(config.MessageEnvironment) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.MessageEnvironment))
 		return
 	}
-	if chv.IsDomainValid(config.URL) == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.URL))
+	if chv.IsGinModeValid(config.GinMode) {
+		config.GinMode = strings.ToLower(config.GinMode)
+	} else {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrGinModeInvalid, fmt.Sprintf("%v%v", rcv.TXT_GIN_MODE, config.GinMode))
 		return
 	}
 	if config.TLSInfo.TLSCert != rcv.VAL_EMPTY && config.TLSInfo.TLSPrivateKey != rcv.VAL_EMPTY && config.TLSInfo.TLSCABundle != rcv.VAL_EMPTY {
@@ -188,7 +188,7 @@ func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 			return
 		}
 	}
-	if len(config.SubjectRegistry) == rcv.VAL_ZERO {
+	if len(config.RouteRegistry) == rcv.VAL_ZERO {
 		cpi.NewErrorInfo(cpi.ErrSubjectsMissing, rcv.VAL_EMPTY)
 	}
 
