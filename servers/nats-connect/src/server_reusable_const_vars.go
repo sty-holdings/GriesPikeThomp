@@ -35,7 +35,11 @@ package src
 const (
 	// Services
 	//
+<<<<<<< HEAD
 	NATS_INTERNAL = "nats_internal"
+=======
+	NATS_INTERNAL = "internal_nats"
+>>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
 	//
 	// Subject
 	//

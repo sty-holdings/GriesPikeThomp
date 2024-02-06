@@ -41,7 +41,7 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	ch "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cj "GriesPikeThomp/shared-services/src/coreJWT"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
@@ -80,12 +80,12 @@ type NATSService struct {
 func NewNATS(hostname string, configFilename string) (service NATSService, errorInfo cpi.ErrorInfo) {
 
 	var (
-		tAdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_FILENAME, configFilename)
+		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFilename)
 		tConfig         NATSConfiguration
 		tConfigData     []byte
 	)
 
-	if tConfigData, errorInfo = cc.ReadConfigFile(chv.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
+	if tConfigData, errorInfo = cc.ReadConfigFile(ch.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
 		return
 	}
 
@@ -99,7 +99,7 @@ func NewNATS(hostname string, configFilename string) (service NATSService, error
 	}
 
 	service.Config = tConfig
-	service.CredentialsFQN = chv.PrependWorkingDirectory(tConfig.CredentialsFilename)
+	service.CredentialsFQN = ch.PrependWorkingDirectory(tConfig.CredentialsFilename)
 	service.URL = tConfig.URL
 
 	if tConfig.TLSInfo.TLSCert == rcv.VAL_EMPTY ||
@@ -162,28 +162,28 @@ func getConnection(hostname string, service NATSService) (connPtr *nats.Conn, er
 //	Verifications: None
 func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 
-	if errorInfo = chv.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
+	if errorInfo = ch.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
 		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
 		return
 	}
-	if chv.IsEnvironmentValid(config.MessageEnvironment) == false {
+	if ch.IsEnvironmentValid(config.MessageEnvironment) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.MessageEnvironment))
 		return
 	}
-	if chv.IsDomainValid(config.URL) == false {
+	if ch.IsDomainValid(config.URL) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.URL))
 		return
 	}
 	if config.TLSInfo.TLSCert != rcv.VAL_EMPTY && config.TLSInfo.TLSPrivateKey != rcv.VAL_EMPTY && config.TLSInfo.TLSCABundle != rcv.VAL_EMPTY {
-		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
+		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCert))
 			return
 		}
-		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSPrivateKey, rcv.TXT_FILENAME); errorInfo.Error != nil {
+		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSPrivateKey, rcv.TXT_FILENAME); errorInfo.Error != nil {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSPrivateKey))
 			return
 		}
-		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
+		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCABundle))
 			return
 		}

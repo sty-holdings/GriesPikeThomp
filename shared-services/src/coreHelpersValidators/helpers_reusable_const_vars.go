@@ -33,14 +33,8 @@ package sharedServices
 
 //goland:noinspection GoSnakeCaseUsage
 const (
-	TEST_BASE64_STRING          = "VEhpcyBpcyBhIHRlc3Qgc3RyaW5nIDEyMzQxMzQ1MjM1Nl4lKl4mJSYqKCVeKg=="
 	TEST_FILE_NAME              = "test_file.txt"
 	TEST_DIRECTORY              = "/tmp"
 	TEST_DIRECTORY_ENDING_SLASH = "/tmp/"
 	TEST_DIRECTORY_NON_ROOT     = "shared-services"
-	TEST_STRING                 = "THis is a test string 123413452356^%*^&%&*(%^*"
-)
-
-var (
-	TEST_BYTE_ARRAY = []byte(TEST_STRING)
 )

@@ -39,26 +39,35 @@ import (
 	"fmt"
 	"strings"
 
+<<<<<<< HEAD:servers/nats-connect/src/NATS-handlers.go
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cn "GriesPikeThomp/shared-services/src/coreNATS"
+=======
+	ch "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	ns "GriesPikeThomp/shared-services/src/coreNATS"
+>>>>>>> parent of bc61635 (Working HTTP ListenAndServe):servers/nats-connect/src/server-cmd-handlers.go
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-type natsReply struct {
+type reply struct {
 	Data    string `json:"data,omitempty"`
 	Error   string `json:"error,omitempty"`
 	Message string `json:"message,omitempty"`
 	Status  string `json:"status"`
 }
 
-// getNATSHandlers - builds the NATS message handlers
+// getHandlers - builds the NATS message handlers
 //
 //	Customer Messages: None
 //	Errors: ErrSubjectSubscriptionFailed
 //	Verifications: None
+<<<<<<< HEAD:servers/nats-connect/src/NATS-handlers.go
 func (serverPtr *Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.ErrorInfo) {
+=======
+func (serverPtr *Server) getHandlers(service ns.NATSService) (errorInfo cpi.ErrorInfo) {
+>>>>>>> parent of bc61635 (Working HTTP ListenAndServe):servers/nats-connect/src/server-cmd-handlers.go
 
 	var (
 		connPtr *nats.Conn
@@ -69,9 +78,9 @@ func (serverPtr *Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.
 	for _, subjectInfo := range service.Config.SubjectRegistry {
 		switch strings.ToLower(subjectInfo.Subject) {
 		case TURN_DEBUG_ON:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.natsTurnDebugOn()
+			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.turnDebugOn()
 		case TURN_DEBUG_OFF:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.natsTurnDebugOff()
+			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.turnDebugOff()
 		default:
 			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
 		}
@@ -85,27 +94,27 @@ func (serverPtr *Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.
 	return
 }
 
-// NATS Message Handlers go below this line.
+// Message Handlers go below this line.
 //
 
-// natsTurnDebugOff - removes the server out of debug mode via a nats message
+// turnDebugOff - removes the server out of debug mode
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) natsTurnDebugOff() nats.MsgHandler {
+func (serverPtr *Server) turnDebugOff() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    natsReply
+			tReply    reply
 		)
 
 		serverPtr.instance.debugModeOn = false
 		tReply.Status = rcv.STATUS_SUCCESS
 
-		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = ch.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
 		}
 
@@ -113,24 +122,24 @@ func (serverPtr *Server) natsTurnDebugOff() nats.MsgHandler {
 	}
 }
 
-// natsTurnDebugOn - puts the server into debug mode via a nats message
+// turnDebugOn - puts the server into debug mode
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) natsTurnDebugOn() nats.MsgHandler {
+func (serverPtr *Server) turnDebugOn() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    natsReply
+			tReply    reply
 		)
 
 		serverPtr.instance.debugModeOn = true
 		tReply.Status = rcv.STATUS_SUCCESS
 
-		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = ch.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
 		}
 

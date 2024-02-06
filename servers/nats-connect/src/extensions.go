@@ -40,7 +40,11 @@ import (
 	"strings"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
+<<<<<<< HEAD
 	cn "GriesPikeThomp/shared-services/src/coreNATS"
+=======
+	ns "GriesPikeThomp/shared-services/src/coreNATS"
+>>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -57,7 +61,11 @@ type Extensions[T any] struct {
 func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.BaseConfigExtensions) (errorInfo cpi.ErrorInfo) {
 
 	var (
+<<<<<<< HEAD
 		tNATSService cn.NATSService
+=======
+		tNATSService ns.NATSService
+>>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
 	)
 
 	for _, values := range configExtensions {

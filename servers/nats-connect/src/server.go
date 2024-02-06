@@ -37,8 +37,13 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
+<<<<<<< HEAD
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cn "GriesPikeThomp/shared-services/src/coreNATS"
+=======
+	h "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	ns "GriesPikeThomp/shared-services/src/coreNATS"
+>>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
@@ -130,13 +135,13 @@ func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN s
 	}
 
 	// Check if a server.pid exists, if so shutdown
-	if chv.DoesFileExist(serverPtr.instance.pidFQN) {
+	if h.DoesFileExist(serverPtr.instance.pidFQN) {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrPIDFileExists, fmt.Sprintf("PID Directory: %v", serverPtr.instance.pidFQN))
 		return nil, errorInfo
 	}
 
 	if testingOn == false {
-		if errorInfo = chv.WritePidFile(serverPtr.instance.pidFQN, serverPtr.instance.pid); errorInfo.Error != nil {
+		if errorInfo = h.WritePidFile(serverPtr.instance.pidFQN, serverPtr.instance.pid); errorInfo.Error != nil {
 			return nil, errorInfo
 		}
 	}
@@ -186,7 +191,7 @@ func NewServer(config cc.BaseConfiguration, serverName, version, logFQN string, 
 	serverPtr.extensions = make(map[string]interface{})
 	serverPtr.instance.hostname, _ = os.Hostname()
 	serverPtr.instance.messageHandlers = make(map[string]nats.MsgHandler)
-	serverPtr.instance.pidFQN = chv.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
+	serverPtr.instance.pidFQN = h.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
 	serverPtr.instance.subscriptionPtrs = make(map[string]*nats.Subscription)
 	serverPtr.instance.workingDirectory, _ = os.Getwd()
 
@@ -224,8 +229,8 @@ func RunServer(configFileFQN, serverName, version string, testingOn bool) (retur
 	}
 
 	// Initializing the log output.
-	tLogFQD = chv.PrependWorkingDirectoryWithEndingSlash(tConfig.LogDirectory)
-	if tLogFileHandlerPtr, tlogFQN, errorInfo = chv.CreateAndRedirectLogOutput(tLogFQD, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
+	tLogFQD = h.PrependWorkingDirectoryWithEndingSlash(tConfig.LogDirectory)
+	if tLogFileHandlerPtr, tlogFQN, errorInfo = h.CreateAndRedirectLogOutput(tLogFQD, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
 		cpi.PrintErrorInfo(errorInfo)
 		return
 	}
@@ -258,8 +263,13 @@ func (serverPtr *Server) messageHandler() {
 	for serviceName, serviceInfo := range serverPtr.extensions {
 		switch serviceName {
 		case NATS_INTERNAL:
+<<<<<<< HEAD
 			retrievedService := serviceInfo.(cn.NATSService)
 			serverPtr.getNATSHandlers(retrievedService)
+=======
+			retrievedService := serviceInfo.(ns.NATSService)
+			serverPtr.getHandlers(retrievedService)
+>>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
 		}
 	}
 
@@ -318,7 +328,7 @@ func shutdown(serverName, pidFQN string, testingOn bool) {
 
 	// Remove pid file
 	if testingOn == false {
-		if errorInfo = chv.RemovePidFile(pidFQN); errorInfo.Error != nil {
+		if errorInfo = h.RemovePidFile(pidFQN); errorInfo.Error != nil {
 			cpi.PrintError(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
 		}
 	}
