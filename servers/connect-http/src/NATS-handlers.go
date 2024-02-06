@@ -37,16 +37,16 @@ package src
 
 import (
 	"fmt"
-	"net/http"
+	"strings"
 
-	hs "GriesPikeThomp/shared-services/src/coreHTTP"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-type httpReply struct {
+type natsReply struct {
 	Data    string `json:"data,omitempty"`
 	Error   string `json:"error,omitempty"`
 	Message string `json:"message,omitempty"`
@@ -58,49 +58,48 @@ type httpReply struct {
 //	Customer Messages: None
 //	Errors: ErrSubjectSubscriptionFailed
 //	Verifications: None
-func (serverPtr *Server) getHTTPHandlers(service hs.HTTPService) (errorInfo cpi.ErrorInfo) {
+func (serverPtr *Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.ErrorInfo) {
 
 	var (
-		httpServerPtr *http.Server
+		connPtr *nats.Conn
 	)
 
-	httpServerPtr = serverPtr.extensions[HTTP_INBOUND].(hs.HTTPService).HTTPServerPtr
-	fmt.Println(httpServerPtr)
+	connPtr = serverPtr.extensions[NATS_INTERNAL].(cn.NATSService).ConnPtr
 
-	// for _, subjectInfo := range service.Config.SubjectRegistry {
-	// 	switch strings.ToLower(subjectInfo.Subject) {
-	// 	case TURN_DEBUG_ON:
-	// 		serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.httpTurnDebugOn()
-	// 	case TURN_DEBUG_OFF:
-	// 		serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.httpTurnDebugOff()
-	// 	default:
-	// 		errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
-	// 	}
-	// 	if errorInfo.Error == nil {
-	// 		if serverPtr.instance.subscriptionPtrs[subjectInfo.Subject], errorInfo.Error = connPtr.Subscribe(subjectInfo.Subject, serverPtr.instance.messageHandlers[subjectInfo.Subject]); errorInfo.Error != nil {
-	// 			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectSubscriptionFailed, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
-	// 		}
-	// 	}
-	// }
+	for _, subjectInfo := range service.Config.SubjectRegistry {
+		switch strings.ToLower(subjectInfo.Subject) {
+		case TURN_DEBUG_ON:
+			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.natsTurnDebugOn()
+		case TURN_DEBUG_OFF:
+			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.natsTurnDebugOff()
+		default:
+			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
+		}
+		if errorInfo.Error == nil {
+			if serverPtr.instance.subscriptionPtrs[subjectInfo.Subject], errorInfo.Error = connPtr.Subscribe(subjectInfo.Subject, serverPtr.instance.messageHandlers[subjectInfo.Subject]); errorInfo.Error != nil {
+				errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectSubscriptionFailed, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
+			}
+		}
+	}
 
 	return
 }
 
-// HTTP Request Handlers go below this line.
+// NATS Message Handlers go below this line.
 //
 
-// httpTurnDebugOff - removes the server out of debug mode via a http message
+// natsTurnDebugOff - removes the server out of debug mode via a nats message
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) httpTurnDebugOff() nats.MsgHandler {
+func (serverPtr *Server) natsTurnDebugOff() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    httpReply
+			tReply    natsReply
 		)
 
 		serverPtr.instance.debugModeOn = false
@@ -114,18 +113,18 @@ func (serverPtr *Server) httpTurnDebugOff() nats.MsgHandler {
 	}
 }
 
-// httpTurnDebugOn - puts the server into debug mode via a http message
+// natsTurnDebugOn - puts the server into debug mode via a nats message
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) httpTurnDebugOn() nats.MsgHandler {
+func (serverPtr *Server) natsTurnDebugOn() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    httpReply
+			tReply    natsReply
 		)
 
 		serverPtr.instance.debugModeOn = true

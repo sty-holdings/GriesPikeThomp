@@ -36,6 +36,7 @@ const (
 	// Services
 	//
 	NATS_INTERNAL = "nats_internal"
+	HTTP_INBOUND  = "http_inbound"
 	//
 	// Subject
 	//

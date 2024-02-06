@@ -8,7 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-	Copyright (c) 2022 STY-Holdings, inc
+	Copyright (c) 2022 STY-Holdings, Inc
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.

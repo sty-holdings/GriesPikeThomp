@@ -8,7 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-	Copyright (c) 2022 STY-Holdings, inc
+	Copyright (c) 2022 STY-Holdings, Inc
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -35,15 +35,18 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
-	// "net/http"
-	// "os"
-	// "time"
-
+	styhHTTP "GriesPikeThomp/servers/nats-connect/extensions/styh-http"
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cj "GriesPikeThomp/shared-services/src/coreJWT"
@@ -75,7 +78,7 @@ type HTTPService struct {
 	Secure         bool
 }
 
-// NewHTTP - creates a new HTTP service using the provided extension values.
+// NewHTTP - creates a new styh-http service using the provided extension values.
 //
 //	Customer Messages: None
 //	Errors: error returned by validateConfiguration
@@ -112,37 +115,68 @@ func NewHTTP(configFilename string) (service HTTPService, errorInfo cpi.ErrorInf
 		service.Secure = true
 	}
 
-	service.HTTPServerPtr, errorInfo = startListening(service)
+	service.HTTPServerPtr, errorInfo = createServerInstance(service)
 
 	return
 }
 
 //  Private Functions
 
-// startListening - will start listening to request and serving them.
+// createServerInstance - will start listening to request and serving them.
 //
 //	Customer Messages: None
 //	Errors: error returned by nats.Connect
 //	Verifications: None
-func startListening(service HTTPService) (httpServerPtr *http.Server, errorInfo cpi.ErrorInfo) {
+func createServerInstance(service HTTPService) (httpServerPtr *http.Server, errorInfo cpi.ErrorInfo) {
 
 	var ()
 
 	// Start server
 	httpServerPtr = &http.Server{
-		Addr: fmt.Sprintf(":%v", service.Config.Port),
-		// Handler: setRoutes(service),
+		Addr:    fmt.Sprintf(":%v", service.Config.Port),
+		Handler: styhHTTP.SetRoutes(service.Config.GinMode),
 	}
 
-	if service.Secure {
-		// The SSL Cert is from an authority, so the CA bundle must be used.
-		if errorInfo.Error = httpServerPtr.ListenAndServeTLS(service.Config.TLSInfo.TLSCABundle, service.Config.TLSInfo.TLSPrivateKey); errorInfo.Error != nil {
-			return
-		}
-	}
-	errorInfo.Error = httpServerPtr.ListenAndServe()
+	go func() {
+		startListener(service.Secure, httpServerPtr, service.Config.TLSInfo.TLSCABundle, service.Config.TLSInfo.TLSPrivateKey)
+	}()
 
 	return
+}
+
+func startListener(secure bool, httpServerPtr *http.Server, tlsCABundle, tlsPrivateKey string) {
+
+	var (
+		errorInfo cpi.ErrorInfo
+	)
+
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	if secure {
+		// The SSL Cert is from an authority, so the CA bundle must be used.
+		if errorInfo.Error = httpServerPtr.ListenAndServeTLS(tlsCABundle, tlsPrivateKey); errorInfo.Error != nil {
+			return
+		}
+	} else {
+		errorInfo.Error = httpServerPtr.ListenAndServe()
+	}
+	// }
+	log.Print("Server Started")
+
+	<-done
+	log.Print("Server Stopped")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		// extra handling here
+		cancel()
+	}()
+
+	if err := httpServerPtr.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	log.Print("Server Exited Properly")
 }
 
 // validateConfiguration - checks the NATS service configuration is valid.
@@ -194,3 +228,5 @@ func validateConfiguration(config HTTPConfiguration) (errorInfo cpi.ErrorInfo) {
 
 	return
 }
+
+// writeHTTPResponse

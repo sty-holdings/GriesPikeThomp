@@ -1,0 +1,24 @@
+{
+  "credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
+  "message_environment": "local",
+  "port": 4222,
+  "requested_threads": 3,
+  "subject_registry": [
+    {
+      "message_namespace": "nci",
+      "subject": "server_cmd.turn_debug_on",
+      "description": "Turns debugging on. Only available to NATS Connect employees."
+    },
+    {
+      "message_namespace": "nci",
+      "subject": "server_cmd.turn_debug_off",
+      "description": "Turns debugging off. Only available to NATS Connect employees."
+    }
+  ],
+  "tls_info": {
+    "tls_certificate_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
+    "tls_private_key_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
+    "tls_ca_bundle_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt"
+  },
+  "url": "savup-local-0030.savup.com"
+}

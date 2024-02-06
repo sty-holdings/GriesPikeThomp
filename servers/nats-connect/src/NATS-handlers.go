@@ -40,7 +40,7 @@ import (
 	"strings"
 
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	ns "GriesPikeThomp/shared-services/src/coreNATS"
+	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
@@ -58,13 +58,13 @@ type natsReply struct {
 //	Customer Messages: None
 //	Errors: ErrSubjectSubscriptionFailed
 //	Verifications: None
-func (serverPtr *Server) getNATSHandlers(service ns.NATSService) (errorInfo cpi.ErrorInfo) {
+func (serverPtr *Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		connPtr *nats.Conn
 	)
 
-	connPtr = serverPtr.extensions[NATS_INTERNAL].(ns.NATSService).ConnPtr
+	connPtr = serverPtr.extensions[NATS_INTERNAL].(cn.NATSService).ConnPtr
 
 	for _, subjectInfo := range service.Config.SubjectRegistry {
 		switch strings.ToLower(subjectInfo.Subject) {

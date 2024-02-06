@@ -2,15 +2,6 @@
 /*
 General description of the purpose of the go file.
 
-RESTRICTIONS:
-    AWS functions:
-    * Program must have access to a .aws/credentials file in the default location.
-    * This will only access system parameters that start with '/sote' (ROOTPATH).
-    * {Enter other restrictions here for AWS
-
-    {Other catagories of restrictions}
-    * {List of restrictions for the catagory
-
 NOTES:
     {Enter any additional notes that you believe will help the next developer.}
 

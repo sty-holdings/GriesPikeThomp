@@ -8,7 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-	Copyright (c) 2022 STY-Holdings, inc
+	Copyright (c) 2022 STY-Holdings, Inc
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -259,7 +259,7 @@ func IsEnvironmentValid(environment string) bool {
 	return true
 }
 
-// IsGinModeValid validates that the Gin HTTP framework mode is correctly set.
+// IsGinModeValid validates that the Gin styh-http framework mode is correctly set.
 func IsGinModeValid(mode string) bool {
 
 	switch strings.ToLower(mode) {
