@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "skeleton_config_fqd": "shared-services/src/coreConfiguration/",
+=======
+  "skeleton_config_fqd": "",
+>>>>>>> fbf9762 (Fixed the label)
   "debug_mode_on": true,
   "Environment": "LOCAL",
   "log_directory": "servers/nats-connect/logs",
@@ -7,7 +11,11 @@
   "pid_directory": "servers/nats-connect/.run",
   "extensions": [
     {
+<<<<<<< HEAD
       "name": "internal_nats",
+=======
+      "name": "nats_internal",
+>>>>>>> fbf9762 (Fixed the label)
       "config_filename": "servers/nats-connect/config/local/nats-config.json"
     }
   ]

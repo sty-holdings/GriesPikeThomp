@@ -36,10 +36,15 @@ const (
 	// Services
 	//
 <<<<<<< HEAD
+<<<<<<< HEAD
 	NATS_INTERNAL = "nats_internal"
 =======
 	NATS_INTERNAL = "internal_nats"
 >>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
+=======
+	NATS_INTERNAL = "nats_internal"
+	HTTP_INBOUND  = "http_inbound"
+>>>>>>> fbf9762 (Fixed the label)
 	//
 	// Subject
 	//

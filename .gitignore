@@ -3,3 +3,7 @@ unreadable-skeleton-config-file.json
 /servers/nats-connect/logs/
 /servers/nats-connect/.run/server.pid
 /shared-services/src/coreHelpersValidators/unreadable_file.txt
+<<<<<<< HEAD
+=======
+/server.pid
+>>>>>>> fbf9762 (Fixed the label)

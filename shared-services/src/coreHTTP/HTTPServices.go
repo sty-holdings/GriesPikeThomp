@@ -8,7 +8,11 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
+<<<<<<< HEAD
 	Copyright (c) 2022 STY-Holdings, Inc
+=======
+	Copyright (c) 2022 STY-Holdings, inc
+>>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -35,6 +39,7 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
+<<<<<<< HEAD
 	"context"
 	"encoding/json"
 	"fmt"
@@ -47,6 +52,17 @@ import (
 	"time"
 
 	styhHTTP "GriesPikeThomp/servers/nats-connect/extensions/styh-http"
+=======
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+
+	// "net/http"
+	// "os"
+	// "time"
+
+>>>>>>> fbf9762 (Fixed the label)
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cj "GriesPikeThomp/shared-services/src/coreJWT"
@@ -78,7 +94,11 @@ type HTTPService struct {
 	Secure         bool
 }
 
+<<<<<<< HEAD
 // NewHTTP - creates a new styh-http service using the provided extension values.
+=======
+// NewHTTP - creates a new HTTP service using the provided extension values.
+>>>>>>> fbf9762 (Fixed the label)
 //
 //	Customer Messages: None
 //	Errors: error returned by validateConfiguration
@@ -115,13 +135,17 @@ func NewHTTP(configFilename string) (service HTTPService, errorInfo cpi.ErrorInf
 		service.Secure = true
 	}
 
+<<<<<<< HEAD
 	service.HTTPServerPtr, errorInfo = createServerInstance(service)
 
+=======
+>>>>>>> fbf9762 (Fixed the label)
 	return
 }
 
 //  Private Functions
 
+<<<<<<< HEAD
 // createServerInstance - will start listening to request and serving them.
 //
 //	Customer Messages: None
@@ -179,6 +203,8 @@ func startListener(secure bool, httpServerPtr *http.Server, tlsCABundle, tlsPriv
 	log.Print("Server Exited Properly")
 }
 
+=======
+>>>>>>> fbf9762 (Fixed the label)
 // validateConfiguration - checks the NATS service configuration is valid.
 //
 //	Customer Messages: None
@@ -228,5 +254,8 @@ func validateConfiguration(config HTTPConfiguration) (errorInfo cpi.ErrorInfo) {
 
 	return
 }
+<<<<<<< HEAD
 
 // writeHTTPResponse
+=======
+>>>>>>> fbf9762 (Fixed the label)

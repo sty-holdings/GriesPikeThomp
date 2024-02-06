@@ -8,7 +8,11 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
+<<<<<<< HEAD
 	Copyright (c) 2022 STY-Holdings, Inc
+=======
+	Copyright (c) 2022 STY-Holdings, inc
+>>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -57,6 +61,10 @@ const (
 	ALREADY_CONFIRMED_PHONE        = "The SavUp account has already need confirmed by phone."
 	AREA_CODE_PHONE_NUMBER_MISSING = "Either the area code or the phone number is missing."
 	ATTEMPTS_EXCEEDED              = "LimitExceededException: Attempt limit exceeded, please try after some time."
+<<<<<<< HEAD
+=======
+	BASE64_INVALID                 = "The base64 stringis invalid."
+>>>>>>> fbf9762 (Fixed the label)
 	BUCKET_NOT_FOUND               = "The bucket was not found."
 	BUFFER_EMPTY                   = "The buffer is empty"
 	BUNDLE_ALREADY_EXISTS          = "Bundle already exists in the SavUp system."
@@ -79,6 +87,10 @@ const (
 	FIREBASE_GC_PROJECT_ID_MISSING = "No Firebase project id was provided."
 	FIRST_NAME_MISSING             = "The first name is empty."
 	FIRST_LAST_NAME_MISSING        = "Either the first or the last name is missing."
+<<<<<<< HEAD
+=======
+	GIN_MODE_INVALID               = "The Gin mode is invalid."
+>>>>>>> fbf9762 (Fixed the label)
 	HTTP_SECURE_SERVER_FAILED      = "The savup-http secure server failed."
 	JSON_GENERATION_FAILED         = "Failed to generate JSON payload"
 	JSON_INVALID                   = "The JSON provided is invalid"
@@ -162,6 +174,10 @@ var (
 	ErrAlreadyConfirmedPhone      = errors.New(ALREADY_CONFIRMED_PHONE)
 	ErrAreaCodePhoneNumberMissing = errors.New(AREA_CODE_PHONE_NUMBER_MISSING)
 	ErrAttemptsExceeded           = errors.New(ATTEMPTS_EXCEEDED)
+<<<<<<< HEAD
+=======
+	ErrBase64Invalid              = errors.New(BASE64_INVALID)
+>>>>>>> fbf9762 (Fixed the label)
 	ErrBucketNotFound             = errors.New(BUCKET_NOT_FOUND)
 	ErrBufferEmpty                = errors.New(BUFFER_EMPTY)
 	ErrBundleAlreadyExists        = errors.New(BUNDLE_ALREADY_EXISTS)
@@ -183,6 +199,10 @@ var (
 	ErrFileUnreadable             = errors.New(FILE_UNREADABLE)
 	ErrFirstNameMissing           = errors.New(FIRST_NAME_MISSING)
 	ErrFirstLastNameMissing       = errors.New(FIRST_LAST_NAME_MISSING)
+<<<<<<< HEAD
+=======
+	ErrGinModeInvalid             = errors.New(GIN_MODE_INVALID)
+>>>>>>> fbf9762 (Fixed the label)
 	ErrFirebaseProjectMissing     = errors.New(FIREBASE_GC_PROJECT_ID_MISSING)
 	ErrHTTPSecureServerFailed     = errors.New(HTTP_SECURE_SERVER_FAILED)
 	ErrJSONGenerationFailed       = errors.New(JSON_GENERATION_FAILED)

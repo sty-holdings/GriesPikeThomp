@@ -31,9 +31,14 @@ COPYRIGHT:
 */
 package sharedServices
 
+<<<<<<< HEAD
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
 	// Test Values
+=======
+//goland:noinspection GoSnakeCaseUsage
+const (
+>>>>>>> fbf9762 (Fixed the label)
 	TEST_CREDENTIALS_FILENAME = "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key"
 	TEST_MESSAGE_ENVIRONMENT  = "local"
 	TEST_MESSAGE_NAMESPACE    = "nci"

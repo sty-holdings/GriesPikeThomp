@@ -8,7 +8,11 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
+<<<<<<< HEAD
 	Copyright (c) 2022 STY-Holdings, Inc
+=======
+	Copyright (c) 2022 STY-Holdings, inc
+>>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -41,10 +45,15 @@ import (
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 <<<<<<< HEAD
+<<<<<<< HEAD
 	cn "GriesPikeThomp/shared-services/src/coreNATS"
 =======
 	ns "GriesPikeThomp/shared-services/src/coreNATS"
 >>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
+=======
+	hs "GriesPikeThomp/shared-services/src/coreHTTP"
+	cn "GriesPikeThomp/shared-services/src/coreNATS"
+>>>>>>> fbf9762 (Fixed the label)
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -62,10 +71,15 @@ func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.
 
 	var (
 <<<<<<< HEAD
+<<<<<<< HEAD
 		tNATSService cn.NATSService
 =======
 		tNATSService ns.NATSService
 >>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
+=======
+		tNATSService cn.NATSService
+		tHTTPService hs.HTTPService
+>>>>>>> fbf9762 (Fixed the label)
 	)
 
 	for _, values := range configExtensions {
@@ -73,6 +87,12 @@ func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.
 		case NATS_INTERNAL:
 			tNATSService, errorInfo = cn.NewNATS(hostname, values.ConfigFilename)
 			serverPtr.extensions[NATS_INTERNAL] = tNATSService
+<<<<<<< HEAD
+=======
+		case HTTP_INBOUND:
+			tHTTPService, errorInfo = hs.NewHTTP(values.ConfigFilename)
+			serverPtr.extensions[HTTP_INBOUND] = tHTTPService
+>>>>>>> fbf9762 (Fixed the label)
 		default:
 			errorInfo = cpi.NewErrorInfo(cpi.ErrExtensionInvalid, fmt.Sprintf("%v%v", rcv.TXT_EXTENSION_NAME, values.Name))
 			log.Printf("%v failed to load. Removing all extensions.", values.Name)

@@ -8,7 +8,11 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
+<<<<<<< HEAD
 	Copyright (c) 2022 STY-Holdings, Inc
+=======
+	Copyright (c) 2022 STY-Holdings, inc
+>>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -41,7 +45,11 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
+<<<<<<< HEAD
 	ch "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+=======
+	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+>>>>>>> fbf9762 (Fixed the label)
 	cj "GriesPikeThomp/shared-services/src/coreJWT"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
@@ -80,12 +88,20 @@ type NATSService struct {
 func NewNATS(hostname string, configFilename string) (service NATSService, errorInfo cpi.ErrorInfo) {
 
 	var (
+<<<<<<< HEAD
 		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFilename)
+=======
+		tAdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_FILENAME, configFilename)
+>>>>>>> fbf9762 (Fixed the label)
 		tConfig         NATSConfiguration
 		tConfigData     []byte
 	)
 
+<<<<<<< HEAD
 	if tConfigData, errorInfo = cc.ReadConfigFile(ch.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
+=======
+	if tConfigData, errorInfo = cc.ReadConfigFile(chv.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
+>>>>>>> fbf9762 (Fixed the label)
 		return
 	}
 
@@ -99,7 +115,11 @@ func NewNATS(hostname string, configFilename string) (service NATSService, error
 	}
 
 	service.Config = tConfig
+<<<<<<< HEAD
 	service.CredentialsFQN = ch.PrependWorkingDirectory(tConfig.CredentialsFilename)
+=======
+	service.CredentialsFQN = chv.PrependWorkingDirectory(tConfig.CredentialsFilename)
+>>>>>>> fbf9762 (Fixed the label)
 	service.URL = tConfig.URL
 
 	if tConfig.TLSInfo.TLSCert == rcv.VAL_EMPTY ||
@@ -162,6 +182,7 @@ func getConnection(hostname string, service NATSService) (connPtr *nats.Conn, er
 //	Verifications: None
 func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 
+<<<<<<< HEAD
 	if errorInfo = ch.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
 		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
 		return
@@ -171,10 +192,22 @@ func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 		return
 	}
 	if ch.IsDomainValid(config.URL) == false {
+=======
+	if errorInfo = chv.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
+		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
+		return
+	}
+	if chv.IsEnvironmentValid(config.MessageEnvironment) == false {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.MessageEnvironment))
+		return
+	}
+	if chv.IsDomainValid(config.URL) == false {
+>>>>>>> fbf9762 (Fixed the label)
 		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.URL))
 		return
 	}
 	if config.TLSInfo.TLSCert != rcv.VAL_EMPTY && config.TLSInfo.TLSPrivateKey != rcv.VAL_EMPTY && config.TLSInfo.TLSCABundle != rcv.VAL_EMPTY {
+<<<<<<< HEAD
 		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCert))
 			return
@@ -184,6 +217,17 @@ func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
 			return
 		}
 		if errorInfo = ch.DoesFileExistsAndReadable(config.TLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
+=======
+		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
+			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCert))
+			return
+		}
+		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSPrivateKey, rcv.TXT_FILENAME); errorInfo.Error != nil {
+			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSPrivateKey))
+			return
+		}
+		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
+>>>>>>> fbf9762 (Fixed the label)
 			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCABundle))
 			return
 		}
