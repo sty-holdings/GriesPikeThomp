@@ -10,7 +10,7 @@ require (
 	cloud.google.com/go/storage v1.37.0
 >>>>>>> fbf9762 (Fixed the label)
 	firebase.google.com/go v3.13.0+incompatible
-	github.com/aws/aws-sdk-go v1.49.23
+	github.com/aws/aws-sdk-go v1.50.11
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/integrii/flaggy v1.5.2
 	github.com/jackc/pgx/v5 v5.5.2
