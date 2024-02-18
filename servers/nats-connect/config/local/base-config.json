@@ -1,9 +1,5 @@
 {
-<<<<<<< HEAD
-  "skeleton_config_fqd": "",
-=======
   "skeleton_config_fqd": "shared-services/src/coreConfiguration/",
->>>>>>> fbf9762 (Fixed the label)
   "debug_mode_on": true,
   "Environment": "LOCAL",
   "log_directory": "servers/nats-connect/logs",

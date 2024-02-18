@@ -8,11 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-<<<<<<< HEAD
-	Copyright (c) 2022 STY-Holdings, Inc
-=======
 	Copyright (c) 2022 STY-Holdings, inc
->>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -153,11 +149,7 @@ func TestGetNATSConnection(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-<<<<<<< HEAD
-			if _, errorInfo = GetConnection(ts.arguments.URL, ts.arguments.credentialsLocation, ts.arguments.myTLS); errorInfo.Error != nil {
-=======
 			if _, errorInfo = getConnection(ts.arguments.URL, ts.arguments.credentialsLocation, ts.arguments.myTLS); errorInfo.Error != nil {
->>>>>>> fbf9762 (Fixed the label)
 				gotError = true
 				errorInfo = cpi.ErrorInfo{
 					Error: errors.New(fmt.Sprintf("Failed - NATS connection was not created for Test: %v", tFunctionName)),

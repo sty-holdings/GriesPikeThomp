@@ -8,11 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-<<<<<<< HEAD
-	Copyright (c) 2022 STY-Holdings, Inc
-=======
 	Copyright (c) 2022 STY-Holdings, inc
->>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.

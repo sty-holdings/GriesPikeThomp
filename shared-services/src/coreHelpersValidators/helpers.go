@@ -8,11 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-<<<<<<< HEAD
-	Copyright (c) 2022 STY-Holdings, Inc
-=======
 	Copyright (c) 2022 STY-Holdings, inc
->>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -39,10 +35,7 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
-<<<<<<< HEAD
-=======
 	b64 "encoding/base64"
->>>>>>> fbf9762 (Fixed the label)
 	"encoding/json"
 	"fmt"
 	"io"
@@ -59,8 +52,6 @@ import (
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-<<<<<<< HEAD
-=======
 // Base64Decode - will decode a base64 string to a string. If there is an error,
 // the first 20 characters of the base64 string are logged.
 // REMINDER: If the base64 string has sensitivity information, empty out the
@@ -88,7 +79,6 @@ func Base64Encode(value string) string {
 	return b64.StdEncoding.EncodeToString([]byte(value))
 }
 
->>>>>>> fbf9762 (Fixed the label)
 // BuildJSONRequest
 // func BuildJSONRequest(request interface{}) (jsonRequest []byte) {
 //
@@ -300,26 +290,6 @@ func Base64Encode(value string) string {
 // 	return time.Now().Format("15-04-05.00000")
 // }
 
-<<<<<<< HEAD
-// IsDirectoryFullyQualified - checks to see if the directory starts and ends with a slash.
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func IsDirectoryFullyQualified(directory string) bool {
-
-	if strings.HasPrefix(directory, rcv.FORWARD_SLASH) {
-		if strings.HasSuffix(directory, rcv.FORWARD_SLASH) {
-			return true
-		}
-	}
-
-	return false
-
-}
-
-=======
->>>>>>> fbf9762 (Fixed the label)
 // PenniesToFloat
 // func PenniesToFloat(pennies int64) float64 {
 //

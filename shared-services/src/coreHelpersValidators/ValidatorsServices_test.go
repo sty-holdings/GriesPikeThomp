@@ -8,11 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-<<<<<<< HEAD
-	Copyright (c) 2022 STY-Holdings, Inc
-=======
 	Copyright (c) 2022 STY-Holdings, inc
->>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -39,10 +35,7 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
-<<<<<<< HEAD
-=======
 	"bytes"
->>>>>>> fbf9762 (Fixed the label)
 	"os"
 	"runtime"
 	"strings"
@@ -168,8 +161,6 @@ var (
 // 	})
 // }
 
-<<<<<<< HEAD
-=======
 func TestBase64Decode(tPtr *testing.T) {
 
 	var (
@@ -204,7 +195,6 @@ func TestBase64Encode(tPtr *testing.T) {
 	})
 }
 
->>>>>>> fbf9762 (Fixed the label)
 func TestCheckFileExistsAndReadable(tPtr *testing.T) {
 
 	type arguments struct {
@@ -363,8 +353,6 @@ func TestDoesFileExist(tPtr *testing.T) {
 	})
 }
 
-<<<<<<< HEAD
-=======
 func TestIsBase64Encode(tPtr *testing.T) {
 
 	var (
@@ -386,7 +374,6 @@ func TestIsBase64Encode(tPtr *testing.T) {
 
 }
 
->>>>>>> fbf9762 (Fixed the label)
 func TestIsDomainValid(tPtr *testing.T) {
 
 	type arguments struct {
@@ -439,8 +426,6 @@ func TestIsDomainValid(tPtr *testing.T) {
 	}
 }
 
-<<<<<<< HEAD
-=======
 func TestIsGinModeValid(tPtr *testing.T) {
 
 	var (
@@ -464,7 +449,6 @@ func TestIsGinModeValid(tPtr *testing.T) {
 	})
 }
 
->>>>>>> fbf9762 (Fixed the label)
 func TestIsEnvironmentValid(tPtr *testing.T) {
 
 	type arguments struct {

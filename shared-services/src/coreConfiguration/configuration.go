@@ -8,11 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-<<<<<<< HEAD
-	Copyright (c) 2022 STY-Holdings, Inc
-=======
 	Copyright (c) 2022 STY-Holdings, inc
->>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -44,20 +40,12 @@ import (
 	"os"
 	"strings"
 
-<<<<<<< HEAD
-	cv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-=======
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
->>>>>>> fbf9762 (Fixed the label)
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-<<<<<<< HEAD
-// BaseConfiguration - is a generic config file structure for application servers.
-=======
 // Configuration is a generic config file structure for application servers.
->>>>>>> fbf9762 (Fixed the label)
 type BaseConfiguration struct {
 	ConfigFQN         string
 	SkeletonConfigFQD string                 `json:"skeleton_config_fqd"`
@@ -172,17 +160,6 @@ func ReadConfigFile(configFileFQN string) (configData []byte, errorInfo cpi.Erro
 //	Verifications: None
 func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 
-<<<<<<< HEAD
-	if cv.IsEnvironmentValid(config.Environment) == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.Environment))
-		return
-	}
-	if cv.DoesDirectoryExist(config.SkeletonConfigFQD) == false {
-		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.SkeletonConfigFQD))
-		config.LogDirectory = DEFAULT_LOG_DIRECTORY
-	}
-	if cv.DoesDirectoryExist(config.LogDirectory) == false {
-=======
 	if chv.IsEnvironmentValid(config.Environment) == false {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.Environment))
 		return
@@ -192,7 +169,6 @@ func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 		config.LogDirectory = DEFAULT_LOG_DIRECTORY
 	}
 	if chv.DoesDirectoryExist(config.LogDirectory) == false {
->>>>>>> fbf9762 (Fixed the label)
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_LOG_DIRECTORY))
 		config.LogDirectory = DEFAULT_LOG_DIRECTORY
 	}
@@ -200,11 +176,7 @@ func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 		cpi.PrintError(cpi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_MAX_THREADS, config.LogDirectory, DEFAULT_MAX_THREADS))
 		config.MaxThreads = DEFAULT_MAX_THREADS
 	}
-<<<<<<< HEAD
-	if cv.DoesDirectoryExist(config.PIDDirectory) == false {
-=======
 	if chv.DoesDirectoryExist(config.PIDDirectory) == false {
->>>>>>> fbf9762 (Fixed the label)
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_PID_DIRECTORY))
 		config.PIDDirectory = DEFAULT_PID_DIRECTORY
 	}

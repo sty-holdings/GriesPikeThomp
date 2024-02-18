@@ -8,11 +8,7 @@ NOTES:
 
 COPYRIGHT & WARRANTY:
 
-<<<<<<< HEAD
-	Copyright (c) 2022 STY-Holdings, Inc
-=======
 	Copyright (c) 2022 STY-Holdings, inc
->>>>>>> fbf9762 (Fixed the label)
 	All rights reserved.
 
 	This software is the confidential and proprietary information of STY-Holdings, Inc.
@@ -190,8 +186,6 @@ func DoesFileExist(fileName string) bool {
 	return false
 }
 
-<<<<<<< HEAD
-=======
 // IsBase64Encode - will check if string is a valid base64 string.
 //
 //	Customer Messages: None
@@ -227,7 +221,6 @@ func IsDirectoryFullyQualified(directory string) bool {
 
 }
 
->>>>>>> fbf9762 (Fixed the label)
 // IsDomainValid - checks if domain naming is followed
 //
 //	Customer Messages: None
@@ -266,12 +259,7 @@ func IsEnvironmentValid(environment string) bool {
 	return true
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-// IsGinModeValid validates that the Gin styh-http framework mode is correctly set.
-=======
 // IsGinModeValid validates that the Gin HTTP framework mode is correctly set.
->>>>>>> fbf9762 (Fixed the label)
 func IsGinModeValid(mode string) bool {
 
 	switch strings.ToLower(mode) {
@@ -283,23 +271,6 @@ func IsGinModeValid(mode string) bool {
 
 	return true
 }
-<<<<<<< HEAD
-=======
-// IsGinModeValid validates that the Gin HTTP framework mode is correctly set.
-// func IsGinModeValid(mode string) bool {
-//
-// 	switch strings.ToUpper(mode) {
-// 	case rcv.DEBUG_MODE:
-// 	case rcv.RELEASE_MODE:
-// 	default:
-// 		return false
-// 	}
-//
-// 	return true
-// }
->>>>>>> parent of bc61635 (Working HTTP ListenAndServe)
-=======
->>>>>>> fbf9762 (Fixed the label)
 
 // IsFileReadable - tries to open the file using 0644 permissions
 //
