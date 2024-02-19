@@ -37,7 +37,6 @@ import (
 	"time"
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	hs "GriesPikeThomp/shared-services/src/coreHTTP"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
@@ -261,10 +260,6 @@ func (serverPtr *Server) messageHandler() {
 		case NATS_INTERNAL:
 			retrievedService := serviceInfo.(cn.NATSService)
 			serverPtr.getNATSHandlers(retrievedService)
-		case HTTP_INBOUND:
-			retrievedService := serviceInfo.(hs.HTTPService)
-			serverPtr.getHTTPHandlers(retrievedService)
-			serverPtr.getHTTPHandlers(retrievedService)
 		}
 	}
 

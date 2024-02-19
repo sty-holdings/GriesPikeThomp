@@ -110,7 +110,7 @@ func TestNewHTTP(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			if _, errorInfo = NewHTTP(ts.arguments.hostname, ts.arguments.configFilename); errorInfo.Error != nil {
+			if _, errorInfo = NewHTTP(ts.arguments.configFilename); errorInfo.Error != nil {
 				gotError = true
 			} else {
 				gotError = false

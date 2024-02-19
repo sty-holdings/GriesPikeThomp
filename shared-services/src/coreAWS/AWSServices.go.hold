@@ -49,13 +49,13 @@ import (
 	"runtime"
 	"strings"
 
-	"albert/constants"
-	"albert/core/coreFirestore"
+	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"cloud.google.com/go/firestore"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/request"
 	awsSession "github.com/aws/aws-sdk-go/aws/session"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
+	rcv "github.com/sty-holdings/resuable-const-vars/src"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -66,7 +66,6 @@ type Config struct {
 	CognitoUserPoolID string
 }
 
-// KeySet
 type KeySet struct {
 	Keys []struct {
 		Alg string `json:"alg"`
@@ -125,7 +124,7 @@ func NewAWSSession(awsInfoFQN string) (awsHelper AWSHelper, errorInfo cpi.ErrorI
 
 	cpi.PrintDebugTrail(tFunctionName)
 
-	if awsInfoFQN == rcv.EMPTY {
+	if awsInfoFQN == rcv.VAL_EMPTY {
 		cpi.PrintDebugLine(tFunctionName, fmt.Sprintf("awsInfoFQN: %v", awsInfoFQN))
 		errorInfo.Error = cpi.ErrRequiredArgumentMissing
 		errorInfo.AdditionalInfo = fmt.Sprintf("AWS Credential FQN: '%v'", awsInfoFQN)
