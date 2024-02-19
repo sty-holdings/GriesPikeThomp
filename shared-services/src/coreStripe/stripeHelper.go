@@ -1,4 +1,4 @@
-// Package src
+// Package coreStripe
 /*
 General description of the purpose of the go file.
 
@@ -29,17 +29,21 @@ COPYRIGHT:
 	limitations under the License.
 
 */
-package src
+package coreStripe
 
-//goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
-	// Services
-	//
-	NC_INTERNAL = "nc_internal"
-	STRIPE      = "stripe"
-	//
-	// Subject
-	//
-	TURN_DEBUG_ON  = "server_cmd.turn_debug_on"
-	TURN_DEBUG_OFF = "server_cmd.turn_debug_off"
+// Add Constants to the constants.go file
 )
+
+type StripeHelper struct {
+	CredentialsLocation string
+	Key                 string `json:"stripe_key"`
+}
+
+var (
+// Add Variables here for the file (Remember, they are global)
+)
+
+func init() {
+	// Set up goes here
+}

@@ -1,0 +1,19 @@
+{
+  "credentials_filename": "",
+  "message_environment": "",
+  "port": 0,
+  "requested_threads": 0,
+  "subject_registry": [
+    {
+      "message_namespace": "",
+      "subject": "",
+      "description": ""
+    }
+  ],
+  "tls_info": {
+    "tls_certificate_fqn": "",
+    "tls_private_key_fqn": "",
+    "tls_ca_bundle_fqn": ""
+  },
+  "url": ""
+}

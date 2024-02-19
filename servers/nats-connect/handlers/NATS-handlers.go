@@ -33,12 +33,13 @@ COPYRIGHT:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package src
+package handlers
 
 import (
 	"fmt"
 	"strings"
 
+	"GriesPikeThomp/servers/nats-connect/src"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
@@ -58,20 +59,20 @@ type natsReply struct {
 //	Customer Messages: None
 //	Errors: ErrSubjectSubscriptionFailed
 //	Verifications: None
-func (serverPtr *Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.ErrorInfo) {
+func (serverPtr *src.Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		connPtr *nats.Conn
 	)
 
-	connPtr = serverPtr.extensions[NATS_INTERNAL].(cn.NATSService).ConnPtr
+	connPtr = serverPtr.extensions[src.NC_INTERNAL].(cn.NATSService).ConnPtr
 
 	for _, subjectInfo := range service.Config.SubjectRegistry {
 		switch strings.ToLower(subjectInfo.Subject) {
-		case TURN_DEBUG_ON:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_ON] = serverPtr.natsTurnDebugOn()
-		case TURN_DEBUG_OFF:
-			serverPtr.instance.messageHandlers[TURN_DEBUG_OFF] = serverPtr.natsTurnDebugOff()
+		case src.TURN_DEBUG_ON:
+			serverPtr.instance.messageHandlers[src.TURN_DEBUG_ON] = serverPtr.natsTurnDebugOn()
+		case src.TURN_DEBUG_OFF:
+			serverPtr.instance.messageHandlers[src.TURN_DEBUG_OFF] = serverPtr.natsTurnDebugOff()
 		default:
 			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
 		}
@@ -93,7 +94,7 @@ func (serverPtr *Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) natsTurnDebugOff() nats.MsgHandler {
+func (serverPtr *src.Server) natsTurnDebugOff() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
@@ -118,7 +119,7 @@ func (serverPtr *Server) natsTurnDebugOff() nats.MsgHandler {
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) natsTurnDebugOn() nats.MsgHandler {
+func (serverPtr *src.Server) natsTurnDebugOn() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 

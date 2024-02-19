@@ -38,7 +38,6 @@ import (
 
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
@@ -93,8 +92,6 @@ func (serverPtr *Server) Run() {
 	//
 	serverPtr.instance.processChannel = make(chan string)
 	go func() {
-		serverPtr.instance.waitGroup = sync.WaitGroup{}
-		serverPtr.instance.waitGroup.Add(1)
 		serverPtr.messageHandler()
 	}()
 	select {
@@ -152,7 +149,7 @@ func InitializeServer(config cc.BaseConfiguration, serverName, version, logFQN s
 		log.Println("No extensions defined in the configuration file.")
 	} else {
 		log.Println("Loading extensions.")
-		errorInfo = serverPtr.HandleExtension(serverPtr.instance.hostname, config.Extensions)
+		errorInfo = serverPtr.loadExtensionConfig(config.Extensions)
 	}
 
 	return
@@ -252,19 +249,22 @@ func RunServer(configFileFQN, serverName, version string, testingOn bool) (retur
 func (serverPtr *Server) messageHandler() {
 
 	// Use a WaitGroup to wait for a message to arrive
-	serverPtr.instance.waitGroup = sync.WaitGroup{}
-	serverPtr.instance.waitGroup.Add(1)
-
-	for serviceName, serviceInfo := range serverPtr.extensions {
-		switch serviceName {
-		case NATS_INTERNAL:
-			retrievedService := serviceInfo.(cn.NATSService)
-			serverPtr.getNATSHandlers(retrievedService)
-		}
-	}
-
-	// Waiting for a message to come in for processing.
-	serverPtr.instance.waitGroup.Wait()
+	// serverPtr.instance.waitGroup = sync.WaitGroup{}
+	// serverPtr.instance.waitGroup.Add(1)
+	//
+	// for serviceName, serviceInfo := range serverPtr.extensions {
+	// 	switch serviceName {
+	// 	case NC_INTERNAL:
+	// 		retrievedService := serviceInfo.(cn.NATSService)
+	// 		serverPtr.getNATSHandlers(retrievedService)
+	// 	case STRIPE:
+	// 		retrievedService := serviceInfo.(cn.NATSService)
+	// 		serverPtr.getNATSHandlers(retrievedService)
+	// 	}
+	// }
+	//
+	// // Waiting for a message to come in for processing.
+	// serverPtr.instance.waitGroup.Wait()
 
 	return
 }

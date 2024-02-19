@@ -39,9 +39,8 @@ import (
 	"log"
 	"strings"
 
+	ext "GriesPikeThomp/servers/nats-connect/extensions"
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	hs "GriesPikeThomp/shared-services/src/coreHTTP"
-	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
@@ -55,28 +54,53 @@ type Extensions[T any] struct {
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None/
-func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.BaseConfigExtensions) (errorInfo cpi.ErrorInfo) {
+// func (serverPtr *Server) HandleExtension(hostname string, configExtensions []cc.BaseConfigExtensions) (errorInfo cpi.ErrorInfo) {
+//
+// 	var (
+// 		tNATSService cn.NATSService
+// 	)
+//
+// 	for _, values := range configExtensions {
+// 		tNATSService = cn.NATSService{}
+// 		switch strings.ToLower(values.Name) {
+// 		case NC_INTERNAL:
+// 			tNATSService, errorInfo = cn.NewNATS(hostname, values.ConfigFilename)
+// 			serverPtr.extensions[NC_INTERNAL] = tNATSService
+// 		case STRIPE:
+// 			tNATSService, errorInfo = cn.NewNATS(hostname, values.ConfigFilename)
+// 			serverPtr.extensions[STRIPE] = tNATSService
+// 		default:
+// 			errorInfo = cpi.NewErrorInfo(cpi.ErrExtensionInvalid, fmt.Sprintf("%v%v", rcv.TXT_EXTENSION_NAME, values.Name))
+// 			log.Printf("%v failed to load. Removing all extensions.", values.Name)
+// 			serverPtr.extensions = make(map[string]interface{})
+// 			return
+// 		}
+// 		log.Printf("%v is loaded.", values.Name)
+// 	}
+//
+// 	return
+// }
 
-	var (
-		tNATSService cn.NATSService
-		tHTTPService hs.HTTPService
-	)
+// loadExtensionConfig - will load the extension config files in the server.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None/
+func (serverPtr *Server) loadExtensionConfig(configExtensions []cc.BaseConfigExtensions) (errorInfo cpi.ErrorInfo) {
 
 	for _, values := range configExtensions {
 		switch strings.ToLower(values.Name) {
-		case NATS_INTERNAL:
-			tNATSService, errorInfo = cn.NewNATS(hostname, values.ConfigFilename)
-			serverPtr.extensions[NATS_INTERNAL] = tNATSService
-		case HTTP_INBOUND:
-			tHTTPService, errorInfo = hs.NewHTTP(values.ConfigFilename)
-			serverPtr.extensions[HTTP_INBOUND] = tHTTPService
+		case NC_INTERNAL:
+			serverPtr.extensions[NC_INTERNAL], _ = ext.LoadNCInternal(values.ConfigFilename)
+		case STRIPE:
+			serverPtr.extensions[NC_INTERNAL], _ = ext.LoadStripe(values.ConfigFilename)
 		default:
 			errorInfo = cpi.NewErrorInfo(cpi.ErrExtensionInvalid, fmt.Sprintf("%v%v", rcv.TXT_EXTENSION_NAME, values.Name))
 			log.Printf("%v failed to load. Removing all extensions.", values.Name)
 			serverPtr.extensions = make(map[string]interface{})
 			return
 		}
-		log.Printf("%v is loaded.", values.Name)
+		log.Printf("%v configuration is loaded.", values.Name)
 	}
 
 	return

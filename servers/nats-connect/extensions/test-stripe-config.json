@@ -1,0 +1,19 @@
+{
+  "credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
+  "message_environment": "local",
+  "port": 4222,
+  "requested_threads": 3,
+  "subject_registry": [
+    {
+      "message_namespace": "stripe",
+      "subject": "say_hello",
+      "description": "Returns, 'Hello from NATS Connect Stripe'"
+    }
+  ],
+  "tls_info": {
+    "tls_certificate_fqn": "/Volumes/development-share/.keys/local/savup/STAR_savup_com/STAR_savup_com.crt",
+    "tls_private_key_fqn": "/Volumes/development-share/.keys/local/savup/STAR_savup_com/savup.com.key",
+    "tls_ca_bundle_fqn": "/Volumes/development-share/.keys/local/savup/STAR_savup_com/CAbundle.crt"
+  },
+  "url": "savup-local-0030.savup.com"
+}

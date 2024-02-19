@@ -1,0 +1,18 @@
+{
+  "skeleton_config_fqd": "",
+  "debug_mode_on": true,
+  "Environment": "LOCAL",
+  "log_directory": "servers/nats-connect/logs",
+  "max_threads": 5,
+  "pid_directory": "servers/nats-connect/.run",
+  "extensions": [
+    {
+      "name": "nc_internal",
+      "config_filename": "servers/nats-connect/config/local/nc-internal-config.json"
+    },
+    {
+      "name": "stripe",
+      "config_filename": "servers/nats-connect/config/local/stripe-config.json"
+    }
+  ]
+}
