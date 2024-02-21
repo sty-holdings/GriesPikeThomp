@@ -385,6 +385,7 @@ func (serverPtr *Server) buildNCIExtension() (
 			log.Printf("Subscribe failed on subject: %v", subject)
 			return
 		}
+		log.Printf("Subscribed to subject: %v", subject)
 		tSubscriptionPtrs[subject] = tSubscriptionPtr
 	}
 
