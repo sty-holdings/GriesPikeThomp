@@ -81,6 +81,7 @@ const (
 	FIRST_NAME_MISSING             = "The first name is empty."
 	FIRST_LAST_NAME_MISSING        = "Either the first or the last name is missing."
 	GIN_MODE_INVALID               = "The Gin mode is invalid."
+	GREATER_THAN_ZERO              = "The value must be greater than zero."
 	HTTP_SECURE_SERVER_FAILED      = "The savup-http secure server failed."
 	JSON_GENERATION_FAILED         = "Failed to generate JSON payload"
 	JSON_INVALID                   = "The JSON provided is invalid"
@@ -89,6 +90,7 @@ const (
 	MAP_MISSING_KEY                = "Provided map has a nil or empty key."
 	MAP_MISSING_VALUE              = "Provided map has a nil or empty value."
 	MAX_THREADS_INVALID            = "The config file max threads value is invalid."
+	NATS_ZERO                      = "The port value is zero. This is not allowed. Recommended values are 4222 and 9222."
 	MESSAGE_JSON_INVALID           = "The message body is not valid JSON."
 	MESSAGE_NAMESPACE_INVALID      = "The Message namespace value is invalid."
 	MISSING_SERVER_NAME            = "The server name in main.go is empty."
@@ -187,6 +189,7 @@ var (
 	ErrFirstNameMissing           = errors.New(FIRST_NAME_MISSING)
 	ErrFirstLastNameMissing       = errors.New(FIRST_LAST_NAME_MISSING)
 	ErrGinModeInvalid             = errors.New(GIN_MODE_INVALID)
+	ErrGreatThanZero              = errors.New(GREATER_THAN_ZERO)
 	ErrFirebaseProjectMissing     = errors.New(FIREBASE_GC_PROJECT_ID_MISSING)
 	ErrHTTPSecureServerFailed     = errors.New(HTTP_SECURE_SERVER_FAILED)
 	ErrJSONGenerationFailed       = errors.New(JSON_GENERATION_FAILED)
@@ -196,6 +199,7 @@ var (
 	ErrMapIsMissingKey            = errors.New(MAP_MISSING_KEY)
 	ErrMapIsMissingValue          = errors.New(MAP_MISSING_VALUE)
 	ErrMaxThreadsInvalid          = errors.New(MAX_THREADS_INVALID)
+	ErrNatsPortInvalid            = errors.New(NATS_ZERO)
 	ErrMessageJSONInvalid         = errors.New(MESSAGE_JSON_INVALID)
 	ErrMessageNamespaceInvalid    = errors.New(MESSAGE_NAMESPACE_INVALID)
 	ErrMissingServerName          = errors.New(MISSING_SERVER_NAME)

@@ -33,13 +33,14 @@ package src
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
-	// Services
-	//
+	// Extensions
 	NC_INTERNAL = "nc_internal"
 	STRIPE      = "stripe"
-	//
-	// Subject
-	//
-	TURN_DEBUG_ON  = "server_cmd.turn_debug_on"
-	TURN_DEBUG_OFF = "server_cmd.turn_debug_off"
+)
+
+//goland:noinspection GoSnakeCaseUsage,GoCommentStart
+const (
+	// Subjects
+	NCI_TURN_DEBUG_OFF = "turn_debug_off"
+	NCI_TURN_DEBUG_ON  = "turn_debug_on"
 )

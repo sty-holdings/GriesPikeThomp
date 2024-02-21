@@ -35,162 +35,141 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
-	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cj "GriesPikeThomp/shared-services/src/coreJWT"
+	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-type NATSConfiguration struct {
-	CredentialsFilename string        `json:"credentials_filename"`
-	MessageEnvironment  string        `json:"message_environment"`
-	Port                int           `json:"port"`
-	RequestedThreads    uint          `json:"requested_threads"`
-	SubjectRegistry     []SubjectInfo `json:"subject_registry"`
-	TLSInfo             cj.TLSInfo    `json:"tls_info"`
-	URL                 string        `json:"url"`
-}
-
-type SubjectInfo struct {
-	Namespace   string `json:"namespace"`
-	Subject     string `json:"subject"`
-	Description string `json:"description"`
-}
-
 type NATSService struct {
-	Config         NATSConfiguration
 	ConnPtr        *nats.Conn
 	CredentialsFQN string
 	Secure         bool
 	URL            string
 }
 
-// NewNATS - creates a new NATS service using the provided extension values.
+// GetConnection - will connect to a NATS leaf server with either a ssl or non-ssl connection.
 //
 //	Customer Messages: None
-//	Errors: error returned by validateConfiguration
-//	Verifications: validateConfiguration
-func NewNATS(hostname string, configFilename string) (service NATSService, errorInfo cpi.ErrorInfo) {
+//	Errors: error returned by nats.Connect
+//	Verifications: None
+func GetConnection(
+	instanceName string,
+	config ext.ExtensionConfiguration,
+) (
+	connPtr *nats.Conn,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	var (
-		tAdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_FILENAME, configFilename)
-		tConfig         NATSConfiguration
-		tConfigData     []byte
+		opts []nats.Option
+		tURL string
 	)
 
-	if tConfigData, errorInfo = cc.ReadConfigFile(chv.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
+	opts = []nats.Option{
+		nats.Name(instanceName),             // Set a client name
+		nats.MaxReconnects(5),               // Set maximum reconnection attempts
+		nats.ReconnectWait(5 * time.Second), // Set reconnection wait time
+		nats.UserCredentials(config.NATSCredentialsFilename),
+		nats.RootCAs(config.NATSTLSInfo.TLSCABundle),
+		nats.ClientCert(config.NATSTLSInfo.TLSCert, config.NATSTLSInfo.TLSPrivateKey),
+	}
+
+	if tURL, errorInfo = buildURLPort(config.NATSURL, config.NATSPort); errorInfo.Error != nil {
+		return
+	}
+	if connPtr, errorInfo.Error = nats.Connect(tURL, opts...); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_SECURE_CONNECTION_FAILED))
 		return
 	}
 
-	if errorInfo.Error = json.Unmarshal(tConfigData, &tConfig); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, tAdditionalInfo)
-		return
-	}
-
-	if errorInfo = validateConfiguration(tConfig); errorInfo.Error != nil {
-		return
-	}
-
-	service.Config = tConfig
-	service.CredentialsFQN = chv.PrependWorkingDirectory(tConfig.CredentialsFilename)
-	service.URL = tConfig.URL
-
-	if tConfig.TLSInfo.TLSCert == rcv.VAL_EMPTY ||
-		tConfig.TLSInfo.TLSPrivateKey == rcv.VAL_EMPTY ||
-		tConfig.TLSInfo.TLSCABundle == rcv.VAL_EMPTY {
-		service.Secure = false
-	} else {
-		service.Secure = true
-	}
-
-	service.ConnPtr, errorInfo = getConnection(hostname, service)
+	log.Printf("A connection has been established with the NATS server at %v.", config.NATSURL)
+	log.Printf("URL: %v Server Name: %v Server Id: %v Address: %v", connPtr.ConnectedUrl(), connPtr.ConnectedClusterName(), connPtr.ConnectedServerId(), connPtr.ConnectedAddr())
 
 	return
 }
 
 //  Private Functions
 
-// getConnection - will connect to a NATS leaf server with either a ssl or non-ssl connection.
+// BuildInstanceName - will create the NATS connection name with dashes, underscores between nodes or as provided.
+// The method can be cns.METHOD_DASHES, cns.METHOD_UNDERSCORES, rcv.VAL_EMPTY, "dashes", "underscores" or ""
 //
 //	Customer Messages: None
 //	Errors: error returned by nats.Connect
 //	Verifications: None
-func getConnection(hostname string, service NATSService) (connPtr *nats.Conn, errorInfo cpi.ErrorInfo) {
+func BuildInstanceName(
+	method string,
+	nodes ...string,
+) (
+	instanceName string,
+	errorInfo cpi.ErrorInfo,
+) {
 
-	var (
-		opts []nats.Option
-	)
-
-	opts = []nats.Option{
-		nats.Name(hostname),                 // Set a client name
-		nats.MaxReconnects(5),               // Set maximum reconnection attempts
-		nats.ReconnectWait(5 * time.Second), // Set reconnection wait time
-		nats.UserCredentials(service.CredentialsFQN),
-		nats.RootCAs(service.Config.TLSInfo.TLSCABundle),
-		nats.ClientCert(service.Config.TLSInfo.TLSCert, service.Config.TLSInfo.TLSPrivateKey),
+	switch strings.Trim(strings.ToLower(method), rcv.SPACES_ONE) {
+	case METHOD_DASHES:
+		buildInstanceName(rcv.DASH, nodes...)
+	case METHOD_UNDERSCORES:
+		buildInstanceName(rcv.UNDERSCORE, nodes...)
+	default:
+		buildInstanceName(rcv.VAL_EMPTY, nodes...)
 	}
+	return
+}
 
-	if service.Secure {
-		if connPtr, errorInfo.Error = nats.Connect(service.URL, opts...); errorInfo.Error != nil {
-			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_SECURE_CONNECTION_FAILED))
-			return
-		}
-	} else {
-		if connPtr, errorInfo.Error = nats.Connect(service.URL, nats.UserCredentials(service.CredentialsFQN)); errorInfo.Error != nil {
-			errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_NON_SECURE_CONNECTION_FAILED))
-			return
+// buildInstanceName - will create the NATS connection name with the delimiter between nodes.
+//
+//	Customer Messages: None
+//	Errors: error returned by nats.Connect
+//	Verifications: None
+func buildInstanceName(
+	delimiter string,
+	nodes ...string,
+) (
+	instanceName string,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	if len(nodes) == rcv.VAL_ZERO {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrRequiredArgumentMissing, fmt.Sprint(rcv.TXT_AT_LEAST_ONE))
+		return
+	}
+	for index, node := range nodes {
+		if index == 0 {
+			instanceName = strings.Trim(node, rcv.SPACES_ONE)
+		} else {
+			instanceName = fmt.Sprintf("%v%v%v", instanceName, delimiter, strings.Trim(node, rcv.SPACES_ONE))
 		}
 	}
-
-	log.Printf("A connection has been established with the NATS server at %v.", service.URL)
-	log.Printf("URL: %v Server Name: %v Server Id: %v Address: %v", connPtr.ConnectedUrl(), connPtr.ConnectedClusterName(), connPtr.ConnectedServerId(), connPtr.ConnectedAddr())
 
 	return
 }
 
-// validateConfiguration - checks the NATS service configuration is valid.
+// buildURLPort - will create the NATS URL with the port.
 //
 //	Customer Messages: None
-//	Errors: ErrEnvironmentInvalid, ErrMessageNamespaceInvalid, ErrDomainInvalid, error returned from DoesFileExistsAndReadable, ErrSubjectsMissing
+//	Errors: error returned by nats.Connect
 //	Verifications: None
-func validateConfiguration(config NATSConfiguration) (errorInfo cpi.ErrorInfo) {
+func buildURLPort(
+	url string,
+	port int,
+) (
+	natsURL string,
+	errorInfo cpi.ErrorInfo,
+) {
 
-	if errorInfo = chv.DoesFileExistsAndReadable(config.CredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
-		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.CredentialsFilename))
+	if url == rcv.VAL_EMPTY {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrRequiredArgumentMissing, fmt.Sprint(rcv.FN_URL))
 		return
 	}
-	if chv.IsEnvironmentValid(config.MessageEnvironment) == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.MessageEnvironment))
+	if port == rcv.VAL_ZERO {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrGreatThanZero, fmt.Sprint(rcv.FN_PORT))
 		return
-	}
-	if chv.IsDomainValid(config.URL) == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.URL))
-		return
-	}
-	if config.TLSInfo.TLSCert != rcv.VAL_EMPTY && config.TLSInfo.TLSPrivateKey != rcv.VAL_EMPTY && config.TLSInfo.TLSCABundle != rcv.VAL_EMPTY {
-		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
-			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCert))
-			return
-		}
-		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSPrivateKey, rcv.TXT_FILENAME); errorInfo.Error != nil {
-			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSPrivateKey))
-			return
-		}
-		if errorInfo = chv.DoesFileExistsAndReadable(config.TLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
-			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.TLSInfo.TLSCABundle))
-			return
-		}
-	}
-	if len(config.SubjectRegistry) == rcv.VAL_ZERO {
-		cpi.NewErrorInfo(cpi.ErrSubjectsMissing, rcv.VAL_EMPTY)
 	}
 
-	return
+	return fmt.Sprintf("%v:%d", url, port), cpi.ErrorInfo{}
 }

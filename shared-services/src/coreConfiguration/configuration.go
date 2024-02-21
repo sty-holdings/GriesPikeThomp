@@ -48,13 +48,13 @@ import (
 // Configuration is a generic config file structure for application servers.
 type BaseConfiguration struct {
 	ConfigFQN         string
-	SkeletonConfigFQD string                 `json:"skeleton_config_fqd"`
 	DebugModeOn       bool                   `json:"debug_mode_on"`
 	Environment       string                 `json:"environment"`
 	LogDirectory      string                 `json:"log_directory"`
 	MaxThreads        int                    `json:"max_threads"`
 	PIDDirectory      string                 `json:"pid_directory"`
-	Extensions        []BaseConfigExtensions `json:"extensions"`
+	Extensions        []BaseConfigExtensions `json:"load_extensions"`
+	SkeletonConfigFQD string                 `json:"skeleton_config_fqd"`
 }
 
 type BaseConfigExtensions struct {
@@ -164,10 +164,6 @@ func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.Environment))
 		return
 	}
-	if chv.DoesDirectoryExist(config.SkeletonConfigFQD) == false {
-		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.SkeletonConfigFQD))
-		config.LogDirectory = DEFAULT_LOG_DIRECTORY
-	}
 	if chv.DoesDirectoryExist(config.LogDirectory) == false {
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_LOG_DIRECTORY))
 		config.LogDirectory = DEFAULT_LOG_DIRECTORY
@@ -179,6 +175,10 @@ func ValidateConfiguration(config BaseConfiguration) (errorInfo cpi.ErrorInfo) {
 	if chv.DoesDirectoryExist(config.PIDDirectory) == false {
 		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v - Default Set: %v", rcv.TXT_DIRECTORY, config.LogDirectory, DEFAULT_PID_DIRECTORY))
 		config.PIDDirectory = DEFAULT_PID_DIRECTORY
+	}
+	if chv.DoesDirectoryExist(config.SkeletonConfigFQD) == false {
+		cpi.PrintError(cpi.ErrDirectoryMissing, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.SkeletonConfigFQD))
+		config.LogDirectory = DEFAULT_LOG_DIRECTORY
 	}
 
 	return

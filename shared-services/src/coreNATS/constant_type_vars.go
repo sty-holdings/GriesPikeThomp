@@ -31,8 +31,17 @@ COPYRIGHT:
 */
 package sharedServices
 
-//goland:noinspection GoSnakeCaseUsage
+import (
+	"github.com/nats-io/nats.go"
+)
+
+//goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
+	METHOD_DASHES      = "dashes"
+	METHOD_UNDERSCORES = "underscores"
+	METHOD_BLANK       = ""
+
+	// Test constants
 	TEST_CREDENTIALS_FILENAME = "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key"
 	TEST_MESSAGE_ENVIRONMENT  = "local"
 	TEST_MESSAGE_NAMESPACE    = "nci"
@@ -45,3 +54,12 @@ const (
 	//
 	TEST_INVALID_URL = "invalid URL"
 )
+
+type MessageHandler struct {
+	Handler nats.MsgHandler
+}
+
+type NATSReply struct {
+	Response string `json:"response,omitempty"`
+	Error    string `json:"error,omitempty"`
+}

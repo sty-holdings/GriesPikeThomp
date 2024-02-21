@@ -1,30 +1,22 @@
-// Package extensions
+// Package loadExtensions
 /*
-This is the STY-Holdings shared services
+This is code for STY-Holdings NATS Connect
+
+RESTRICTIONS:
+	None
 
 NOTES:
 
 	None
 
-COPYRIGHT & WARRANTY:
+COPYRIGHT:
 
-	Copyright (c) 2022 STY-Holdings, inc
-	All rights reserved.
+	Copyright 2022
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at
 
-	This software is the confidential and proprietary information of STY-Holdings, Inc.
-	Use is subject to license terms.
-
-	Unauthorized copying of this file, via any medium is strictly prohibited.
-
-	Proprietary and confidential
-
-	Written by <Replace with FULL_NAME> / syacko
-	STY-Holdings, Inc.
-	support@sty-holdings.com
-	www.sty-holdings.com
-
-	01-2024
-	USA
+	http://www.apache.org/licenses/LICENSE-2.0
 
 	Unless required by applicable law or agreed to in writing, software
 	distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,7 +24,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package extensions
+package loadExtensions
 
 import (
 	"encoding/json"
@@ -45,32 +37,43 @@ import (
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-type NCInternalConfiguration struct {
+const (
+// Add Constants to the constants.go file
+)
+
+type ExtensionConfiguration struct {
 	MessageEnvironment      string        `json:"message_environment"`
-	NATSCredentialsFilename string        `json:"credentials_filename"`
-	NATSPort                int           `json:"port"`
-	NATSTLSInfo             cj.TLSInfo    `json:"tls_info"`
-	NATSURL                 string        `json:"url"`
+	NATSCredentialsFilename string        `json:"nats_credentials_filename"`
+	NATSPort                int           `json:"nats_port"`
+	NATSTLSInfo             cj.TLSInfo    `json:"nats_tls_info"`
+	NATSURL                 string        `json:"nats_url"`
 	RequestedThreads        uint          `json:"requested_threads"`
 	SubjectRegistry         []SubjectInfo `json:"subject_registry"`
 }
 
 type SubjectInfo struct {
-	Namespace   string `json:"namespace"`
-	Subject     string `json:"subject"`
-	Description string `json:"description"`
+	Namespace string `json:"namespace"`
+	Subject   string `json:"subject"`
 }
 
-// LoadNCInternal - reads, validates, and loads into service extension map
+var (
+// Add Variables here for the file (Remember, they are global)
+)
+
+// Private functions
+
+// LoadExtensionConfig - reads, validates, and returns
 //
 //	Customer Messages: None
-//	Errors: error returned by validateConfiguration
+//	Errors: error returned by ReadConfigFile or validateConfiguration
 //	Verifications: validateConfiguration
-func LoadNCInternal(configFilename string) (ncInternal interface{}, errorInfo cpi.ErrorInfo) {
+func LoadExtensionConfig(configFilename string) (
+	extension ExtensionConfiguration,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	var (
 		tAdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_FILENAME, configFilename)
-		tConfig         NCInternalConfiguration
 		tConfigData     []byte
 	)
 
@@ -78,28 +81,24 @@ func LoadNCInternal(configFilename string) (ncInternal interface{}, errorInfo cp
 		return
 	}
 
-	if errorInfo.Error = json.Unmarshal(tConfigData, &tConfig); errorInfo.Error != nil {
+	if errorInfo.Error = json.Unmarshal(tConfigData, &extension); errorInfo.Error != nil {
 		errorInfo = cpi.NewErrorInfo(errorInfo.Error, tAdditionalInfo)
 		return
 	}
 
-	if errorInfo = validateConfiguration(tConfig); errorInfo.Error != nil {
+	if errorInfo = validateConfiguration(extension); errorInfo.Error != nil {
 		return
 	}
 
-	ncInternal = interface{}(tConfig)
-
 	return
 }
-
-//  Private Functions
 
 // validateConfiguration - checks the NATS service configuration is valid.
 //
 //	Customer Messages: None
 //	Errors: ErrEnvironmentInvalid, ErrMessageNamespaceInvalid, ErrDomainInvalid, error returned from DoesFileExistsAndReadable, ErrSubjectsMissing
 //	Verifications: None
-func validateConfiguration(config NCInternalConfiguration) (errorInfo cpi.ErrorInfo) {
+func validateConfiguration(config ExtensionConfiguration) (errorInfo cpi.ErrorInfo) {
 
 	if errorInfo = chv.DoesFileExistsAndReadable(config.NATSCredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
 		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.NATSCredentialsFilename))
@@ -109,8 +108,8 @@ func validateConfiguration(config NCInternalConfiguration) (errorInfo cpi.ErrorI
 		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.MessageEnvironment))
 		return
 	}
-	if chv.IsDomainValid(config.NATSURL) == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.NATSURL))
+	if config.NATSPort == rcv.VAL_ZERO {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrNatsPortInvalid, fmt.Sprintf("%v%v", rcv.TXT_NATS_PORT, config.NATSPort))
 		return
 	}
 	if config.NATSTLSInfo.TLSCert != rcv.VAL_EMPTY && config.NATSTLSInfo.TLSPrivateKey != rcv.VAL_EMPTY && config.NATSTLSInfo.TLSCABundle != rcv.VAL_EMPTY {
@@ -127,6 +126,11 @@ func validateConfiguration(config NCInternalConfiguration) (errorInfo cpi.ErrorI
 			return
 		}
 	}
+	if chv.IsDomainValid(config.NATSURL) == false {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.NATSURL))
+		return
+	}
+	// ToDo Add support for requested threads
 	if len(config.SubjectRegistry) == rcv.VAL_ZERO {
 		cpi.NewErrorInfo(cpi.ErrSubjectsMissing, rcv.VAL_EMPTY)
 	}

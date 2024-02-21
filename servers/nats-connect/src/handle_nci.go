@@ -1,6 +1,6 @@
 // Package src
 /*
-This is the core code for STY-Holdings SavUp NATS services
+This is code for STY-Holdings NATS Connect
 
 RESTRICTIONS:
 
@@ -33,78 +33,53 @@ COPYRIGHT:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package handlers
+package src
 
 import (
-	"fmt"
-	"strings"
-
-	"GriesPikeThomp/servers/nats-connect/src"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cn "GriesPikeThomp/shared-services/src/coreNATS"
+	cns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
-type natsReply struct {
-	Data    string `json:"data,omitempty"`
-	Error   string `json:"error,omitempty"`
-	Message string `json:"message,omitempty"`
-	Status  string `json:"status"`
-}
-
-// getNATSHandlers - builds the NATS message handlers
+// nciMessageHandles - is a table of available messages
 //
 //	Customer Messages: None
-//	Errors: ErrSubjectSubscriptionFailed
+//	Errors: None
 //	Verifications: None
-func (serverPtr *src.Server) getNATSHandlers(service cn.NATSService) (errorInfo cpi.ErrorInfo) {
+func (serverPtr *Server) nciMessageHandles() (
+	handlers map[string]cns.MessageHandler,
+) {
 
-	var (
-		connPtr *nats.Conn
-	)
+	handlers = make(map[string]cns.MessageHandler)
 
-	connPtr = serverPtr.extensions[src.NC_INTERNAL].(cn.NATSService).ConnPtr
-
-	for _, subjectInfo := range service.Config.SubjectRegistry {
-		switch strings.ToLower(subjectInfo.Subject) {
-		case src.TURN_DEBUG_ON:
-			serverPtr.instance.messageHandlers[src.TURN_DEBUG_ON] = serverPtr.natsTurnDebugOn()
-		case src.TURN_DEBUG_OFF:
-			serverPtr.instance.messageHandlers[src.TURN_DEBUG_OFF] = serverPtr.natsTurnDebugOff()
-		default:
-			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
-		}
-		if errorInfo.Error == nil {
-			if serverPtr.instance.subscriptionPtrs[subjectInfo.Subject], errorInfo.Error = connPtr.Subscribe(subjectInfo.Subject, serverPtr.instance.messageHandlers[subjectInfo.Subject]); errorInfo.Error != nil {
-				errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectSubscriptionFailed, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, subjectInfo.Subject))
-			}
-		}
+	handlers[NCI_TURN_DEBUG_OFF] = cns.MessageHandler{
+		Handler: serverPtr.nciTurnDebugOff(),
+	}
+	handlers[NCI_TURN_DEBUG_ON] = cns.MessageHandler{
+		Handler: serverPtr.nciTurnDebugOn(),
 	}
 
 	return
 }
 
 // NATS Message Handlers go below this line.
-//
 
-// natsTurnDebugOff - removes the server out of debug mode via a nats message
+// nciTurnDebugOff - sets serverPtr.instance.debugModeOn to false
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *src.Server) natsTurnDebugOff() nats.MsgHandler {
+func (serverPtr *Server) nciTurnDebugOff() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    natsReply
+			tReply    cns.NATSReply
 		)
 
 		serverPtr.instance.debugModeOn = false
-		tReply.Status = rcv.STATUS_SUCCESS
 
 		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
@@ -114,22 +89,21 @@ func (serverPtr *src.Server) natsTurnDebugOff() nats.MsgHandler {
 	}
 }
 
-// natsTurnDebugOn - puts the server into debug mode via a nats message
+// nciTurnDebugOn - puts the server into debug mode via a nats message
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *src.Server) natsTurnDebugOn() nats.MsgHandler {
+func (serverPtr *Server) nciTurnDebugOn() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    natsReply
+			tReply    cns.NATSReply
 		)
 
 		serverPtr.instance.debugModeOn = true
-		tReply.Status = rcv.STATUS_SUCCESS
 
 		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)

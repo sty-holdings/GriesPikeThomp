@@ -1,4 +1,4 @@
-// package extensions
+// Package loadExtensions
 /*
 NOTES:
     None
@@ -18,13 +18,11 @@ COPYRIGHT:
 	limitations under the License.
 
 */
-package extensions
+package loadExtensions
 
 import (
 	"runtime"
 	"testing"
-
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 )
 
 func Test(tPtr *testing.T) {
@@ -34,9 +32,9 @@ func Test(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          cpi.ErrorInfo
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		err                error
 		gotError           bool
 	)
 
@@ -48,14 +46,21 @@ func Test(tPtr *testing.T) {
 		{
 			name: "Positive Case: Valid Config.",
 			arguments: arguments{
-				configFilename: "test-stripe-config.json",
+				configFilename: "test-extension-config.json",
 			},
 			wantError: false,
 		},
 		{
 			name: "Negative Case: Invalid Config",
 			arguments: arguments{
-				configFilename: "test-invalid_stripe-config.json",
+				configFilename: "test-invalid-extension-config.json",
+			},
+			wantError: true,
+		},
+		{
+			name: "Negative Case: Missing Config Filename",
+			arguments: arguments{
+				configFilename: "",
 			},
 			wantError: true,
 		},
@@ -63,13 +68,13 @@ func Test(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(tFunctionName, func(t *testing.T) {
-			if _, errorInfo := LoadNCInternal(ts.arguments.configFilename); errorInfo.Error != nil {
+			if _, errorInfo := LoadExtensionConfig(ts.arguments.configFilename); errorInfo.Error != nil {
 				gotError = true
 			} else {
 				gotError = false
 			}
 			if gotError != ts.wantError {
-				tPtr.Error(errorInfo.Error.Error())
+				tPtr.Error(err.Error())
 			}
 		})
 	}

@@ -5,7 +5,7 @@
   "log_directory": "servers/nats-connect/logs",
   "max_threads": 5,
   "pid_directory": "servers/nats-connect/.run",
-  "extensions": [
+  "load_extensions": [
     {
       "name": "nc_internal",
       "config_filename": "servers/nats-connect/config/local/nc-internal-config.json"
