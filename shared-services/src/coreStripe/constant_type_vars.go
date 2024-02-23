@@ -1,4 +1,4 @@
-// Package stripe
+// Package coreStripe
 /*
 General description of the purpose of the go file.
 
@@ -29,10 +29,7 @@ COPYRIGHT:
 	limitations under the License.
 
 */
-package stripe
-
-//goland:noinspection GoSnakeCaseUsage,GoCommentStart
-const ()
+package coreStripe
 
 type Customer struct {
 	Address              Address     `json:"address"`

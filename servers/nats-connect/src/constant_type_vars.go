@@ -31,11 +31,15 @@ COPYRIGHT:
 */
 package src
 
-//goland:noinspection GoSnakeCaseUsage,GoCommentStart
-const (
-	// Extensions
-	NC_INTERNAL = "nc_internal"
-	STRIPE      = "stripe"
+import (
+	"os"
+	"sync"
+	"time"
+
+	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
+	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
+	"github.com/nats-io/nats.go"
+	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
@@ -44,3 +48,38 @@ const (
 	NCI_TURN_DEBUG_OFF = "turn_debug_off"
 	NCI_TURN_DEBUG_ON  = "turn_debug_on"
 )
+
+type Auth struct {
+	authenticatorService string
+}
+
+// Instance - Some of these values can change over the life of the instance.
+type Instance struct {
+	baseURL           string
+	debugModeOn       bool
+	extInstances      map[string]rcv.ExtInstance
+	hostname          string
+	logFileHandlerPtr *os.File
+	logFQN            string
+	messageHandlers   map[string]nats.MsgHandler
+	mu                sync.RWMutex
+	numberCPUS        int
+	outputMode        string
+	pid               int
+	pidFQN            string
+	processChannels   map[string]chan string
+	running           bool
+	runStartTime      time.Time
+	serverName        string
+	testingOn         bool
+	threadsAssigned   uint
+	version           string
+	waitGroupCreated  bool
+	workingDirectory  string
+}
+
+type Server struct {
+	config           cc.BaseConfiguration
+	instance         Instance
+	extensionConfigs map[string]ext.ExtensionConfiguration
+}

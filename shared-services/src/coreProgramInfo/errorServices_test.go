@@ -139,7 +139,7 @@ func TestPrintError(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			PrintError(ts.arguments.myError, ts.arguments.additionalInfo, ts.outputMode)
+			PrintError(ts.arguments.myError, ts.arguments.additionalInfo)
 		})
 	}
 }
@@ -208,7 +208,7 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			PrintErrorInfo(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo), ts.outputMode)
+			PrintErrorInfo(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo))
 		})
 	}
 }
@@ -253,7 +253,7 @@ func TestOutputError(tPtr *testing.T) {
 
 	for _, ts := range tests {
 		tPtr.Run(ts.name, func(t *testing.T) {
-			outputError(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo), ts.outputMode)
+			outputError(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo))
 		})
 	}
 }

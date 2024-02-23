@@ -42,7 +42,7 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-// nciMessageHandles - is a table of available messages
+// nciMessageHandles - is a t able of available messages
 //
 //	Customer Messages: None
 //	Errors: None
