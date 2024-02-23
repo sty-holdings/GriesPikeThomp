@@ -23,60 +23,19 @@ package coreStripe
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
+	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	cns "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 	// "github.com/stripe/stripe-go/v76"
 	// "github.com/stripe/stripe-go/v76/charge"
 	// "github.com/stripe/stripe-go/v76/customer"
 )
-
-type StripeCustomer struct {
-	Address struct {
-		City       string `json:"city"`
-		Country    string `json:"country"`
-		Line1      string `json:"line1"`
-		Line2      string `json:"line2"`
-		PostalCode string `json:"postal_code"`
-		State      string `json:"state"`
-	} `json:"address"`
-	Balance              int         `json:"balance"`
-	CashBalance          interface{} `json:"cash_balance"`
-	Created              int         `json:"created"`
-	Currency             string      `json:"currency"`
-	DefaultSource        string      `json:"default_source"`
-	Deleted              bool        `json:"deleted"`
-	Delinquent           bool        `json:"delinquent"`
-	Description          string      `json:"description"`
-	Discount             interface{} `json:"discount"`
-	Email                string      `json:"email"`
-	Id                   string      `json:"id"`
-	InvoiceCreditBalance interface{} `json:"invoice_credit_balance"`
-	InvoicePrefix        string      `json:"invoice_prefix"`
-	InvoiceSettings      struct {
-		CustomFields         interface{} `json:"custom_fields"`
-		DefaultPaymentMethod interface{} `json:"default_payment_method"`
-		Footer               string      `json:"footer"`
-		RenderingOptions     interface{} `json:"rendering_options"`
-	} `json:"invoice_settings"`
-	Livemode bool `json:"livemode"`
-	Metadata struct {
-	} `json:"metadata"`
-	Name                string        `json:"name"`
-	NextInvoiceSequence int           `json:"next_invoice_sequence"`
-	Object              string        `json:"object"`
-	Phone               string        `json:"phone"`
-	PreferredLocales    []interface{} `json:"preferred_locales"`
-	Shipping            interface{}   `json:"shipping"`
-	Sources             interface{}   `json:"sources"`
-	Subscriptions       interface{}   `json:"subscriptions"`
-	Tax                 interface{}   `json:"tax"`
-	TaxExempt           string        `json:"tax_exempt"`
-	TaxIds              interface{}   `json:"tax_ids"`
-	TestClock           interface{}   `json:"test_clock"`
-}
 
 // NewExtension - creates an instance by setting the values for the extension struct
 //
@@ -93,20 +52,120 @@ func NewExtension(
 ) {
 
 	var (
-		extensionPtr *rcv.ExtInstance
+		stripeInstancePtr *stripeInstance
 	)
 
-	extensionPtr = &rcv.ExtInstance{
-		InstanceName:      fmt.Sprintf("%v-%v", hostname, rcv.STRIPE_EXTENSION),
-		NatsConnectionPtr: nil,
-		ProcessChannel:    nil,
-		SubscriptionPtrs:  nil,
-		WaitGroup:         sync.WaitGroup{},
+	stripeInstancePtr = &stripeInstance{
+		subscriptionPtrs: make(map[string]*nats.Subscription),
+		waitGroup:        sync.WaitGroup{},
+	}
+	if stripeInstancePtr.instanceName, errorInfo = cns.BuildInstanceName(cns.METHOD_BLANK, rcv.STRIPE_EXTENSION); errorInfo.Error != nil {
+		return
 	}
 
-	fmt.Println(extensionPtr.InstanceName)
+	stripeInstancePtr.messageHandles()
+
+	stripeInstancePtr.processChannel = make(chan string) // This is for NC_INTERNAL only
+	go func() {
+		stripeInstancePtr.buildExtension(config)
+	}()
+	select {
+	case <-stripeInstancePtr.processChannel:
+	}
+
+	fmt.Println(stripeInstancePtr.instanceName)
 
 	return
+}
+
+// messageHandles - builds a map of messages handlers
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (stripeInstancePtr *stripeInstance) messageHandles() (
+	handlers map[string]cns.MessageHandler,
+) {
+
+	handlers = make(map[string]cns.MessageHandler)
+
+	handlers[PRINT_INSTANCE_NAME] = cns.MessageHandler{
+		Handler: stripeInstancePtr.printInstanceName(),
+	}
+
+	return
+}
+
+// extensionHandler - starts extensions in goroutine.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (stripeInstancePtr *stripeInstance) buildExtension(config ext.ExtensionConfiguration) (
+	errorInfo cpi.ErrorInfo,
+) {
+	var (
+		tHandlers        = make(map[string]cns.MessageHandler)
+		tSubscriptionPtr *nats.Subscription
+	)
+
+	if stripeInstancePtr.natsConnectionPtr, errorInfo = cns.GetConnection(stripeInstancePtr.instanceName, config); errorInfo.Error != nil {
+		return
+	}
+
+	tHandlers = stripeInstancePtr.messageHandles()
+
+	// Use a WaitGroup to wait for a message to arrive
+	stripeInstancePtr.waitGroup.Add(1)
+	for _, loadSubject := range config.SubjectRegistry {
+		if _, found := tHandlers[loadSubject.Subject]; found == false {
+			errorInfo = cpi.NewErrorInfo(cpi.ErrSubjectInvalid, fmt.Sprintf("%v%v", rcv.TXT_SUBJECT, loadSubject.Subject))
+			return
+		}
+		if tSubscriptionPtr, errorInfo.Error = stripeInstancePtr.natsConnectionPtr.Subscribe(
+			loadSubject.Subject,
+			tHandlers[loadSubject.Subject].Handler,
+		); errorInfo.Error != nil {
+			log.Printf("Subscribe failed on subject: %v", loadSubject.Subject)
+			return
+		}
+		log.Printf("Subscribed to subject: %v", loadSubject.Subject)
+		stripeInstancePtr.subscriptionPtrs[loadSubject.Subject] = tSubscriptionPtr
+	}
+
+	if stripeInstancePtr.testingOn {
+		stripeInstancePtr.waitGroup.Done()
+	} else {
+		stripeInstancePtr.waitGroup.Wait()
+	}
+
+	return
+
+}
+
+// NATS Message Handlers go below this line.
+
+// printInstanceName - sets serverPtr.instance.debugModeOn to false
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (stripeInstancePtr *stripeInstance) printInstanceName() nats.MsgHandler {
+
+	return func(msg *nats.Msg) {
+
+		var (
+			errorInfo cpi.ErrorInfo
+			tReply    cns.NATSReply
+		)
+
+		tReply.Response = stripeInstancePtr.instanceName
+		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
+			cpi.PrintErrorInfo(errorInfo)
+		}
+
+		return
+	}
 }
 
 // buildStripeCustomerAddress - returns a Stripe formatted address with the country set too USA.

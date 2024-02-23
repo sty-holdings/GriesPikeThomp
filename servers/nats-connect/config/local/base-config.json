@@ -1,8 +1,8 @@
 {
-  "skeleton_config_fqd": "shared-services/src/coreConfiguration/",
   "debug_mode_on": true,
-  "Environment": "LOCAL",
+  "environment": "local",
   "log_directory": "servers/nats-connect/logs",
   "max_threads": 5,
-  "pid_directory": "servers/nats-connect/.run"
+  "pid_directory": "servers/nats-connect/.run",
+  "skeleton_config_fqd": "shared-services/src/coreConfiguration/"
 }

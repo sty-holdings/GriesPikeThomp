@@ -42,12 +42,12 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-// nciMessageHandles - is a t able of available messages
+// nciMessageHandles - builds a map of message handlers
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func (serverPtr *Server) nciMessageHandles() (
+func (serverPtr *Server) loadNCIMessageHandles() (
 	handlers map[string]cns.MessageHandler,
 ) {
 
@@ -80,6 +80,7 @@ func (serverPtr *Server) nciTurnDebugOff() nats.MsgHandler {
 		)
 
 		serverPtr.instance.debugModeOn = false
+		tReply.Response = "Debug mode turned off"
 
 		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
@@ -104,6 +105,7 @@ func (serverPtr *Server) nciTurnDebugOn() nats.MsgHandler {
 		)
 
 		serverPtr.instance.debugModeOn = true
+		tReply.Response = "Debug mode turned on"
 
 		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)

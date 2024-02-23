@@ -89,7 +89,13 @@ func GetConnection(
 	}
 
 	log.Printf("A connection has been established with the NATS server at %v.", config.NATSURL)
-	log.Printf("URL: %v Server Name: %v Server Id: %v Address: %v", connPtr.ConnectedUrl(), connPtr.ConnectedClusterName(), connPtr.ConnectedServerId(), connPtr.ConnectedAddr())
+	log.Printf(
+		"URL: %v Server Name: %v Server Id: %v Address: %v",
+		connPtr.ConnectedUrl(),
+		connPtr.ConnectedClusterName(),
+		connPtr.ConnectedServerId(),
+		connPtr.ConnectedAddr(),
+	)
 
 	return
 }
@@ -112,12 +118,13 @@ func BuildInstanceName(
 
 	switch strings.Trim(strings.ToLower(method), rcv.SPACES_ONE) {
 	case METHOD_DASHES:
-		buildInstanceName(rcv.DASH, nodes...)
+		instanceName, errorInfo = buildInstanceName(rcv.DASH, nodes...)
 	case METHOD_UNDERSCORES:
-		buildInstanceName(rcv.UNDERSCORE, nodes...)
+		instanceName, errorInfo = buildInstanceName(rcv.UNDERSCORE, nodes...)
 	default:
-		buildInstanceName(rcv.VAL_EMPTY, nodes...)
+		instanceName, errorInfo = buildInstanceName(rcv.VAL_EMPTY, nodes...)
 	}
+
 	return
 }
 

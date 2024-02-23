@@ -31,6 +31,27 @@ COPYRIGHT:
 */
 package coreStripe
 
+import (
+	"sync"
+
+	"github.com/nats-io/nats.go"
+)
+
+//goland:noinspection GoSnakeCaseUsage,GoCommentStart
+const (
+	// Subjects
+	PRINT_INSTANCE_NAME = "print_instance_name"
+)
+
+type stripeInstance struct {
+	instanceName      string
+	natsConnectionPtr *nats.Conn
+	processChannel    chan string
+	subscriptionPtrs  map[string]*nats.Subscription
+	testingOn         bool
+	waitGroup         sync.WaitGroup
+}
+
 type Customer struct {
 	Address              Address     `json:"address"`
 	Balance              int         `json:"balance"`

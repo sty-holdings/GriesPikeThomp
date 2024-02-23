@@ -9,13 +9,5 @@
     "tls_ca_bundle_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt"
   },
   "nats_url": "savup-local-0030.savup.com",
-  "requested_threads": 3,
-  "subject_registry": [
-    {
-      "subject": "turn_debug_on"
-    },
-    {
-      "subject": "turn_debug_off"
-    }
-  ]
+  "requested_threads": 3
 }

@@ -39,7 +39,6 @@ import (
 	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	"github.com/nats-io/nats.go"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
@@ -53,11 +52,22 @@ type Auth struct {
 	authenticatorService string
 }
 
+// ExtInstance
+// READ ME: Shorten the name to resolve naming conflict
+// *********************
+type ExtInstance struct {
+	InstanceName      string
+	NatsConnectionPtr *nats.Conn
+	ProcessChannel    chan string
+	SubscriptionPtrs  map[string]*nats.Subscription
+	WaitGroup         sync.WaitGroup
+}
+
 // Instance - Some of these values can change over the life of the instance.
 type Instance struct {
 	baseURL           string
 	debugModeOn       bool
-	extInstances      map[string]rcv.ExtInstance
+	extInstances      map[string]ExtInstance
 	hostname          string
 	logFileHandlerPtr *os.File
 	logFQN            string
@@ -67,7 +77,7 @@ type Instance struct {
 	outputMode        string
 	pid               int
 	pidFQN            string
-	processChannels   map[string]chan string
+	nciProcessChannel chan string
 	running           bool
 	runStartTime      time.Time
 	serverName        string

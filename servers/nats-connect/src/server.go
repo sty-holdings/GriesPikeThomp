@@ -116,29 +116,6 @@ func (serverPtr *Server) Shutdown() {
 
 // Private Functions
 
-// extensionHandler - starts extensions in goroutine.
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func (serverPtr *Server) extensionHandler(extensionKey string) (errorInfo cpi.ErrorInfo) {
-
-	switch extensionKey {
-	case rcv.NC_INTERNAL:
-		errorInfo = serverPtr.buildNCIExtension()
-	case rcv.STRIPE_EXTENSION:
-		errorInfo = cs.NewExtension(
-			serverPtr.extensionConfigs[rcv.STRIPE_EXTENSION],
-			serverPtr.instance.hostname,
-			serverPtr.instance.workingDirectory,
-			serverPtr.instance.testingOn)
-	default:
-		errorInfo = cpi.NewErrorInfo(cpi.ErrExtensionInvalid, fmt.Sprintf("%v%v", rcv.TXT_EXTENSION_NAME, extensionKey))
-	}
-
-	return
-}
-
 // initializeServer - create an instance and loads loadExtensions.
 //
 //	Customer Messages: None
@@ -258,7 +235,7 @@ func newServer(
 		},
 	}
 	serverPtr.extensionConfigs = make(map[string]ext.ExtensionConfiguration)
-	serverPtr.instance.extInstances = make(map[string]rcv.ExtInstance)
+	serverPtr.instance.extInstances = make(map[string]ExtInstance)
 	serverPtr.instance.hostname, _ = os.Hostname()
 	serverPtr.instance.messageHandlers = make(map[string]nats.MsgHandler)
 	serverPtr.instance.pidFQN = chv.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
@@ -274,22 +251,37 @@ func newServer(
 //	Verifications: None
 func (serverPtr *Server) run() {
 
-	serverPtr.instance.processChannels = make(map[string]chan string)
+	var (
+		key string
+	)
+
+	key = strings.ToLower(strings.Trim(key, rcv.VAL_EMPTY))
 
 	// capture signals
 	go initializeSignals(serverPtr)
 
 	// start extensions
-	for key, _ := range serverPtr.extensionConfigs {
-		log.Printf("Key: %v", key)
-		key = strings.ToLower(strings.Trim(key, rcv.VAL_EMPTY))
-		serverPtr.instance.processChannels[key] = make(chan string) // This is for NC_INTERNAL only
-		go func() {
-			serverPtr.extensionHandler(key)
-		}()
-		select {
-		case <-serverPtr.instance.processChannels[key]:
+	for key, _ = range serverPtr.extensionConfigs {
+		if key != rcv.NC_INTERNAL { // Skipping NC_INSTANCE so server is not block extension creation
+			switch key {
+			case rcv.STRIPE_EXTENSION:
+				go cs.NewExtension(
+					serverPtr.extensionConfigs[key],
+					serverPtr.instance.hostname,
+					serverPtr.instance.workingDirectory,
+					serverPtr.instance.testingOn,
+				)
+			}
 		}
+	}
+
+	// start nats connect internal which will block the server
+	serverPtr.instance.nciProcessChannel = make(chan string) // This is for NC_INTERNAL only
+	go func() {
+		serverPtr.buildNCIExtension()
+	}()
+	select {
+	case <-serverPtr.instance.nciProcessChannel:
 	}
 
 	return
@@ -328,7 +320,7 @@ func (serverPtr *Server) buildNCIExtension() (
 ) {
 
 	var (
-		tExtInstance      rcv.ExtInstance
+		tExtInstance      ExtInstance
 		tSubscriptionPtr  *nats.Subscription
 		tSubscriptionPtrs = make(map[string]*nats.Subscription)
 	)
@@ -336,17 +328,20 @@ func (serverPtr *Server) buildNCIExtension() (
 	if tExtInstance.InstanceName, errorInfo = cns.BuildInstanceName(cns.METHOD_BLANK, rcv.NC_INTERNAL); errorInfo.Error != nil {
 		return
 	}
-	if tExtInstance.NatsConnectionPtr, errorInfo = cns.GetConnection(tExtInstance.InstanceName,
-		serverPtr.extensionConfigs[rcv.NC_INTERNAL]); errorInfo.Error != nil {
+	if tExtInstance.NatsConnectionPtr, errorInfo = cns.GetConnection(
+		tExtInstance.InstanceName,
+		serverPtr.extensionConfigs[rcv.NC_INTERNAL],
+	); errorInfo.Error != nil {
 		return
 	}
 
 	// Use a WaitGroup to wait for a message to arrive
 	tExtInstance.WaitGroup = sync.WaitGroup{}
 	tExtInstance.WaitGroup.Add(1)
-	for subject, handler := range serverPtr.nciMessageHandles() {
-		if tSubscriptionPtr, errorInfo.Error = tExtInstance.NatsConnectionPtr.Subscribe(subject,
-			handler.Handler); errorInfo.Error != nil {
+	for subject, handler := range serverPtr.loadNCIMessageHandles() {
+		if tSubscriptionPtr, errorInfo.Error = tExtInstance.NatsConnectionPtr.Subscribe(
+			subject, handler.Handler,
+		); errorInfo.Error != nil {
 			log.Printf("Subscribe failed on subject: %v", subject)
 			return
 		}
@@ -364,6 +359,7 @@ func (serverPtr *Server) buildNCIExtension() (
 	}
 
 	return
+
 }
 
 // initialize signal handler - handles signals from the console.

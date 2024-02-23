@@ -1,14 +1,14 @@
 {
   "debug_mode_on": true,
-  "Environment": "LOCAL",
+  "environment": "local",
   "log_directory": "servers/nats-connect/logs",
-  "max_threads": 5,
-  "pid_directory": "servers/nats-connect/.run",
   "load_extensions": [
     {
       "name": "nc_internal",
       "config_filename": "servers/nats-connect/config/local/nc-internal-config.json"
     }
   ],
-  "skeleton_config_fqd": ""
+  "max_threads": 5,
+  "pid_directory": "servers/nats-connect/.run",
+  "skeleton_config_fqd": "shared-services/src/coreConfiguration/"
 }

@@ -12,7 +12,7 @@
   "requested_threads": 3,
   "subject_registry": [
     {
-      "subject": "say_hello"
+      "subject": "print_instance_name"
     }
   ]
 }
