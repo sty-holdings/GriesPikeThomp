@@ -39,7 +39,7 @@ import (
 	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
 	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cns "GriesPikeThomp/shared-services/src/coreNATS"
+	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	cs "GriesPikeThomp/shared-services/src/coreStripe"
 	"github.com/nats-io/nats.go"
@@ -266,9 +266,8 @@ func (serverPtr *Server) run() {
 			switch key {
 			case rcv.STRIPE_EXTENSION:
 				go cs.NewExtension(
-					serverPtr.extensionConfigs[key],
 					serverPtr.instance.hostname,
-					serverPtr.instance.workingDirectory,
+					serverPtr.extensionConfigs[key],
 					serverPtr.instance.testingOn,
 				)
 			}
@@ -321,14 +320,13 @@ func (serverPtr *Server) buildNCIExtension() (
 
 	var (
 		tExtInstance      ExtInstance
-		tSubscriptionPtr  *nats.Subscription
 		tSubscriptionPtrs = make(map[string]*nats.Subscription)
 	)
 
-	if tExtInstance.InstanceName, errorInfo = cns.BuildInstanceName(cns.METHOD_BLANK, rcv.NC_INTERNAL); errorInfo.Error != nil {
+	if tExtInstance.InstanceName, errorInfo = cn.BuildInstanceName(cn.METHOD_BLANK, rcv.NC_INTERNAL); errorInfo.Error != nil {
 		return
 	}
-	if tExtInstance.NatsConnectionPtr, errorInfo = cns.GetConnection(
+	if tExtInstance.NatsConnectionPtr, errorInfo = cn.GetConnection(
 		tExtInstance.InstanceName,
 		serverPtr.extensionConfigs[rcv.NC_INTERNAL],
 	); errorInfo.Error != nil {
@@ -339,14 +337,7 @@ func (serverPtr *Server) buildNCIExtension() (
 	tExtInstance.WaitGroup = sync.WaitGroup{}
 	tExtInstance.WaitGroup.Add(1)
 	for subject, handler := range serverPtr.loadNCIMessageHandles() {
-		if tSubscriptionPtr, errorInfo.Error = tExtInstance.NatsConnectionPtr.Subscribe(
-			subject, handler.Handler,
-		); errorInfo.Error != nil {
-			log.Printf("Subscribe failed on subject: %v", subject)
-			return
-		}
-		log.Printf("Subscribed to subject: %v", subject)
-		tSubscriptionPtrs[subject] = tSubscriptionPtr
+		tSubscriptionPtrs[subject], errorInfo = cn.Subscribe(tExtInstance.NatsConnectionPtr, tExtInstance.InstanceName, subject, handler.Handler)
 	}
 
 	tExtInstance.SubscriptionPtrs = tSubscriptionPtrs

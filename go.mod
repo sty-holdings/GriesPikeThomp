@@ -14,7 +14,7 @@ require (
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/stripe/stripe-go/v76 v76.17.0
-	github.com/sty-holdings/resuable-const-vars v2024.10.7+incompatible
+	github.com/sty-holdings/resuable-const-vars v2024.11.4+incompatible
 	golang.org/x/text v0.14.0
 	google.golang.org/api v0.157.0
 )

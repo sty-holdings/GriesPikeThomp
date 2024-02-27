@@ -84,13 +84,14 @@ func GetConnection(
 		return
 	}
 	if connPtr, errorInfo.Error = nats.Connect(tURL, opts...); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprint(rcv.TXT_SECURE_CONNECTION_FAILED))
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v: %v", instanceName, rcv.TXT_SECURE_CONNECTION_FAILED))
 		return
 	}
 
-	log.Printf("A connection has been established with the NATS server at %v.", config.NATSURL)
+	log.Printf("%v: A connection has been established with the NATS server at %v.", instanceName, config.NATSURL)
 	log.Printf(
-		"URL: %v Server Name: %v Server Id: %v Address: %v",
+		"%v: URL: %v Server Name: %v Server Id: %v Address: %v",
+		instanceName,
 		connPtr.ConnectedUrl(),
 		connPtr.ConnectedClusterName(),
 		connPtr.ConnectedServerId(),
@@ -100,10 +101,33 @@ func GetConnection(
 	return
 }
 
+// Subscribe - will create a NATS subscription
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func Subscribe(
+	connectionPtr *nats.Conn,
+	instanceName, subject string,
+	handler nats.MsgHandler,
+) (
+	subscriptionPtr *nats.Subscription,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	if subscriptionPtr, errorInfo.Error = connectionPtr.Subscribe(subject, handler); errorInfo.Error != nil {
+		log.Printf("%v: Subscribe failed on subject: %v", instanceName, subject)
+		return
+	}
+	log.Printf("%v Subscribed to subject: %v", instanceName, subject)
+
+	return
+}
+
 //  Private Functions
 
 // BuildInstanceName - will create the NATS connection name with dashes, underscores between nodes or as provided.
-// The method can be cns.METHOD_DASHES, cns.METHOD_UNDERSCORES, rcv.VAL_EMPTY, "dashes", "underscores" or ""
+// The method can be cn.METHOD_DASHES, cn.METHOD_UNDERSCORES, rcv.VAL_EMPTY, "dashes", "underscores" or ""
 //
 //	Customer Messages: None
 //	Errors: error returned by nats.Connect
@@ -116,6 +140,9 @@ func BuildInstanceName(
 	errorInfo cpi.ErrorInfo,
 ) {
 
+	if len(nodes) == 1 {
+		method = METHOD_BLANK
+	}
 	switch strings.Trim(strings.ToLower(method), rcv.SPACES_ONE) {
 	case METHOD_DASHES:
 		instanceName, errorInfo = buildInstanceName(rcv.DASH, nodes...)

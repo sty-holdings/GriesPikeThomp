@@ -283,6 +283,14 @@ github.com/sty-holdings/resuable-const-vars v2024.10.6+incompatible h1:0ANKXu8z0
 github.com/sty-holdings/resuable-const-vars v2024.10.6+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
 github.com/sty-holdings/resuable-const-vars v2024.10.7+incompatible h1:xAu60Rgfos97e95LYyQcebxP4QKcAqsVwl0Lkrz4Y5c=
 github.com/sty-holdings/resuable-const-vars v2024.10.7+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
+github.com/sty-holdings/resuable-const-vars v2024.11.1+incompatible h1:YB98zU4sZ/TjH43Gpag4VkkL2uOw+B9A7RbJu75Krs0=
+github.com/sty-holdings/resuable-const-vars v2024.11.1+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
+github.com/sty-holdings/resuable-const-vars v2024.11.2+incompatible h1:ea+W9NFaim/O05ufYapzpTLwoOfQ28lzjnbdZYaETcU=
+github.com/sty-holdings/resuable-const-vars v2024.11.2+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
+github.com/sty-holdings/resuable-const-vars v2024.11.3+incompatible h1:mEWC2c5aoowKVcRe1M3m3GBVbwwMKcqnXzd06ttqH54=
+github.com/sty-holdings/resuable-const-vars v2024.11.3+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
+github.com/sty-holdings/resuable-const-vars v2024.11.4+incompatible h1:Tf5JvrCdr3gZzTUa+OwNBnqOgYd/JBQeoK5ij0jTYeg=
+github.com/sty-holdings/resuable-const-vars v2024.11.4+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

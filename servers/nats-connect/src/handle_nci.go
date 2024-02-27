@@ -37,7 +37,7 @@ package src
 
 import (
 	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cns "GriesPikeThomp/shared-services/src/coreNATS"
+	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 )
@@ -48,15 +48,15 @@ import (
 //	Errors: None
 //	Verifications: None
 func (serverPtr *Server) loadNCIMessageHandles() (
-	handlers map[string]cns.MessageHandler,
+	handlers map[string]cn.MessageHandler,
 ) {
 
-	handlers = make(map[string]cns.MessageHandler)
+	handlers = make(map[string]cn.MessageHandler)
 
-	handlers[NCI_TURN_DEBUG_OFF] = cns.MessageHandler{
+	handlers[NCI_TURN_DEBUG_OFF] = cn.MessageHandler{
 		Handler: serverPtr.nciTurnDebugOff(),
 	}
-	handlers[NCI_TURN_DEBUG_ON] = cns.MessageHandler{
+	handlers[NCI_TURN_DEBUG_ON] = cn.MessageHandler{
 		Handler: serverPtr.nciTurnDebugOn(),
 	}
 
@@ -76,7 +76,7 @@ func (serverPtr *Server) nciTurnDebugOff() nats.MsgHandler {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    cns.NATSReply
+			tReply    cn.NATSReply
 		)
 
 		serverPtr.instance.debugModeOn = false
@@ -101,7 +101,7 @@ func (serverPtr *Server) nciTurnDebugOn() nats.MsgHandler {
 
 		var (
 			errorInfo cpi.ErrorInfo
-			tReply    cns.NATSReply
+			tReply    cn.NATSReply
 		)
 
 		serverPtr.instance.debugModeOn = true

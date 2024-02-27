@@ -1,6 +1,5 @@
 {
   "message_environment": "local",
-  "message_namespace": "stripe",
   "nats_credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
   "nats_port": 4222,
   "nats_tls_info": {

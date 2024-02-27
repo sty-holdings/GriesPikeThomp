@@ -52,8 +52,7 @@ type ExtensionConfiguration struct {
 }
 
 type SubjectInfo struct {
-	Namespace string `json:"namespace"`
-	Subject   string `json:"subject"`
+	Subject string `json:"subject"`
 }
 
 var (

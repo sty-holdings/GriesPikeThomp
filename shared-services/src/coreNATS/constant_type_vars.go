@@ -60,6 +60,6 @@ type MessageHandler struct {
 }
 
 type NATSReply struct {
-	Response string `json:"response,omitempty"`
-	Error    string `json:"error,omitempty"`
+	Response interface{} `json:"response,omitempty"`
+	Error    string      `json:"error,omitempty"`
 }

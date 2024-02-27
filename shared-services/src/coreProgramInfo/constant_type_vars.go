@@ -120,9 +120,13 @@ const (
 	SHORT_URL_ALREADY_EXISTS       = "Short URL already exists in the SavUp system."
 	SHORT_URL_MISSING              = "Short URL is not in the SavUp system."
 	SIGNAL_UNKNOWN                 = "Unknown signal was caught and ignored."
+	STRIPE_AMOUNT_INVALID          = "The amount must be a positive number. See https://docs.stripe.com/api/payment_intents source."
+	STRIPE_CURRENCY_INVALID        = "The curreny type is not supported. See https://docs.stripe.com/api/payment_intents source."
 	STRIPE_CUSTOMER_FAILED         = "Creating a Stripe customer failed."
+	STRIPE_KEY_INVALID             = "The stripe key is invalid. https://docs.stripe.com/api"
 	STRIPE_ONE_TIME_CODE_FAILED    = "Generating the Stripe One Time Use Token failed."
 	STRIPE_OUT_NOT_SUPPORTED       = "Transfers out of SavUp using Stripe are not supported."
+	STRIPE_SOURCE_INVALID          = "The provided source is invalid. See https://docs.stripe.com/api/payment_intents source."
 	SUBJECTS_MISSING               = "No subject(s) have been defined for the NATS extension."
 	SUBJECT_SUBSCRIPTION_FAILED    = "Unable to subscribe to the subject."
 	SUBJECT_INVALID                = "The subject is invalid."
@@ -143,6 +147,7 @@ const (
 	USER_ACCOUNT_MISSING           = "User account is not in the SavUp system."
 	USER_ALREADY_EXISTS            = "User already exists in the SavUp system."
 	UNAUTHORIZED_REQUEST           = "You are not authorized to use this system."
+	UNMARSHAL_FAILED               = "Unable to unmarshal data"
 	USER_BUNDLE_ALREADY_EXISTS     = "User bundle already exists in the SavUp system."
 	USER_BUNDLE_MISSING            = "User bundle is not in the SavUp system."
 	USER_MISSING                   = "User is not in the SavUp system."
@@ -228,9 +233,13 @@ var (
 	ErrServiceFailedSTRIPE        = errors.New(SERVICE_FAILED_STRIPE)
 	ErrShortURLMissing            = errors.New(SHORT_URL_MISSING)
 	ErrSignalUnknown              = errors.New(SIGNAL_UNKNOWN)
+	ErrStripeAmountInvalid        = errors.New(STRIPE_AMOUNT_INVALID)
 	ErrStripeCreateCustomerFailed = errors.New(STRIPE_CUSTOMER_FAILED)
+	ErrStripeCurrencyInvalid      = errors.New(STRIPE_CURRENCY_INVALID)
+	ErrStripeKeyInvalid           = errors.New(STRIPE_KEY_INVALID)
 	ErrStripeOneTimeCodeFailed    = errors.New(STRIPE_ONE_TIME_CODE_FAILED)
 	ErrStripeOutNotSupported      = errors.New(STRIPE_OUT_NOT_SUPPORTED)
+	ErrStripeSourceInvalid        = errors.New(STRIPE_SOURCE_INVALID)
 	ErrSubjectInvalid             = errors.New(SUBJECT_INVALID)
 	ErrSubjectsMissing            = errors.New(SUBJECTS_MISSING)
 	ErrSubjectSubscriptionFailed  = errors.New(SUBJECT_SUBSCRIPTION_FAILED)
@@ -245,6 +254,7 @@ var (
 	ErrTrueShouldBeFalse          = errors.New(TRUE_SHOULD_BE_FALSE)
 	ErrUnableReadFile             = errors.New(UNABLE_READ_FILE)
 	ErrUnauthorizedRequest        = errors.New(UNAUTHORIZED_REQUEST)
+	ErrUnmarshalFailed            = errors.New(UNMARSHAL_FAILED)
 	ErrUnconfirmedEmail           = errors.New(UNCONFIRMED_EMAIL)
 	ErrUnexpectedError            = errors.New(UNEXPECTED_ERROR)
 	ErrUnsupportedTransferMethod  = errors.New(UNSUPPORTED_TRANSFER_METHOD)

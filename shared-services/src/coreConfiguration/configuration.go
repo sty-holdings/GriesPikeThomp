@@ -111,7 +111,10 @@ func GenerateConfigFileSkeleton(serverName, SkeletonConfigFQD string) (errorInfo
 //	Customer Messages: None
 //	Errors: errors returned from ReadConfigFile, ErrJSONInvalid
 //	Verifications: None
-func ProcessBaseConfigFile(configFileFQN string) (config BaseConfiguration, errorInfo cpi.ErrorInfo) {
+func ProcessBaseConfigFile(configFileFQN string) (
+	config BaseConfiguration,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	var (
 		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFileFQN)
@@ -138,7 +141,10 @@ func ProcessBaseConfigFile(configFileFQN string) (config BaseConfiguration, erro
 //	Customer Messages: None
 //	Errors: ErrConfigFileMissing, ErrJSONInvalid
 //	Verifications: None
-func ReadConfigFile(configFileFQN string) (configData []byte, errorInfo cpi.ErrorInfo) {
+func ReadConfigFile(configFileFQN string) (
+	configData []byte,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	var (
 		tAdditionalInfo = fmt.Sprintf("%v %v", rcv.TXT_FILENAME, configFileFQN)

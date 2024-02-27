@@ -60,7 +60,10 @@ import (
 //	Customer Messages: None
 //	Errors: error returned by StdEncoding.DecodeString
 //	Verifications: None
-func Base64Decode(base64Value string) (value []byte, errorInfo cpi.ErrorInfo) {
+func Base64Decode(base64Value string) (
+	value []byte,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	if value, errorInfo.Error = b64.StdEncoding.DecodeString(base64Value); errorInfo.Error != nil {
 		errorInfo.AdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_BASE64, base64Value[:20])
@@ -140,11 +143,15 @@ func Base64Encode(value string) string {
 // 	return
 // }
 
-// FloatToPennies
-// func FloatToPennies(amount float64) (pennies int64) {
+// FloatToPennies - multiples the value by 100. Called pennies because we did for the US first.
 //
-// 	return int64(amount * 100)
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func FloatToPennies(amount float64) (pennies int64) {
+
+	return int64(amount * 100)
+}
 
 // formatURL - will return a formatted url with the protocol, domain, and port.
 //
@@ -380,7 +387,11 @@ func PrependWorkingDirectoryWithEndingSlash(directory string) string {
 //	Customer Messages: None
 //	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
 //	Verifications: IsDirectoryFullyQualified
-func CreateAndRedirectLogOutput(logDirectory, redirectTo string) (logFileHandlerPtr *os.File, logFQN string, errorInfo cpi.ErrorInfo) {
+func CreateAndRedirectLogOutput(logDirectory, redirectTo string) (
+	logFileHandlerPtr *os.File,
+	logFQN string,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	switch redirectTo {
 	case rcv.MODE_OUTPUT_LOG:
@@ -401,7 +412,10 @@ func CreateAndRedirectLogOutput(logDirectory, redirectTo string) (logFileHandler
 //	Customer Messages: None
 //	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
 //	Verifications: IsDirectoryFullyQualified
-func RedirectLogOutput(inLogFileHandlerPtr *os.File, redirectTo string) (errorInfo cpi.ErrorInfo) {
+func RedirectLogOutput(
+	inLogFileHandlerPtr *os.File,
+	redirectTo string,
+) (errorInfo cpi.ErrorInfo) {
 
 	switch redirectTo {
 	case rcv.MODE_OUTPUT_LOG:
@@ -436,12 +450,15 @@ func RemovePidFile(pidFQN string) (errorInfo cpi.ErrorInfo) {
 	return
 }
 
-// SendReply - will build a json object and send out the reply
+// SendReply - will take in an object, build a json object out of it, and send out the reply
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func SendReply(reply interface{}, msg *nats.Msg) (errorInfo cpi.ErrorInfo) {
+func SendReply(
+	reply interface{},
+	msg *nats.Msg,
+) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tJSONReply []byte
@@ -460,23 +477,34 @@ func SendReply(reply interface{}, msg *nats.Msg) (errorInfo cpi.ErrorInfo) {
 }
 
 // UnmarshalMessageData - reads the message data into the pointer. The second argument must be a pointer. If you pass something else, the unmarshal will fail.
-// func UnmarshalMessageData(msg *nats.Msg, requestPtr any) (errorInfo cpi.ErrorInfo) {
 //
-// 	if errorInfo.Error = json.Unmarshal(msg.Data, requestPtr); errorInfo.Error != nil {
-// 		errorInfo.Error = errors.New(fmt.Sprintf("ERROR: Unable to unmarshal message data: '%v' Request: %v", string(msg.Data), getType(requestPtr)))
-// 		log.Println(errorInfo.Error.Error())
-// 		// ToDo Handle Error & Notification
-// 	}
-//
-// 	return
-// }
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func UnmarshalMessageData(
+	functionName string,
+	msg *nats.Msg,
+	requestPtr any,
+) (errorInfo cpi.ErrorInfo) {
+
+	if errorInfo.Error = json.Unmarshal(msg.Data, requestPtr); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FUNCTION_NAME, cpi.ErrUnmarshalFailed))
+		cpi.PrintErrorInfo(errorInfo)
+	}
+
+	return
+}
 
 // WriteFile - will create and write to a fully qualified file.
 //
 //	Customer Messages: None
 //	Errors: ErrFileCreationFailed
 //	Verifications: None
-func WriteFile(fqn string, fileData []byte, filePermissions os.FileMode) (errorInfo cpi.ErrorInfo) {
+func WriteFile(
+	fqn string,
+	fileData []byte,
+	filePermissions os.FileMode,
+) (errorInfo cpi.ErrorInfo) {
 
 	if errorInfo.Error = os.WriteFile(fqn, fileData, filePermissions); errorInfo.Error != nil {
 		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v %v%v", cpi.ErrFileCreationFailed.Error(), rcv.TXT_FILENAME, fqn))
@@ -490,7 +518,10 @@ func WriteFile(fqn string, fileData []byte, filePermissions os.FileMode) (errorI
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func WritePidFile(pidFQN string, pid int) (errorInfo cpi.ErrorInfo) {
+func WritePidFile(
+	pidFQN string,
+	pid int,
+) (errorInfo cpi.ErrorInfo) {
 
 	if errorInfo = WriteFile(pidFQN, []byte(strconv.Itoa(pid)), 0766); errorInfo.Error == nil {
 		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
@@ -506,7 +537,10 @@ func WritePidFile(pidFQN string, pid int) (errorInfo cpi.ErrorInfo) {
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func buildJSONReply(reply interface{}) (jsonReply []byte, errorInfo cpi.ErrorInfo) {
+func buildJSONReply(reply interface{}) (
+	jsonReply []byte,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	if jsonReply, errorInfo.Error = json.Marshal(reply); errorInfo.Error != nil {
 		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_REPLY_TYPE, reflect.ValueOf(reply).Type().String()))
@@ -521,7 +555,11 @@ func buildJSONReply(reply interface{}) (jsonReply []byte, errorInfo cpi.ErrorInf
 //	Customer Messages: None
 //	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
 //	Verifications: IsDirectoryFullyQualified
-func createLogFile(logFQD string) (logFileHandlerPtr *os.File, logFQN string, errorInfo cpi.ErrorInfo) {
+func createLogFile(logFQD string) (
+	logFileHandlerPtr *os.File,
+	logFQN string,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	var (
 		tLogFileName string
@@ -533,7 +571,12 @@ func createLogFile(logFQD string) (logFileHandlerPtr *os.File, logFQN string, er
 	}
 
 	tDateTime := time.Now().Format("2006-01-02 15:04:05.000 Z0700")
-	tLogFileName = strings.Replace(strings.Replace(strings.Replace(tDateTime, rcv.SPACES_ONE, rcv.UNDERSCORE, -1), rcv.COLON, rcv.UNDERSCORE, -1), rcv.PERIOD, rcv.UNDERSCORE, -1)
+	tLogFileName = strings.Replace(
+		strings.Replace(strings.Replace(tDateTime, rcv.SPACES_ONE, rcv.UNDERSCORE, -1), rcv.COLON, rcv.UNDERSCORE, -1),
+		rcv.PERIOD,
+		rcv.UNDERSCORE,
+		-1,
+	)
 	logFQN = fmt.Sprintf("%v%v.log", logFQD, tLogFileName)
 
 	// Set log file output
