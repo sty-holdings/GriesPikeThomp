@@ -98,10 +98,13 @@ type Helper struct {
 }
 
 type PaymentIntentRequest struct {
-	Amount      float64 `json:"amount"`
-	Currency    string  `json:"currency"`
-	Description string  `json:"description"`
-	Key         string  `json:"key"`
+	Amount       float64 `json:"amount"`
+	Confirm      bool    `json:"confirm,omitempty""`
+	Currency     string  `json:"currency"`
+	Description  string  `json:"description,omitempty"`
+	Key          string  `json:"key"`
+	ReceiptEmail string  `json:"receipt_email"`
+	ReturnURL    string  `json:"return_url,omitempty""`
 }
 
 type PaymentIntentInfo struct {

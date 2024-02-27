@@ -35,8 +35,10 @@ COPYRIGHT & WARRANTY:
 package sharedServices
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strings"
 	"time"
 
@@ -51,6 +53,35 @@ type NATSService struct {
 	CredentialsFQN string
 	Secure         bool
 	URL            string
+}
+
+// BuildInstanceName - will create the NATS connection name with dashes, underscores between nodes or as provided.
+// The method can be cn.METHOD_DASHES, cn.METHOD_UNDERSCORES, rcv.VAL_EMPTY, "dashes", "underscores" or ""
+//
+//	Customer Messages: None
+//	Errors: error returned by nats.Connect
+//	Verifications: None
+func BuildInstanceName(
+	method string,
+	nodes ...string,
+) (
+	instanceName string,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	if len(nodes) == 1 {
+		method = METHOD_BLANK
+	}
+	switch strings.Trim(strings.ToLower(method), rcv.SPACES_ONE) {
+	case METHOD_DASHES:
+		instanceName, errorInfo = buildInstanceName(rcv.DASH, nodes...)
+	case METHOD_UNDERSCORES:
+		instanceName, errorInfo = buildInstanceName(rcv.UNDERSCORE, nodes...)
+	default:
+		instanceName, errorInfo = buildInstanceName(rcv.VAL_EMPTY, nodes...)
+	}
+
+	return
 }
 
 // GetConnection - will connect to a NATS leaf server with either a ssl or non-ssl connection.
@@ -101,6 +132,32 @@ func GetConnection(
 	return
 }
 
+// SendReply - will take in an object, build a json object out of it, and send out the reply
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func SendReply(
+	reply interface{},
+	msg *nats.Msg,
+) (errorInfo cpi.ErrorInfo) {
+
+	var (
+		tJSONReply []byte
+	)
+
+	if tJSONReply, errorInfo = buildJSONReply(reply); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v%v%v", rcv.TXT_SUBJECT, msg.Subject, rcv.TXT_MESSAGE_HEADER, msg.Header))
+		return
+	}
+
+	if errorInfo.Error = msg.Respond(tJSONReply); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v%v%v", rcv.TXT_SUBJECT, msg.Subject, rcv.TXT_MESSAGE_HEADER, msg.Header))
+	}
+
+	return
+}
+
 // Subscribe - will create a NATS subscription
 //
 //	Customer Messages: None
@@ -124,36 +181,26 @@ func Subscribe(
 	return
 }
 
-//  Private Functions
-
-// BuildInstanceName - will create the NATS connection name with dashes, underscores between nodes or as provided.
-// The method can be cn.METHOD_DASHES, cn.METHOD_UNDERSCORES, rcv.VAL_EMPTY, "dashes", "underscores" or ""
+// UnmarshalMessageData - reads the message data into the pointer. The second argument must be a pointer. If you pass something else, the unmarshal will fail.
 //
 //	Customer Messages: None
-//	Errors: error returned by nats.Connect
+//	Errors: None
 //	Verifications: None
-func BuildInstanceName(
-	method string,
-	nodes ...string,
-) (
-	instanceName string,
-	errorInfo cpi.ErrorInfo,
-) {
+func UnmarshalMessageData(
+	functionName string,
+	msg *nats.Msg,
+	requestPtr any,
+) (errorInfo cpi.ErrorInfo) {
 
-	if len(nodes) == 1 {
-		method = METHOD_BLANK
-	}
-	switch strings.Trim(strings.ToLower(method), rcv.SPACES_ONE) {
-	case METHOD_DASHES:
-		instanceName, errorInfo = buildInstanceName(rcv.DASH, nodes...)
-	case METHOD_UNDERSCORES:
-		instanceName, errorInfo = buildInstanceName(rcv.UNDERSCORE, nodes...)
-	default:
-		instanceName, errorInfo = buildInstanceName(rcv.VAL_EMPTY, nodes...)
+	if errorInfo.Error = json.Unmarshal(msg.Data, requestPtr); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FUNCTION_NAME, functionName))
+		cpi.PrintErrorInfo(errorInfo)
 	}
 
 	return
 }
+
+//  Private Functions
 
 // buildInstanceName - will create the NATS connection name with the delimiter between nodes.
 //
@@ -178,6 +225,24 @@ func buildInstanceName(
 		} else {
 			instanceName = fmt.Sprintf("%v%v%v", instanceName, delimiter, strings.Trim(node, rcv.SPACES_ONE))
 		}
+	}
+
+	return
+}
+
+// buildJSONReply - return a JSON reply object
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func buildJSONReply(reply interface{}) (
+	jsonReply []byte,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	if jsonReply, errorInfo.Error = json.Marshal(reply); errorInfo.Error != nil {
+		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_REPLY_TYPE, reflect.ValueOf(reply).Type().String()))
+		return
 	}
 
 	return

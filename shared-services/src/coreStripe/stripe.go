@@ -155,13 +155,13 @@ func (stripeInstancePtr *stripeInstance) paymentIntent() nats.MsgHandler {
 			tRequest              PaymentIntentRequest
 		)
 
-		if errorInfo = chv.UnmarshalMessageData(cpi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
-			tPaymentIntentResults, errorInfo = processPaymentIntent(tRequest.Amount, tRequest.Currency, tRequest.Description, tRequest.Key)
+		if errorInfo = cn.UnmarshalMessageData(cpi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+			tPaymentIntentResults, errorInfo = processPaymentIntent(tRequest)
 		}
 
 		tReply.Response = tPaymentIntentResults
 
-		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
 		}
 
@@ -285,14 +285,13 @@ func (stripeInstancePtr *stripeInstance) paymentIntent() nats.MsgHandler {
 
 // Private functions go below here.
 
-// processStripePayment - will handle a Stripe payment request
+// processStripePayment - will handle a Stripe payment intent request
 //
 //	Errors: ErrStripeAmountInvalid, cpi.ErrStripeCurrencyInvalid, cpi.ErrStripeKeyInvalid
 //	Customer Message: none
 //	Verifications: none
 func processPaymentIntent(
-	amount float64,
-	currency, description, key string,
+	request PaymentIntentRequest,
 ) (
 	paymentIntentResults *stripe.PaymentIntent,
 	errorInfo cpi.ErrorInfo,
@@ -302,36 +301,51 @@ func processPaymentIntent(
 		tMatchCurrency = false
 	)
 
-	if amount <= 0 {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeAmountInvalid, fmt.Sprintf("%v%v", rcv.TXT_AMOUNT, currency))
+	if request.Amount <= 0 {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeAmountInvalid, fmt.Sprintf("%v%v", rcv.TXT_AMOUNT, request.Currency))
 		return
 	}
-	if currency == rcv.VAL_EMPTY {
+	if request.Currency == rcv.VAL_EMPTY {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeCurrencyInvalid, rcv.VAL_EMPTY)
 		return
 	}
 	for _, tCurrency := range currencyList {
-		if stripe.Currency(strings.ToLower(strings.Trim(currency, rcv.SPACES_ONE))) == tCurrency {
+		if stripe.Currency(strings.ToLower(strings.Trim(request.Currency, rcv.SPACES_ONE))) == tCurrency {
 			tMatchCurrency = true
 			break
 		}
 	}
 	if tMatchCurrency == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeCurrencyInvalid, fmt.Sprintf("%v%v", rcv.TXT_CURRENCY, currency))
+		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeCurrencyInvalid, fmt.Sprintf("%v%v", rcv.TXT_CURRENCY, request.Currency))
 		return
 	}
-	if key == rcv.VAL_EMPTY {
+	if request.Key == rcv.VAL_EMPTY {
 		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeKeyInvalid, rcv.VAL_EMPTY)
 		return
 	}
-	stripe.Key = key
+	stripe.Key = request.Key
 
 	paymentParams := &stripe.PaymentIntentParams{
-		Amount:   stripe.Int64(chv.FloatToPennies(amount)),
-		Currency: stripe.String(currency),
-		// Customer:    stripe.String(tCustomer.Id),
-		Description: stripe.String(fmt.Sprintf("%v", description)),
+		Amount:      stripe.Int64(chv.FloatToPennies(request.Amount)),
+		Currency:    stripe.String(request.Currency),
+		Description: stripe.String(fmt.Sprintf("%v", request.Description)),
 	}
+
+	if chv.DoesFieldExist(PaymentIntentRequest{}, "confirm") {
+		paymentParams.Confirm = &request.Confirm
+		if request.Confirm && chv.DoesFieldExist(PaymentIntentRequest{}, "returnURL") {
+			paymentParams.ReturnURL = &request.ReturnURL
+		}
+	}
+
+	if chv.DoesFieldExist(PaymentIntentRequest{}, "description") {
+		paymentParams.Description = &request.Description
+	}
+
+	if chv.DoesFieldExist(PaymentIntentRequest{}, "receiptEmail") {
+		paymentParams.ReceiptEmail = &request.ReceiptEmail
+	}
+
 	paymentIntentResults, errorInfo.Error = paymentintent.New(paymentParams)
 
 	return

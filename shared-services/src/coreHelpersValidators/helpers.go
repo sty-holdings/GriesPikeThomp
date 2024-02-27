@@ -36,7 +36,6 @@ package sharedServices
 
 import (
 	b64 "encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -48,7 +47,6 @@ import (
 	"time"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	"github.com/nats-io/nats.go"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -142,6 +140,53 @@ func Base64Encode(value string) string {
 //
 // 	return
 // }
+
+// CreateAndRedirectLogOutput - will create the fully qualified config file log directory.
+// The log output is based on the redirectTo value, [MODE_OUTPUT_LOG | MODE_OUTPUT_LOG_DISPLAY].
+// The log file name uses this format: 2006-01-02 15:04:05.000 Z0700. All spaces, colons, and periods
+// are replaced with underscores.
+//
+//	Customer Messages: None
+//	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
+//	Verifications: IsDirectoryFullyQualified
+func CreateAndRedirectLogOutput(logDirectory, redirectTo string) (
+	logFileHandlerPtr *os.File,
+	logFQN string,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	switch redirectTo {
+	case rcv.MODE_OUTPUT_LOG:
+		logFileHandlerPtr, logFQN, errorInfo = createLogFile(logDirectory)
+		log.SetOutput(io.MultiWriter(logFileHandlerPtr))
+	case rcv.MODE_OUTPUT_LOG_DISPLAY:
+		logFileHandlerPtr, logFQN, errorInfo = createLogFile(logDirectory)
+		log.SetOutput(io.MultiWriter(os.Stdout, logFileHandlerPtr))
+	default:
+		errorInfo = cpi.NewErrorInfo(cpi.ErrMissingServerName, fmt.Sprintf("%v%v", rcv.TXT_REDIRECT, redirectTo))
+	}
+
+	return
+}
+
+// DoesFieldExist - tests the struct for the field name.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func DoesFieldExist(
+	structType interface{},
+	fieldName string,
+) bool {
+
+	var (
+		found bool
+	)
+
+	_, found = reflect.TypeOf(structType).FieldByName(fieldName)
+
+	return found
+}
 
 // FloatToPennies - multiples the value by 100. Called pennies because we did for the US first.
 //
@@ -379,34 +424,6 @@ func PrependWorkingDirectoryWithEndingSlash(directory string) string {
 //
 // }
 
-// CreateAndRedirectLogOutput - will create the fully qualified config file log directory.
-// The log output is based on the redirectTo value, [MODE_OUTPUT_LOG | MODE_OUTPUT_LOG_DISPLAY].
-// The log file name uses this format: 2006-01-02 15:04:05.000 Z0700. All spaces, colons, and periods
-// are replaced with underscores.
-//
-//	Customer Messages: None
-//	Errors: ErrDirectoryNotFullyQualified, any error from os.OpenFile
-//	Verifications: IsDirectoryFullyQualified
-func CreateAndRedirectLogOutput(logDirectory, redirectTo string) (
-	logFileHandlerPtr *os.File,
-	logFQN string,
-	errorInfo cpi.ErrorInfo,
-) {
-
-	switch redirectTo {
-	case rcv.MODE_OUTPUT_LOG:
-		logFileHandlerPtr, logFQN, errorInfo = createLogFile(logDirectory)
-		log.SetOutput(io.MultiWriter(logFileHandlerPtr))
-	case rcv.MODE_OUTPUT_LOG_DISPLAY:
-		logFileHandlerPtr, logFQN, errorInfo = createLogFile(logDirectory)
-		log.SetOutput(io.MultiWriter(os.Stdout, logFileHandlerPtr))
-	default:
-		errorInfo = cpi.NewErrorInfo(cpi.ErrMissingServerName, fmt.Sprintf("%v%v", rcv.TXT_REDIRECT, redirectTo))
-	}
-
-	return
-}
-
 // RedirectLogOutput - will redirect log output based on the redirectTo value, [MODE_OUTPUT_LOG | MODE_OUTPUT_LOG_DISPLAY].
 //
 //	Customer Messages: None
@@ -450,51 +467,6 @@ func RemovePidFile(pidFQN string) (errorInfo cpi.ErrorInfo) {
 	return
 }
 
-// SendReply - will take in an object, build a json object out of it, and send out the reply
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func SendReply(
-	reply interface{},
-	msg *nats.Msg,
-) (errorInfo cpi.ErrorInfo) {
-
-	var (
-		tJSONReply []byte
-	)
-
-	if tJSONReply, errorInfo = buildJSONReply(reply); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v%v%v", rcv.TXT_SUBJECT, msg.Subject, rcv.TXT_MESSAGE_HEADER, msg.Header))
-		return
-	}
-
-	if errorInfo.Error = msg.Respond(tJSONReply); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v%v%v", rcv.TXT_SUBJECT, msg.Subject, rcv.TXT_MESSAGE_HEADER, msg.Header))
-	}
-
-	return
-}
-
-// UnmarshalMessageData - reads the message data into the pointer. The second argument must be a pointer. If you pass something else, the unmarshal will fail.
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func UnmarshalMessageData(
-	functionName string,
-	msg *nats.Msg,
-	requestPtr any,
-) (errorInfo cpi.ErrorInfo) {
-
-	if errorInfo.Error = json.Unmarshal(msg.Data, requestPtr); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FUNCTION_NAME, cpi.ErrUnmarshalFailed))
-		cpi.PrintErrorInfo(errorInfo)
-	}
-
-	return
-}
-
 // WriteFile - will create and write to a fully qualified file.
 //
 //	Customer Messages: None
@@ -531,24 +503,6 @@ func WritePidFile(
 }
 
 // Private Functions
-
-// buildJSONReply - return a JSON reply object
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func buildJSONReply(reply interface{}) (
-	jsonReply []byte,
-	errorInfo cpi.ErrorInfo,
-) {
-
-	if jsonReply, errorInfo.Error = json.Marshal(reply); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_REPLY_TYPE, reflect.ValueOf(reply).Type().String()))
-		return
-	}
-
-	return
-}
 
 // createLogFile - will create and open the  log file using the fully qualified directory.
 //

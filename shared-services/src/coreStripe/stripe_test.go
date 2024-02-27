@@ -29,6 +29,11 @@ import (
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
+//goland:noinspection GoSnakeCaseUsage,GoCommentStart
+const (
+	TEST_KEY = "sk_test_51LalVGK3aJ31D0ASERSRRZ5bxTaMBMm7v5CYgCtLkJ8QCzyd3TecGD4Kv3Wk6NkCWL3LOplumLK30cA3RqOnNtK400cDqiATbp"
+)
+
 // func TestBuildStripeCustomerAccountId(tPtr *testing.T) {
 //
 // 	var (
@@ -159,11 +164,7 @@ import (
 func TestProcessPaymentIntent(tPtr *testing.T) {
 
 	type arguments struct {
-		amount      float64
-		currency    string
-		description string
-		key         string
-		source      string
+		request PaymentIntentRequest
 	}
 
 	var (
@@ -180,63 +181,136 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Successful transfer!",
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful transfer no description!",
 			arguments: arguments{
-				amount:      1.01,
-				currency:    string(stripe.CurrencyUSD),
-				description: rcv.TXT_EMPTY,
-				key:         "sk_test_51LalVGK3aJ31D0ASERSRRZ5bxTaMBMm7v5CYgCtLkJ8QCzyd3TecGD4Kv3Wk6NkCWL3LOplumLK30cA3RqOnNtK400cDqiATbp",
+				request: PaymentIntentRequest{
+					Amount:   1.01,
+					Currency: string(stripe.CurrencyUSD),
+					Key:      TEST_KEY,
+				},
 			},
 			wantError: false,
 		},
 		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful transfer no confirmation!",
+			arguments: arguments{
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Currency:    string(stripe.CurrencyUSD),
+					Description: rcv.TXT_EMPTY,
+					Key:         TEST_KEY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_NEGATIVE_SUCCESS + "Successful transfer with confirmation/return url!",
+			arguments: arguments{
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Confirm:     true,
+					Currency:    string(stripe.CurrencyUSD),
+					Description: rcv.TXT_EMPTY,
+					Key:         TEST_KEY,
+					ReturnURL:   "https://natsconnect.com",
+				},
+			},
+			wantError: true,
+		},
+		{
 			name: rcv.TEST_NEGATIVE_SUCCESS + "Zero amount",
 			arguments: arguments{
-				amount:      0,
-				currency:    string(stripe.CurrencyUSD),
-				description: rcv.TXT_EMPTY,
-				key:         "sk_test_51LalVGK3aJ31D0ASERSRRZ5bxTaMBMm7v5CYgCtLkJ8QCzyd3TecGD4Kv3Wk6NkCWL3LOplumLK30cA3RqOnNtK400cDqiATbp",
+				request: PaymentIntentRequest{
+					Amount:      0,
+					Currency:    string(stripe.CurrencyUSD),
+					Description: rcv.TXT_EMPTY,
+					Key:         TEST_KEY,
+				},
 			},
 			wantError: true,
 		},
 		{
 			name: rcv.TEST_NEGATIVE_SUCCESS + "Empty currency",
 			arguments: arguments{
-				amount:      1.01,
-				currency:    rcv.VAL_EMPTY,
-				description: rcv.TXT_EMPTY,
-				key:         "sk_test_51LalVGK3aJ31D0ASERSRRZ5bxTaMBMm7v5CYgCtLkJ8QCzyd3TecGD4Kv3Wk6NkCWL3LOplumLK30cA3RqOnNtK400cDqiATbp",
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Currency:    rcv.VAL_EMPTY,
+					Description: rcv.TXT_EMPTY,
+					Key:         TEST_KEY,
+				},
 			},
 			wantError: true,
 		},
 		{
 			name: rcv.TEST_NEGATIVE_SUCCESS + "Uppercase currency",
 			arguments: arguments{
-				amount:      1.01,
-				currency:    "USD",
-				description: rcv.TXT_EMPTY,
-				key:         rcv.VAL_EMPTY,
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Currency:    "USD",
+					Description: rcv.TXT_EMPTY,
+					Key:         rcv.VAL_EMPTY,
+				},
 			},
 			wantError: true,
 		},
 		{
 			name: rcv.TEST_NEGATIVE_SUCCESS + "Empty key",
 			arguments: arguments{
-				amount:      1.01,
-				currency:    string(stripe.CurrencyUSD),
-				description: rcv.TXT_EMPTY,
-				key:         rcv.VAL_EMPTY,
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Currency:    string(stripe.CurrencyUSD),
+					Description: rcv.TXT_EMPTY,
+					Key:         rcv.VAL_EMPTY,
+				},
 			},
 			wantError: true,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "No confirm with Return URL",
+			arguments: arguments{
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Currency:    string(stripe.CurrencyUSD),
+					Description: rcv.TXT_EMPTY,
+					Key:         TEST_KEY,
+					ReturnURL:   "https://natsconnect.com",
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Confirm with no Return URL",
+			arguments: arguments{
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Confirm:     true,
+					Currency:    string(stripe.CurrencyUSD),
+					Description: rcv.TXT_EMPTY,
+					Key:         TEST_KEY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Confirm with Return URL",
+			arguments: arguments{
+				request: PaymentIntentRequest{
+					Amount:      1.01,
+					Confirm:     true,
+					Currency:    string(stripe.CurrencyUSD),
+					Description: rcv.TXT_EMPTY,
+					Key:         TEST_KEY,
+					ReturnURL:   "https://natsconnect.com",
+				},
+			},
+			wantError: false,
 		},
 	}
 
 	for _, ts := range tests {
 		tPtr.Run(
 			ts.name, func(t *testing.T) {
-				if _, errorInfo = processPaymentIntent(
-					ts.arguments.amount, ts.arguments.currency, ts.arguments.description, ts.arguments.key,
-				); errorInfo.Error == nil {
+				if _, errorInfo = processPaymentIntent(ts.arguments.request); errorInfo.Error == nil {
 					gotError = false
 				} else {
 					gotError = true
