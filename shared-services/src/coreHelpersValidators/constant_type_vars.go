@@ -1,4 +1,4 @@
-// Package sharedServices
+// Package coreHelpersValidators
 /*
 General description of the purpose of the go file.
 
@@ -29,7 +29,7 @@ COPYRIGHT:
 	limitations under the License.
 
 */
-package sharedServices
+package coreHelpersValidators
 
 //goland:noinspection GoSnakeCaseUsage
 const (
@@ -43,4 +43,16 @@ const (
 
 var (
 	TEST_BYTE_ARRAY = []byte(TEST_STRING)
+)
+
+//goland:noinspection GoSnakeCaseUsage
+const (
+	TEST_DOMAIN               = "savup.com"
+	TEST_FILE_EXISTS_FILENAME = "file_exists.txt"
+	TEST_FILE_UNREADABLE      = "unreadable_file.txt"
+	TEST_INVALID_DOMAIN       = "tmp"
+)
+
+var (
+	testValidJson = []byte("{\"name\": \"Test Name\"}")
 )

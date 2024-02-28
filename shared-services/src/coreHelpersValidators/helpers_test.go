@@ -1,4 +1,4 @@
-// Package sharedServices
+// Package coreHelpersValidators
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package sharedServices
+package coreHelpersValidators
 
 import (
 	"fmt"
@@ -41,6 +41,7 @@ import (
 	"testing"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	cs "GriesPikeThomp/shared-services/src/coreStripe"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -134,6 +135,47 @@ var (
 // 	})
 //
 // }
+
+func TestConvertSliceToSliceOfPtrs(tPtr *testing.T) {
+
+	type arguments struct {
+		paymentMethodTypes []interface{}
+	}
+
+	var (
+		gotError bool
+		sliceOut []*interface{}
+	)
+
+	tests := []struct {
+		name      string
+		arguments arguments
+		wantError bool
+	}{
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful!",
+			arguments: arguments{
+				paymentMethodTypes: []interface{cs.PAYMENT_METHOD_CARD, cs.PAYMENT_METHOD_PAYNOW},
+			},
+			wantError: false,
+		},
+	}
+
+	for _, ts := range tests {
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				if sliceOut = ConvertSliceToSliceOfPtrs(ts.arguments.paymentMethodTypes); len(sliceOut) == 0 {
+					gotError = true
+				} else {
+					gotError = false
+				}
+				if gotError != ts.wantError {
+					tPtr.Error("TEST failed, investigate.")
+				}
+			},
+		)
+	}
+}
 
 // This is needed, because GIT must have read access for push,
 // and it must be the first test in this file.
@@ -670,65 +712,6 @@ var (
 //			})
 //		}
 //	}
-func TestGetUnknownFieldValue(tPtr *testing.T) {
-
-	type arguments struct {
-		tStruct interface{}
-	}
-
-	type testStruct struct {
-		Field1 string
-		field2 int
-		Field3 bool
-	}
-
-	var (
-		// tFunction, _, _, _ = runtime.Caller(0)
-		// tFunctionName      = runtime.FuncForPC(tFunction).Name()
-		// err                error
-		gotError bool
-		// tTestStruct        testStruct
-	)
-
-	tests := []struct {
-		name      string
-		arguments arguments
-		wantError bool
-	}{
-		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Type is string.",
-			arguments: arguments{
-				tStruct: testStruct{},
-			},
-			wantError: false,
-		},
-	}
-
-	for _, ts := range tests {
-		tPtr.Run(
-			ts.name, func(t *testing.T) {
-				// if _, _, _ := GetUnknownFieldValue(ts.arguments.tStruct); tTypeGot == ts.arguments.tExpectedType {
-				GetUnknownFieldsValues(ts.arguments.tStruct)
-				// 	gotError = false
-				// } else {
-				// 	gotError = true
-				// 	err = errors.New(
-				// 		fmt.Sprintf(
-				// 			"%v failed: Was expecting %v and got %v! Error: %v",
-				// 			tFunctionName,
-				// 			ts.arguments.tExpectedType,
-				// 			tTypeGot,
-				// 			err.Error(),
-				// 		),
-				// 	)
-				// }
-				if gotError != ts.wantError {
-					tPtr.Error(ts.name)
-				}
-			},
-		)
-	}
-}
 
 // func TestIsFileReadable(tPtr *testing.T) {
 //

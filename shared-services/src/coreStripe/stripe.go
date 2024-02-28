@@ -397,6 +397,9 @@ func processPaymentIntent(
 		paymentParams.Confirm = &request.Confirm
 		if chv.IsPopulated(request.ReturnURL) {
 			paymentParams.ReturnURL = &request.ReturnURL
+			if chv.IsPopulated(request.PaymentMethodTypes) {
+				paymentParams.PaymentMethodTypes = request.PaymentMethodTypes
+			}
 		}
 	}
 	if chv.IsPopulated(request.Description) {
@@ -404,9 +407,6 @@ func processPaymentIntent(
 	}
 	if chv.IsPopulated(request.ReceiptEmail) {
 		paymentParams.ReceiptEmail = &request.ReceiptEmail
-	}
-	if chv.IsPopulated(request.MethodType) {
-		paymentParams.PaymentMethod = &request.MethodType
 	}
 
 	paymentIntentResultsPtr, errorInfo.Error = paymentintent.New(paymentParams)

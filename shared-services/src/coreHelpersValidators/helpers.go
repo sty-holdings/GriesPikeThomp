@@ -1,4 +1,4 @@
-// Package sharedServices
+// Package coreHelpersValidators
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package sharedServices
+package coreHelpersValidators
 
 import (
 	b64 "encoding/base64"
@@ -140,6 +140,20 @@ func Base64Encode(value string) string {
 //
 // 	return
 // }
+
+// ConvertSliceToSliceOfPtrs - takes a slice and returns a slice of pointers to the items in the slice.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func ConvertSliceToSliceOfPtrs(inbound []interface{}) (outbound []*interface{}) {
+
+	for _, tSlice := range inbound {
+		outbound = append(outbound, &tSlice)
+	}
+
+	return
+}
 
 // CreateAndRedirectLogOutput - will create the fully qualified config file log directory.
 // The log output is based on the redirectTo value, [MODE_OUTPUT_LOG | MODE_OUTPUT_LOG_DISPLAY].

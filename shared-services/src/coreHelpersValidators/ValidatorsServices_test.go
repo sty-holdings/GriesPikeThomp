@@ -1,4 +1,4 @@
-// Package sharedServices
+// Package coreHelpersValidators
 /*
 This is the STY-Holdings shared services
 
@@ -32,7 +32,7 @@ COPYRIGHT & WARRANTY:
 	See the License for the specific language governing permissions and
 	limitations under the License.
 */
-package sharedServices
+package coreHelpersValidators
 
 import (
 	"bytes"
@@ -169,15 +169,17 @@ func TestBase64Decode(tPtr *testing.T) {
 		tValue             []byte
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if tValue, _ = Base64Decode(TEST_BASE64_STRING); bytes.Equal(tValue, TEST_BYTE_ARRAY) {
-		} else {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.VAL_EMPTY)
-		}
-		if tValue, _ = Base64Decode(TEST_STRING); bytes.Equal(tValue, TEST_BYTE_ARRAY) {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if tValue, _ = Base64Decode(TEST_BASE64_STRING); bytes.Equal(tValue, TEST_BYTE_ARRAY) {
+			} else {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.VAL_EMPTY)
+			}
+			if tValue, _ = Base64Decode(TEST_STRING); bytes.Equal(tValue, TEST_BYTE_ARRAY) {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+		},
+	)
 }
 
 func TestBase64Encode(tPtr *testing.T) {
@@ -187,12 +189,14 @@ func TestBase64Encode(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		// Adds working directory to file name
-		if Base64Encode(TEST_STRING) != TEST_BASE64_STRING {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.VAL_EMPTY)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			// Adds working directory to file name
+			if Base64Encode(TEST_STRING) != TEST_BASE64_STRING {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.VAL_EMPTY)
+			}
+		},
+	)
 }
 
 func TestCheckFileExistsAndReadable(tPtr *testing.T) {
@@ -246,17 +250,19 @@ func TestCheckFileExistsAndReadable(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(t *testing.T) {
-			if errorInfo = DoesFileExistsAndReadable(ts.arguments.FQN, ts.arguments.fileLabel); errorInfo.Error != nil {
-				gotError = true
-			} else {
-				gotError = false
-			}
-			if gotError != ts.wantError {
-				tPtr.Error(ts.name)
-				tPtr.Error(errorInfo)
-			}
-		})
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				if errorInfo = DoesFileExistsAndReadable(ts.arguments.FQN, ts.arguments.fileLabel); errorInfo.Error != nil {
+					gotError = true
+				} else {
+					gotError = false
+				}
+				if gotError != ts.wantError {
+					tPtr.Error(ts.name)
+					tPtr.Error(errorInfo)
+				}
+			},
+		)
 	}
 }
 
@@ -326,14 +332,16 @@ func TestDoesDirectoryExist(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if DoesDirectoryExist(tWorkingDirectory) == false {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DIRECTORY_DOES_NOT_EXIST)
-		}
-		if DoesDirectoryExist(rcv.VAL_EMPTY) {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DIRECTORY_EXISTS)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if DoesDirectoryExist(tWorkingDirectory) == false {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DIRECTORY_DOES_NOT_EXIST)
+			}
+			if DoesDirectoryExist(rcv.VAL_EMPTY) {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DIRECTORY_EXISTS)
+			}
+		},
+	)
 }
 
 func TestDoesFileExist(tPtr *testing.T) {
@@ -343,14 +351,16 @@ func TestDoesFileExist(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if DoesFileExist(TEST_FILE_EXISTS_FILENAME) == false {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_FILENAME_DOES_NOT_EXISTS)
-		}
-		if DoesFileExist(rcv.VAL_EMPTY) {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_FILENAME_EXISTS)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if DoesFileExist(TEST_FILE_EXISTS_FILENAME) == false {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_FILENAME_DOES_NOT_EXISTS)
+			}
+			if DoesFileExist(rcv.VAL_EMPTY) {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_FILENAME_EXISTS)
+			}
+		},
+	)
 }
 
 func TestIsBase64Encode(tPtr *testing.T) {
@@ -360,17 +370,19 @@ func TestIsBase64Encode(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if IsBase64Encode(TEST_STRING) {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-		if IsBase64Encode(TEST_BASE64_STRING) == false {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
-		}
-		if IsBase64Encode(rcv.VAL_EMPTY) == false {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if IsBase64Encode(TEST_STRING) {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+			if IsBase64Encode(TEST_BASE64_STRING) == false {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+			}
+			if IsBase64Encode(rcv.VAL_EMPTY) == false {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+			}
+		},
+	)
 
 }
 
@@ -413,16 +425,18 @@ func TestIsDomainValid(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(tPtr *testing.T) {
-			if IsDomainValid(ts.arguments.domain) {
-				gotError = false
-			} else {
-				gotError = true
-			}
-			if gotError != ts.wantError {
-				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, ts.name, rcv.TXT_GOT_WRONG_BOOLEAN)
-			}
-		})
+		tPtr.Run(
+			ts.name, func(tPtr *testing.T) {
+				if IsDomainValid(ts.arguments.domain) {
+					gotError = false
+				} else {
+					gotError = true
+				}
+				if gotError != ts.wantError {
+					tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, ts.name, rcv.TXT_GOT_WRONG_BOOLEAN)
+				}
+			},
+		)
 	}
 }
 
@@ -433,20 +447,22 @@ func TestIsGinModeValid(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if IsGinModeValid(rcv.MODE_DEBUG) == false {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
-		}
-		if IsGinModeValid(rcv.MODE_RELEASE) == false {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
-		}
-		if IsGinModeValid(rcv.TXT_EMPTY) {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.TRUE_SHOULD_BE_FALSE)
-		}
-		if IsGinModeValid(rcv.VAL_EMPTY) {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.TRUE_SHOULD_BE_FALSE)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if IsGinModeValid(rcv.MODE_DEBUG) == false {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+			}
+			if IsGinModeValid(rcv.MODE_RELEASE) == false {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.FALSE_SHOULD_BE_TRUE)
+			}
+			if IsGinModeValid(rcv.TXT_EMPTY) {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.TRUE_SHOULD_BE_FALSE)
+			}
+			if IsGinModeValid(rcv.VAL_EMPTY) {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, cpi.TRUE_SHOULD_BE_FALSE)
+			}
+		},
+	)
 }
 
 func TestIsEnvironmentValid(tPtr *testing.T) {
@@ -516,16 +532,18 @@ func TestIsEnvironmentValid(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(tPtr *testing.T) {
-			if IsEnvironmentValid(ts.arguments.environment) {
-				gotError = false
-			} else {
-				gotError = true
-			}
-			if gotError != ts.wantError {
-				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, ts.name, rcv.TXT_GOT_WRONG_BOOLEAN)
-			}
-		})
+		tPtr.Run(
+			ts.name, func(tPtr *testing.T) {
+				if IsEnvironmentValid(ts.arguments.environment) {
+					gotError = false
+				} else {
+					gotError = true
+				}
+				if gotError != ts.wantError {
+					tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, ts.name, rcv.TXT_GOT_WRONG_BOOLEAN)
+				}
+			},
+		)
 	}
 }
 
@@ -536,17 +554,19 @@ func TestIsFileReadable(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if IsFileReadable(TEST_FILE_UNREADABLE) == true {
-			tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
-		}
-		if IsFileReadable(TEST_FILE_EXISTS_FILENAME) == false {
-			tPtr.Error(cpi.FALSE_SHOULD_BE_TRUE)
-		}
-		if IsFileReadable(rcv.VAL_EMPTY) == true {
-			tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if IsFileReadable(TEST_FILE_UNREADABLE) == true {
+				tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
+			}
+			if IsFileReadable(TEST_FILE_EXISTS_FILENAME) == false {
+				tPtr.Error(cpi.FALSE_SHOULD_BE_TRUE)
+			}
+			if IsFileReadable(rcv.VAL_EMPTY) == true {
+				tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
+			}
+		},
+	)
 }
 
 func TestIsJSONValid(tPtr *testing.T) {
@@ -556,17 +576,19 @@ func TestIsJSONValid(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if IsJSONValid(testValidJson) == false {
-			tPtr.Error(cpi.FALSE_SHOULD_BE_TRUE)
-		}
-		if IsJSONValid([]byte(rcv.VAL_EMPTY)) == true {
-			tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
-		}
-		if IsJSONValid([]byte(rcv.TXT_EMPTY)) == true {
-			tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if IsJSONValid(testValidJson) == false {
+				tPtr.Error(cpi.FALSE_SHOULD_BE_TRUE)
+			}
+			if IsJSONValid([]byte(rcv.VAL_EMPTY)) == true {
+				tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
+			}
+			if IsJSONValid([]byte(rcv.TXT_EMPTY)) == true {
+				tPtr.Error(cpi.TRUE_SHOULD_BE_FALSE)
+			}
+		},
+	)
 }
 
 // func TestIsURLValid(tPtr *testing.T) {
@@ -666,17 +688,19 @@ func TestValidateDirectory(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if errorInfo = ValidateDirectory(tWorkingDirectory); errorInfo.Error != nil {
-			tPtr.Errorf("%v Failed: Expected err to be 'nil' and got %v.", tFunctionName, errorInfo.Error.Error())
-		}
-		if errorInfo = ValidateDirectory(rcv.VAL_EMPTY); errorInfo.Error == nil {
-			tPtr.Errorf("%v Failed: Expected an error and got nil.", tFunctionName)
-		}
-		if errorInfo = ValidateDirectory(rcv.TXT_EMPTY); errorInfo.Error == nil {
-			tPtr.Errorf("%v Failed: Expected an error and got nil.", tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if errorInfo = ValidateDirectory(tWorkingDirectory); errorInfo.Error != nil {
+				tPtr.Errorf("%v Failed: Expected err to be 'nil' and got %v.", tFunctionName, errorInfo.Error.Error())
+			}
+			if errorInfo = ValidateDirectory(rcv.VAL_EMPTY); errorInfo.Error == nil {
+				tPtr.Errorf("%v Failed: Expected an error and got nil.", tFunctionName)
+			}
+			if errorInfo = ValidateDirectory(rcv.TXT_EMPTY); errorInfo.Error == nil {
+				tPtr.Errorf("%v Failed: Expected an error and got nil.", tFunctionName)
+			}
+		},
+	)
 }
 
 // func TestValidateTransferMethod(tPtr *testing.T) {
