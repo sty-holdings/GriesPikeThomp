@@ -32,6 +32,7 @@ COPYRIGHT:
 package sharedServices
 
 import (
+	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 )
 
@@ -60,6 +61,6 @@ type MessageHandler struct {
 }
 
 type NATSReply struct {
-	Response interface{} `json:"response,omitempty"`
-	Error    string      `json:"error,omitempty"`
+	Response  interface{}   `json:"response,omitempty"`
+	ErrorInfo cpi.ErrorInfo `json:"error,omitempty"`
 }

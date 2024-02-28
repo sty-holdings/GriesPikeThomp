@@ -38,6 +38,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 
@@ -259,17 +260,27 @@ func IsEnvironmentValid(environment string) bool {
 	return true
 }
 
-// IsGinModeValid validates that the Gin HTTP framework mode is correctly set.
-func IsGinModeValid(mode string) bool {
-
-	switch strings.ToLower(mode) {
-	case rcv.MODE_DEBUG:
-	case rcv.MODE_RELEASE:
+// IsEmpty - checks that the value is empty.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func IsEmpty(value interface{}) bool {
+	switch v := value.(type) {
+	case string:
+		return isEmptyString(v)
+	case []interface{}: // Check for slices and arrays
+		return isEmptyCollection(v)
+	case map[interface{}]interface{}: // Check for maps
+		return isEmptyCollection(v)
+	case chan interface{}: // Check for channels
+		return isEmptyCollection(v)
+	case *interface{}: // Check for pointers
+		return isEmptyPointer(v)
 	default:
+		// For other types, consider if they have an "empty" equivalent
 		return false
 	}
-
-	return true
 }
 
 // IsFileReadable - tries to open the file using 0644 permissions
@@ -284,6 +295,29 @@ func IsFileReadable(fileName string) bool {
 	}
 
 	return false
+}
+
+// IsGinModeValid validates that the Gin HTTP framework mode is correctly set.
+func IsGinModeValid(mode string) bool {
+
+	switch strings.ToLower(mode) {
+	case rcv.MODE_DEBUG:
+	case rcv.MODE_RELEASE:
+	default:
+		return false
+	}
+
+	return true
+}
+
+// IsPopulated - checks that the value is populated.
+func IsPopulated(value interface{}) bool {
+
+	if IsEmpty(value) {
+		return false
+	}
+
+	return true
 }
 
 // IsIPAddressValid - checks if the data provide is a valid IP address
@@ -494,3 +528,25 @@ func ValidateDirectory(directory string) (errorInfo cpi.ErrorInfo) {
 //
 // 	return
 // }
+
+// Private methods below here
+
+func isEmptyString(value string) bool {
+	return value == ""
+}
+
+func isEmptyCollection(value interface{}) bool {
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Slice || v.Kind() == reflect.Array || v.Kind() == reflect.Map || v.Kind() == reflect.Chan {
+		return v.IsNil() || v.Len() == 0
+	}
+	return false
+}
+
+func isEmptyPointer(value interface{}) bool {
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		return v.IsNil()
+	}
+	return false
+}

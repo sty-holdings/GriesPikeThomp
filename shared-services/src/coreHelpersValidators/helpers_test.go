@@ -609,67 +609,126 @@ var (
 
 // func TestGetType(tPtr *testing.T) {
 //
-// 	type arguments struct {
-// 		tVar          any
-// 		tExpectedType string
-// 	}
+//		type arguments struct {
+//			tVar          any
+//			tExpectedType string
+//		}
 //
-// 	type testStruct struct {
-// 	}
+//		type testStruct struct {
+//		}
 //
-// 	var (
-// 		tFunction, _, _, _ = runtime.Caller(0)
-// 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
-// 		err                error
-// 		gotError           bool
-// 		tTestStruct        testStruct
-// 	)
+//		var (
+//			tFunction, _, _, _ = runtime.Caller(0)
+//			tFunctionName      = runtime.FuncForPC(tFunction).Name()
+//			err                error
+//			gotError           bool
+//			tTestStruct        testStruct
+//		)
 //
-// 	tests := []struct {
-// 		name      string
-// 		arguments arguments
-// 		wantError bool
-// 	}{
-// 		{
-// 			name: "Positive Case: Type is string.",
-// 			arguments: arguments{
-// 				tVar:          "first",
-// 				tExpectedType: "string",
-// 			},
-// 			wantError: false,
-// 		},
-// 		{
-// 			name: "Positive Case: Type is Struct.",
-// 			arguments: arguments{
-// 				tVar:          tTestStruct,
-// 				tExpectedType: "testStruct",
-// 			},
-// 			wantError: false,
-// 		},
-// 		{
-// 			name: "Positive Case: Type is pointer to Struct.",
-// 			arguments: arguments{
-// 				tVar:          &tTestStruct,
-// 				tExpectedType: "*testStruct",
-// 			},
-// 			wantError: false,
-// 		},
-// 	}
+//		tests := []struct {
+//			name      string
+//			arguments arguments
+//			wantError bool
+//		}{
+//			{
+//				name: "Positive Case: Type is string.",
+//				arguments: arguments{
+//					tVar:          "first",
+//					tExpectedType: "string",
+//				},
+//				wantError: false,
+//			},
+//			{
+//				name: "Positive Case: Type is Struct.",
+//				arguments: arguments{
+//					tVar:          tTestStruct,
+//					tExpectedType: "testStruct",
+//				},
+//				wantError: false,
+//			},
+//			{
+//				name: "Positive Case: Type is pointer to Struct.",
+//				arguments: arguments{
+//					tVar:          &tTestStruct,
+//					tExpectedType: "*testStruct",
+//				},
+//				wantError: false,
+//			},
+//		}
 //
-// 	for _, ts := range tests {
-// 		tPtr.Run(ts.name, func(t *testing.T) {
-// 			if tTypeGot := getType(ts.arguments.tVar); tTypeGot == ts.arguments.tExpectedType {
-// 				gotError = false
-// 			} else {
-// 				gotError = true
-// 				err = errors.New(fmt.Sprintf("%v failed: Was expecting %v and got %v! Error: %v", tFunctionName, ts.arguments.tExpectedType, tTypeGot, err.Error()))
-// 			}
-// 			if gotError != ts.wantError {
-// 				tPtr.Error(ts.name)
-// 			}
-// 		})
-// 	}
-// }
+//		for _, ts := range tests {
+//			tPtr.Run(ts.name, func(t *testing.T) {
+//				if tTypeGot := getType(ts.arguments.tVar); tTypeGot == ts.arguments.tExpectedType {
+//					gotError = false
+//				} else {
+//					gotError = true
+//					err = errors.New(fmt.Sprintf("%v failed: Was expecting %v and got %v! Error: %v", tFunctionName, ts.arguments.tExpectedType, tTypeGot, err.Error()))
+//				}
+//				if gotError != ts.wantError {
+//					tPtr.Error(ts.name)
+//				}
+//			})
+//		}
+//	}
+func TestGetUnknownFieldValue(tPtr *testing.T) {
+
+	type arguments struct {
+		tStruct interface{}
+	}
+
+	type testStruct struct {
+		Field1 string
+		field2 int
+		Field3 bool
+	}
+
+	var (
+		// tFunction, _, _, _ = runtime.Caller(0)
+		// tFunctionName      = runtime.FuncForPC(tFunction).Name()
+		// err                error
+		gotError bool
+		// tTestStruct        testStruct
+	)
+
+	tests := []struct {
+		name      string
+		arguments arguments
+		wantError bool
+	}{
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Type is string.",
+			arguments: arguments{
+				tStruct: testStruct{},
+			},
+			wantError: false,
+		},
+	}
+
+	for _, ts := range tests {
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				// if _, _, _ := GetUnknownFieldValue(ts.arguments.tStruct); tTypeGot == ts.arguments.tExpectedType {
+				GetUnknownFieldsValues(ts.arguments.tStruct)
+				// 	gotError = false
+				// } else {
+				// 	gotError = true
+				// 	err = errors.New(
+				// 		fmt.Sprintf(
+				// 			"%v failed: Was expecting %v and got %v! Error: %v",
+				// 			tFunctionName,
+				// 			ts.arguments.tExpectedType,
+				// 			tTypeGot,
+				// 			err.Error(),
+				// 		),
+				// 	)
+				// }
+				if gotError != ts.wantError {
+					tPtr.Error(ts.name)
+				}
+			},
+		)
+	}
+}
 
 // func TestIsFileReadable(tPtr *testing.T) {
 //
@@ -934,16 +993,18 @@ func TestIsDirectoryFullyQualified(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		// Adds working directory to file name
-		if IsDirectoryFullyQualified(TEST_DIRECTORY_ENDING_SLASH) == false {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_GOT_WRONG_BOOLEAN)
-		}
-		// Pass working directory and get back working directory
-		if IsDirectoryFullyQualified(TEST_DIRECTORY) {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_GOT_WRONG_BOOLEAN)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			// Adds working directory to file name
+			if IsDirectoryFullyQualified(TEST_DIRECTORY_ENDING_SLASH) == false {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_GOT_WRONG_BOOLEAN)
+			}
+			// Pass working directory and get back working directory
+			if IsDirectoryFullyQualified(TEST_DIRECTORY) {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_GOT_WRONG_BOOLEAN)
+			}
+		},
+	)
 }
 
 func TestPrependWorkingDirectory(tPtr *testing.T) {
@@ -959,16 +1020,18 @@ func TestPrependWorkingDirectory(tPtr *testing.T) {
 	tWorkingDirectory, _ = os.Getwd()
 	tTestFileName = fmt.Sprintf("%v/%v", tWorkingDirectory, TEST_FILE_NAME)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		// Adds working directory to file name
-		if tPrependedFileName = PrependWorkingDirectory(TEST_FILE_NAME); tPrependedFileName != tTestFileName {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DID_NOT_MATCH)
-		}
-		// Pass working directory and get back working directory
-		if tPrependedFileName = PrependWorkingDirectory(tWorkingDirectory); tPrependedFileName != tWorkingDirectory {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DID_NOT_MATCH)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			// Adds working directory to file name
+			if tPrependedFileName = PrependWorkingDirectory(TEST_FILE_NAME); tPrependedFileName != tTestFileName {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DID_NOT_MATCH)
+			}
+			// Pass working directory and get back working directory
+			if tPrependedFileName = PrependWorkingDirectory(tWorkingDirectory); tPrependedFileName != tWorkingDirectory {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, rcv.TXT_DID_NOT_MATCH)
+			}
+		},
+	)
 }
 
 func TestPrependWorkingDirectoryWithEndingSlash(tPtr *testing.T) {
@@ -1006,15 +1069,19 @@ func TestPrependWorkingDirectoryWithEndingSlash(tPtr *testing.T) {
 		},
 	}
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		for _, tt := range tests {
-			tPtr.Run(tt.name, func(t *testing.T) {
-				if output := PrependWorkingDirectoryWithEndingSlash(tt.input); output != tt.expected {
-					t.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tt.name, rcv.TXT_DID_NOT_MATCH)
-				}
-			})
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			for _, tt := range tests {
+				tPtr.Run(
+					tt.name, func(t *testing.T) {
+						if output := PrependWorkingDirectoryWithEndingSlash(tt.input); output != tt.expected {
+							t.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tt.name, rcv.TXT_DID_NOT_MATCH)
+						}
+					},
+				)
+			}
+		},
+	)
 }
 
 func TestRedirectLogOutput(tPtr *testing.T) {
@@ -1029,17 +1096,19 @@ func TestRedirectLogOutput(tPtr *testing.T) {
 
 	tLogFileHandlerPtr, tLogFQN, _ = createLogFile(TEST_DIRECTORY_ENDING_SLASH)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.MODE_OUTPUT_LOG); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.VAL_EMPTY); errorInfo.Error == nil {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.MODE_OUTPUT_LOG); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			if errorInfo = RedirectLogOutput(tLogFileHandlerPtr, rcv.VAL_EMPTY); errorInfo.Error == nil {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+		},
+	)
 
 	_ = os.Remove(tLogFQN)
 }
@@ -1053,15 +1122,17 @@ func TestRemovePidFile(tPtr *testing.T) {
 		tTestFQN           = TEST_DIRECTORY_ENDING_SLASH + TEST_FILE_NAME
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		_ = WritePidFile(tTestFQN, 777)
-		if errorInfo = RemovePidFile(tTestFQN); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		if errorInfo = RemovePidFile(rcv.VAL_EMPTY); errorInfo.Error == nil {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			_ = WritePidFile(tTestFQN, 777)
+			if errorInfo = RemovePidFile(tTestFQN); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			if errorInfo = RemovePidFile(rcv.VAL_EMPTY); errorInfo.Error == nil {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+		},
+	)
 }
 
 func TestWriteFile(tPtr *testing.T) {
@@ -1073,15 +1144,17 @@ func TestWriteFile(tPtr *testing.T) {
 		tTestFQN           = TEST_DIRECTORY_ENDING_SLASH + TEST_FILE_NAME
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if errorInfo = WriteFile(tTestFQN, []byte(rcv.TXT_EMPTY), 0777); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		_ = os.Remove(tTestFQN)
-		if errorInfo = WriteFile(rcv.VAL_EMPTY, []byte(rcv.TXT_EMPTY), 0777); errorInfo.Error == nil {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if errorInfo = WriteFile(tTestFQN, []byte(rcv.TXT_EMPTY), 0777); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			_ = os.Remove(tTestFQN)
+			if errorInfo = WriteFile(rcv.VAL_EMPTY, []byte(rcv.TXT_EMPTY), 0777); errorInfo.Error == nil {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+		},
+	)
 }
 
 func TestWritePidFile(tPtr *testing.T) {
@@ -1093,15 +1166,17 @@ func TestWritePidFile(tPtr *testing.T) {
 		tTestFQN           = TEST_DIRECTORY_ENDING_SLASH + TEST_FILE_NAME
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if errorInfo = WritePidFile(tTestFQN, 777); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		_ = os.Remove(tTestFQN)
-		if errorInfo = WritePidFile(rcv.VAL_EMPTY, 777); errorInfo.Error == nil {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if errorInfo = WritePidFile(tTestFQN, 777); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			_ = os.Remove(tTestFQN)
+			if errorInfo = WritePidFile(rcv.VAL_EMPTY, 777); errorInfo.Error == nil {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+		},
+	)
 }
 
 // Private Functions
@@ -1114,19 +1189,21 @@ func TestCreateAndRedirectLogOutput(tPtr *testing.T) {
 		tLogFQN            string
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.MODE_OUTPUT_LOG); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		fmt.Println(os.Remove(tLogFQN))
-		if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		fmt.Println(os.Remove(tLogFQN))
-		if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.VAL_EMPTY); errorInfo.Error == nil {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.MODE_OUTPUT_LOG); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			fmt.Println(os.Remove(tLogFQN))
+			if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			fmt.Println(os.Remove(tLogFQN))
+			if _, tLogFQN, errorInfo = CreateAndRedirectLogOutput(TEST_DIRECTORY_ENDING_SLASH, rcv.VAL_EMPTY); errorInfo.Error == nil {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+		},
+	)
 
 }
 
@@ -1139,14 +1216,16 @@ func TestCreateLogFile(tPtr *testing.T) {
 		tLogFQN            string
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if _, tLogFQN, errorInfo = createLogFile(TEST_DIRECTORY_ENDING_SLASH); errorInfo.Error != nil {
-			tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
-		}
-		_ = os.Remove(tLogFQN)
-		if _, _, errorInfo = createLogFile(TEST_DIRECTORY); errorInfo.Error == nil {
-			tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if _, tLogFQN, errorInfo = createLogFile(TEST_DIRECTORY_ENDING_SLASH); errorInfo.Error != nil {
+				tPtr.Errorf(cpi.EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error.Error())
+			}
+			_ = os.Remove(tLogFQN)
+			if _, _, errorInfo = createLogFile(TEST_DIRECTORY); errorInfo.Error == nil {
+				tPtr.Errorf(cpi.EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+		},
+	)
 
 }

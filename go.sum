@@ -291,6 +291,8 @@ github.com/sty-holdings/resuable-const-vars v2024.11.3+incompatible h1:mEWC2c5ao
 github.com/sty-holdings/resuable-const-vars v2024.11.3+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
 github.com/sty-holdings/resuable-const-vars v2024.11.4+incompatible h1:Tf5JvrCdr3gZzTUa+OwNBnqOgYd/JBQeoK5ij0jTYeg=
 github.com/sty-holdings/resuable-const-vars v2024.11.4+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
+github.com/sty-holdings/resuable-const-vars v2024.11.5+incompatible h1:qXSGm5xu95xdVBm0W/OFPcVDqBnl5ScyZ2VJz/heYvw=
+github.com/sty-holdings/resuable-const-vars v2024.11.5+incompatible/go.mod h1:ieMXr9HLd8zX6BiJlvlFOwG2m5JbtWyK7UrKRDzyLqA=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

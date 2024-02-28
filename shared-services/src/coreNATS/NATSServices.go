@@ -192,9 +192,13 @@ func UnmarshalMessageData(
 	requestPtr any,
 ) (errorInfo cpi.ErrorInfo) {
 
+	if string(msg.Data) == rcv.VAL_EMPTY {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrRequiredArgumentMissing, fmt.Sprintf("%v%v", rcv.TXT_FUNCTION_NAME, functionName))
+		return
+	}
+
 	if errorInfo.Error = json.Unmarshal(msg.Data, requestPtr); errorInfo.Error != nil {
 		errorInfo = cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FUNCTION_NAME, functionName))
-		cpi.PrintErrorInfo(errorInfo)
 	}
 
 	return

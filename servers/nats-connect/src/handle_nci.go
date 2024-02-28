@@ -36,7 +36,6 @@ COPYRIGHT:
 package src
 
 import (
-	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
 	cn "GriesPikeThomp/shared-services/src/coreNATS"
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
@@ -82,7 +81,7 @@ func (serverPtr *Server) nciTurnDebugOff() nats.MsgHandler {
 		serverPtr.instance.debugModeOn = false
 		tReply.Response = "Debug mode turned off"
 
-		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
 		}
 
@@ -107,7 +106,7 @@ func (serverPtr *Server) nciTurnDebugOn() nats.MsgHandler {
 		serverPtr.instance.debugModeOn = true
 		tReply.Response = "Debug mode turned on"
 
-		if errorInfo = chv.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
 			cpi.PrintErrorInfo(errorInfo)
 		}
 

@@ -21,6 +21,7 @@ COPYRIGHT:
 package coreStripe
 
 import (
+	"fmt"
 	"runtime"
 	"testing"
 
@@ -161,6 +162,238 @@ const (
 //
 // }
 
+func TestProcessConfirmPaymentIntent(tPtr *testing.T) {
+
+	type arguments struct {
+		request ConfirmRequest
+	}
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		gotError           bool
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	// Since the system pulls the requestor id from the access token, the struct's only have an access token field.
+	tests := []struct {
+		name      string
+		arguments arguments
+		wantError bool
+	}{
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful confirmation!",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             TEST_KEY,
+					PaymentIntentId: "pi_3OoGmjK3aJ31D0AS1CSuUIL6",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "https://natsconnect.com",
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful payment no confirmation!",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_NEGATIVE_SUCCESS + "Successful payment with confirmation/return url!",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: true,
+		},
+		{
+			name: rcv.TEST_NEGATIVE_SUCCESS + "Zero amount",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: true,
+		},
+		{
+			name: rcv.TEST_NEGATIVE_SUCCESS + "Empty currency",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: true,
+		},
+		{
+			name: rcv.TEST_NEGATIVE_SUCCESS + "Uppercase currency",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: true,
+		},
+		{
+			name: rcv.TEST_NEGATIVE_SUCCESS + "Empty key",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: true,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "No confirm with Return URL",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Confirm with no Return URL",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Confirm with Return URL",
+			arguments: arguments{
+				request: ConfirmRequest{
+					CaptureMethod:   "",
+					Key:             "",
+					PaymentIntentId: "",
+					PaymentMethod:   "",
+					ReceiptEmail:    "",
+					ReturnURL:       "",
+				},
+			},
+			wantError: false,
+		},
+	}
+
+	for _, ts := range tests {
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				if _, errorInfo = processConfirmPaymentIntent(ts.arguments.request); errorInfo.Error == nil {
+					gotError = false
+				} else {
+					gotError = true
+				}
+				if gotError != ts.wantError {
+					tPtr.Error(tFunctionName, ts.name, errorInfo.Error.Error())
+				}
+			},
+		)
+	}
+}
+
+func TestProcessListPaymentMethods(tPtr *testing.T) {
+
+	type arguments struct {
+		request ListPaymentMethodRequest
+	}
+
+	var (
+		errorInfo          cpi.ErrorInfo
+		gotError           bool
+		tFunction, _, _, _ = runtime.Caller(0)
+		tFunctionName      = runtime.FuncForPC(tFunction).Name()
+	)
+
+	// Since the system pulls the requestor id from the access token, the struct's only have an access token field.
+	tests := []struct {
+		name      string
+		arguments arguments
+		wantError bool
+	}{
+		{
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful List!",
+			arguments: arguments{
+				request: ListPaymentMethodRequest{
+					Key: TEST_KEY,
+				},
+			},
+			wantError: false,
+		},
+		{
+			name: rcv.TEST_NEGATIVE_SUCCESS + "Successful key is missing",
+			arguments: arguments{
+				request: ListPaymentMethodRequest{
+					Key: rcv.VAL_EMPTY,
+				},
+			},
+			wantError: true,
+		},
+	}
+
+	for _, ts := range tests {
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				if _, errorInfo = processListPaymentMethods(ts.arguments.request); errorInfo.Error == nil {
+					gotError = false
+				} else {
+					gotError = true
+				}
+				if gotError != ts.wantError {
+					tPtr.Error(tFunctionName, ts.name, errorInfo.Error.Error())
+				}
+			},
+		)
+	}
+}
+
 func TestProcessPaymentIntent(tPtr *testing.T) {
 
 	type arguments struct {
@@ -181,7 +414,7 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Successful transfer no description!",
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful payment no description!",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:   1.01,
@@ -192,7 +425,7 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Successful transfer no confirmation!",
+			name: rcv.TEST_POSITVE_SUCCESS + "Successful payment no confirmation!",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:      1.01,
@@ -204,7 +437,7 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Successful transfer with confirmation/return url!",
+			name: rcv.TEST_NEGATIVE_SUCCESS + "payment with confirmation/return url and missing payment method",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:      1.01,
@@ -276,7 +509,7 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 					ReturnURL:   "https://natsconnect.com",
 				},
 			},
-			wantError: false,
+			wantError: true,
 		},
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Confirm with no Return URL",
@@ -287,9 +520,10 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 					Currency:    string(stripe.CurrencyUSD),
 					Description: rcv.TXT_EMPTY,
 					Key:         TEST_KEY,
+					MethodType:  PAYMENT_METHOD_CARD,
 				},
 			},
-			wantError: false,
+			wantError: true,
 		},
 		{
 			name: rcv.TEST_POSITVE_SUCCESS + "Confirm with Return URL",
@@ -300,6 +534,7 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 					Currency:    string(stripe.CurrencyUSD),
 					Description: rcv.TXT_EMPTY,
 					Key:         TEST_KEY,
+					MethodType:  PAYMENT_METHOD_CARD,
 					ReturnURL:   "https://natsconnect.com",
 				},
 			},
@@ -310,6 +545,7 @@ func TestProcessPaymentIntent(tPtr *testing.T) {
 	for _, ts := range tests {
 		tPtr.Run(
 			ts.name, func(t *testing.T) {
+				fmt.Println(rcv.LINE_LONG)
 				if _, errorInfo = processPaymentIntent(ts.arguments.request); errorInfo.Error == nil {
 					gotError = false
 				} else {

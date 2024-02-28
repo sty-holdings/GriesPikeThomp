@@ -342,6 +342,30 @@ func FloatToPennies(amount float64) (pennies int64) {
 // 	return time.Now().Format("15-04-05.00000")
 // }
 
+// GetFieldsNames - will return a list fields in a struct
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func GetFieldsNames(unknownStruct interface{}) (
+	fields map[string]interface{},
+	errorInfo cpi.ErrorInfo,
+) {
+
+	fields = make(map[string]interface{})
+
+	tStruct := reflect.ValueOf(unknownStruct)
+	tType := tStruct.Type()
+
+	for i := 0; i < tType.NumField(); i++ {
+		if tType.Field(i).IsExported() {
+			fields[tType.Field(i).Name] = tStruct.FieldByName(tType.Field(i).Name).Interface()
+		}
+	}
+
+	return
+}
+
 // PenniesToFloat
 // func PenniesToFloat(pennies int64) float64 {
 //

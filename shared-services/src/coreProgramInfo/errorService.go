@@ -57,7 +57,10 @@ type ErrorInfo struct {
 //	Customer Messages: None
 //	Errors: Missing values will be filled with 'MISSING'.
 //	Verifications: None
-func NewErrorInfo(myError error, additionalInfo string) (errorInfo ErrorInfo) {
+func NewErrorInfo(
+	myError error,
+	additionalInfo string,
+) (errorInfo ErrorInfo) {
 
 	if myError == nil {
 		return
@@ -69,6 +72,7 @@ func NewErrorInfo(myError error, additionalInfo string) (errorInfo ErrorInfo) {
 	} else {
 		errorInfo.AdditionalInfo = additionalInfo
 	}
+	errorInfo.Message = myError.Error()
 
 	return
 }
@@ -80,7 +84,10 @@ func NewErrorInfo(myError error, additionalInfo string) (errorInfo ErrorInfo) {
 //	Customer Messages: None
 //	Errors: Missing values will be filled with 'MISSING'.
 //	Verifications: None
-func PrintError(myError error, additionalInfo string) {
+func PrintError(
+	myError error,
+	additionalInfo string,
+) {
 
 	var (
 		errorInfo ErrorInfo
@@ -119,7 +126,13 @@ func PrintErrorInfo(errorInfo ErrorInfo) {
 // Private Functions
 func outputError(errorInfo ErrorInfo) {
 
-	log.Printf("[ERROR] %v Additional Info: '%v' File: %v Near Line Number: %v\n", errorInfo.Error.Error(), errorInfo.AdditionalInfo, errorInfo.FileName, errorInfo.LineNumber)
+	log.Printf(
+		"[ERROR] %v Additional Info: '%v' File: %v Near Line Number: %v\n",
+		errorInfo.Error.Error(),
+		errorInfo.AdditionalInfo,
+		errorInfo.FileName,
+		errorInfo.LineNumber,
+	)
 }
 
 func newError(myError error) (errorInfo ErrorInfo) {

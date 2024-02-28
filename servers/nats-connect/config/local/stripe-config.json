@@ -12,6 +12,9 @@
   "subject_registry": [
     {
       "subject": "stripe.payment-intent"
+    },
+    {
+      "subject": "stripe.list-payment-methods"
     }
   ]
 }

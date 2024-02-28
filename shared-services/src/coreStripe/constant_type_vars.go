@@ -41,7 +41,46 @@ import (
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
 	// Subjects
-	STRIPE_PAYMENT_INTENT = "stripe.payment-intent"
+	STRIPE_PAYMENT_INTENT       = "stripe.payment-intent"
+	STRIPE_LIST_PAYMENT_METHODS = "stripe.list-payment-methods"
+	// 	Payment Methods Supported
+	PAYMENT_METHOD_ACSSDEBIT        = "ACSSDebit"
+	PAYMENT_METHOD_AFFIRM           = "Affirm"
+	PAYMENT_METHOD_AFTERPAYCLEARPAY = "AfterpayClearpay"
+	PAYMENT_METHOD_ALIPAY           = "Alipay"
+	PAYMENT_METHOD_APPLEPAY         = "ApplePay"
+	PAYMENT_METHOD_AUBECSDEBIT      = "AUBECSDebit"
+	PAYMENT_METHOD_BACSDEBIT        = "BACSDebit"
+	PAYMENT_METHOD_BANCONTACT       = "Bancontact"
+	PAYMENT_METHOD_BLIK             = "BLIK"
+	PAYMENT_METHOD_Boleto           = "Boleto"
+	PAYMENT_METHOD_CARD             = "Card"
+	PAYMENT_METHOD_CARTESBANCAIRES  = "CartesBancaires"
+	PAYMENT_METHOD_CASHAPP          = "CashApp"
+	PAYMENT_METHOD_EPS              = "EPS"
+	PAYMENT_METHOD_FPX              = "FPX"
+	PAYMENT_METHOD_GIROPAY          = "Giropay"
+	PAYMENT_METHOD_GOOGLEPAY        = "GooglePay"
+	PAYMENT_METHOD_IDBANKTRANSFER   = "IDBankTransfer"
+	PAYMENT_METHOD_IDEAL            = "IDEAL"
+	PAYMENT_METHOD_JCB              = "JCB"
+	PAYMENT_METHOD_KLARNA           = "Klarna"
+	PAYMENT_METHOD_KONBINI          = "Konbini"
+	PAYMENT_METHOD_LINK             = "Link"
+	PAYMENT_METHOD_LIVEMODE         = "Livemode"
+	PAYMENT_METHOD_Multibanco       = "Multibanco"
+	PAYMENT_METHOD_Netbanking       = "Netbanking"
+	PAYMENT_METHOD_P24              = "P24"
+	PAYMENT_METHOD_PAYBYBANK        = "PayByBank"
+	PAYMENT_METHOD_PAYNOW           = "PayNow"
+	PAYMENT_METHOD_PAYPAL           = "Paypal"
+	PAYMENT_METHOD_PROMPTPAY        = "PromptPay"
+	PAYMENT_METHOD_REVOLUTPAY       = "RevolutPay"
+	PAYMENT_METHOD_SEPADEBIT        = "SEPADebit"
+	PAYMENT_METHOD_SOFORT           = "Sofort"
+	PAYMENT_METHOD_UPI              = "Upi"
+	PAYMENT_METHOD_USBANKACCOUNT    = "USBankAccount"
+	PAYMENT_METHOD_WECHATPAY        = "WeChatPay"
 )
 
 type Address struct {
@@ -91,20 +130,39 @@ type Customer struct {
 	TestClock           interface{}   `json:"test_clock"`
 }
 
-// ToDo Review where this belongs
-type Helper struct {
-	CredentialsLocation string
-	Key                 string `json:"stripe_key"`
+type PaymentMethodDetails struct {
+	Available         bool `json:"available"`
+	DisplayPreference struct {
+		Overridable bool   `json:"overridable"`
+		Preference  string `json:"preference"`
+		Value       string `json:"value"`
+	} `json:"display_preference"`
+}
+
+// NATS Request go below here
+
+type ListPaymentMethodRequest struct {
+	Key string `json:"key"`
 }
 
 type PaymentIntentRequest struct {
-	Amount       float64 `json:"amount"`
-	Confirm      bool    `json:"confirm,omitempty""`
-	Currency     string  `json:"currency"`
-	Description  string  `json:"description,omitempty"`
-	Key          string  `json:"key"`
-	ReceiptEmail string  `json:"receipt_email"`
-	ReturnURL    string  `json:"return_url,omitempty""`
+	Amount             float64  `json:"amount"`
+	Confirm            bool     `json:"confirm,omitempty"`
+	Currency           string   `json:"currency"`
+	Description        string   `json:"description,omitempty"`
+	Key                string   `json:"key"`
+	PaymentMethodTypes []string `json:"payment_method_types,omitempty"`
+	ReceiptEmail       string   `json:"receipt_email"`
+	ReturnURL          string   `json:"return_url,omitempty"`
+}
+
+type ConfirmRequest struct {
+	CaptureMethod   string `json:"capture_method,omitempty"`
+	Key             string `json:"key"`
+	PaymentIntentId string `json:"id"`
+	PaymentMethod   string `json:"payment_method,omitempty"`
+	ReceiptEmail    string `json:"receipt_email,omitempty"`
+	ReturnURL       string `json:"return_url,omitempty,omitempty"`
 }
 
 type PaymentIntentInfo struct {
