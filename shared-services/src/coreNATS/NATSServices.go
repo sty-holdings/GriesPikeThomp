@@ -42,9 +42,9 @@ import (
 	"strings"
 	"time"
 
-	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
+	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 

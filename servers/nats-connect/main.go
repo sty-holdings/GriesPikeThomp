@@ -39,10 +39,10 @@ import (
 	"log"
 	"os"
 
-	"GriesPikeThomp/servers/nats-connect/src"
-	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/integrii/flaggy"
+	"github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/src"
+	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -53,11 +53,11 @@ import (
 var (
 	// Add Variables here for the file (Remember, they are global)
 	// Start up values for a service
-	configFileFQN     string
+	configFileFQN string
 	generateConfigFQD string
-	serverName        = "nats-connect"
-	testingOn         bool
-	version           = "9999.9999.9999"
+	serverName = "nats-connect"
+	testingOn bool
+	version = "9999.9999.9999"
 )
 
 func init() {
@@ -86,7 +86,12 @@ func init() {
 
 	// Add a flag to the main program (this will be available in all subcommands as well).
 	flaggy.String(&configFileFQN, "c", "config", "Provides the setup information needed by and is required to start the server.")
-	flaggy.String(&generateConfigFQD, "g", "genconfig", "This will output a skeleton configuration and note files.\n\t\t\tThis will cause all other options to be ignored.")
+	flaggy.String(
+		&generateConfigFQD,
+		"g",
+		"genconfig",
+		"This will output a skeleton configuration and note files.\n\t\t\tThis will cause all other options to be ignored.",
+	)
 	flaggy.Bool(&testingOn, "t", "testingOn", "This puts the server into testing mode.")
 
 	// Set the version and parse all inputs into variables.

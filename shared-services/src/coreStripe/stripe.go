@@ -26,14 +26,14 @@ import (
 	"fmt"
 	"sync"
 
-	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
-	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cn "GriesPikeThomp/shared-services/src/coreNATS"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
 	"github.com/stripe/stripe-go/v76"
 	"github.com/stripe/stripe-go/v76/paymentintent"
 	"github.com/stripe/stripe-go/v76/paymentmethodconfiguration"
+	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
+	chv "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	cn "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreNATS"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 

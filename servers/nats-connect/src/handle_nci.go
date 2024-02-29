@@ -36,9 +36,9 @@ COPYRIGHT:
 package src
 
 import (
-	cn "GriesPikeThomp/shared-services/src/coreNATS"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
+	cn "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreNATS"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 )
 
 // nciMessageHandles - builds a map of message handlers

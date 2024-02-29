@@ -36,13 +36,13 @@ import (
 	"sync"
 	"syscall"
 
-	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
-	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cn "GriesPikeThomp/shared-services/src/coreNATS"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	cs "GriesPikeThomp/shared-services/src/coreStripe"
 	"github.com/nats-io/nats.go"
+	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
+	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
+	chv "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	cn "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreNATS"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
+	cs "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreStripe"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 

@@ -42,7 +42,7 @@ import (
 	"regexp"
 	"strings"
 
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 

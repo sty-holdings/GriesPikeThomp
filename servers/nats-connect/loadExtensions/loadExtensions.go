@@ -30,10 +30,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
-	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cj "GriesPikeThomp/shared-services/src/coreJWT"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
+	chv "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	cj "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreJWT"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 

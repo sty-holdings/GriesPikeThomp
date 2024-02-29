@@ -32,8 +32,8 @@ COPYRIGHT:
 package sharedServices
 
 import (
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/nats-io/nats.go"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart

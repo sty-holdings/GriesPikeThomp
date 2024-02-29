@@ -42,8 +42,8 @@ import (
 	"fmt"
 	"log"
 
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	jwt2 "github.com/golang-jwt/jwt/v4"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -114,7 +114,11 @@ type TLSInfo struct {
 // }
 
 // GenerateRSAKey
-func GenerateRSAKey(rsaBits int) (privateKey crypto.PrivateKey, publicKey crypto.PublicKey, errorInfo cpi.ErrorInfo) {
+func GenerateRSAKey(rsaBits int) (
+	privateKey crypto.PrivateKey,
+	publicKey crypto.PublicKey,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	var (
 		_PrivateKey *rsa.PrivateKey
@@ -134,7 +138,10 @@ func GenerateRSAKey(rsaBits int) (privateKey crypto.PrivateKey, publicKey crypto
 }
 
 // ParsePrivateKey
-func ParsePrivateKey(tRawPrivateKey []byte) (privateKey *rsa.PrivateKey, errorInfo cpi.ErrorInfo) {
+func ParsePrivateKey(tRawPrivateKey []byte) (
+	privateKey *rsa.PrivateKey,
+	errorInfo cpi.ErrorInfo,
+) {
 
 	if privateKey, errorInfo.Error = jwt2.ParseRSAPrivateKeyFromPEM(tRawPrivateKey); errorInfo.Error != nil {
 		errorInfo.Error = errors.New("Unable to parse the private key referred to in the configuration file.")
@@ -145,7 +152,10 @@ func ParsePrivateKey(tRawPrivateKey []byte) (privateKey *rsa.PrivateKey, errorIn
 }
 
 // ValidateSavUpJWT
-func ValidateSavUpJWT(privateKey []byte, jwt string) (errorInfo cpi.ErrorInfo) {
+func ValidateSavUpJWT(
+	privateKey []byte,
+	jwt string,
+) (errorInfo cpi.ErrorInfo) {
 
 	var (
 		tParsedPrivateKey *rsa.PrivateKey
@@ -154,19 +164,33 @@ func ValidateSavUpJWT(privateKey []byte, jwt string) (errorInfo cpi.ErrorInfo) {
 	)
 
 	if len(privateKey) == 0 || jwt == rcv.VAL_EMPTY {
-		errorInfo.Error = errors.New(fmt.Sprintf("Require information is missing! %v: '%v' %v: '%v'", rcv.FN_PRIVATE_KEY, privateKey, rcv.FN_JWT, jwt))
+		errorInfo.Error = errors.New(
+			fmt.Sprintf(
+				"Require information is missing! %v: '%v' %v: '%v'",
+				rcv.FN_PRIVATE_KEY,
+				privateKey,
+				rcv.FN_JWT,
+				jwt,
+			),
+		)
 		log.Println(errorInfo.Error)
 	} else {
 		if tParsedPrivateKey, errorInfo = ParsePrivateKey(privateKey); errorInfo.Error == nil {
 			publicKey := tParsedPrivateKey.Public()
 			//  ToDo is this needed?
 			// tToken, err = jwt2.Parse(jwt, func(jwtToken *jwt2.Token) (interface{}, error) {
-			if _, errorInfo.Error = jwt2.Parse(jwt, func(jwtToken *jwt2.Token) (interface{}, error) {
-				if _, ok := jwtToken.Method.(*jwt2.SigningMethodRSA); !ok {
-					return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
-				}
-				return publicKey, nil
-			}); errorInfo.Error != nil {
+			if _, errorInfo.Error = jwt2.Parse(
+				jwt,
+				func(jwtToken *jwt2.Token) (
+					interface{},
+					error,
+				) {
+					if _, ok := jwtToken.Method.(*jwt2.SigningMethodRSA); !ok {
+						return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
+					}
+					return publicKey, nil
+				},
+			); errorInfo.Error != nil {
 				log.Println(errorInfo.Error)
 			}
 		}

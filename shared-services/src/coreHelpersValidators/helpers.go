@@ -46,7 +46,7 @@ import (
 	"strings"
 	"time"
 
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -147,7 +147,7 @@ func Base64Encode(value string) string {
 //	Errors: None
 //	Verifications: None
 func ConvertStringSliceToSliceOfPtrs(inbound []string) (outbound []*string) {
-	
+
 	for _, tSlice := range inbound {
 		x := tSlice // required to get different pointers for each value.
 		outbound = append(outbound, &x)

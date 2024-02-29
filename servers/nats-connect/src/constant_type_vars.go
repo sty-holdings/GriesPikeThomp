@@ -36,9 +36,9 @@ import (
 	"sync"
 	"time"
 
-	ext "GriesPikeThomp/servers/nats-connect/loadExtensions"
-	cc "GriesPikeThomp/shared-services/src/coreConfiguration"
 	"github.com/nats-io/nats.go"
+	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
+	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart

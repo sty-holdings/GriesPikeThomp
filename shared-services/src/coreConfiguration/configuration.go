@@ -40,8 +40,8 @@ import (
 	"os"
 	"strings"
 
-	chv "GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
+	chv "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreHelpersValidators"
+	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
