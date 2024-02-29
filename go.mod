@@ -1,4 +1,4 @@
-module GriesPikeThomp
+module github.com/sty-holdings/GriesPikeThomp
 
 go 1.21
 
@@ -14,7 +14,7 @@ require (
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/stripe/stripe-go/v76 v76.17.0
-	github.com/sty-holdings/resuable-const-vars v2024.11.11+incompatible
+	github.com/sty-holdings/resuable-const-vars v2024.12.0+incompatible
 	golang.org/x/text v0.14.0
 	google.golang.org/api v0.162.0
 )
