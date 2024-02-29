@@ -53,14 +53,14 @@ func TestNewErrorInfo(tPtr *testing.T) {
 		arguments arguments
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No Data Supplied",
 			arguments: arguments{
 				additionalInfo: "",
 				myError:        nil,
 			},
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -69,9 +69,11 @@ func TestNewErrorInfo(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(t *testing.T) {
-			NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo)
-		})
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo)
+			},
+		)
 	}
 }
 
@@ -88,7 +90,7 @@ func TestPrintError(tPtr *testing.T) {
 		outputMode string
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No Data Supplied - No Output Mode",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No Data Supplied - No Output Mode",
 			arguments: arguments{
 				additionalInfo: "",
 				myError:        nil,
@@ -96,7 +98,7 @@ func TestPrintError(tPtr *testing.T) {
 			outputMode: "",
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied - No Output Mode",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied - No Output Mode",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -104,7 +106,7 @@ func TestPrintError(tPtr *testing.T) {
 			outputMode: "",
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No Data Supplied - Display Output Mode",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No Data Supplied - Display Output Mode",
 			arguments: arguments{
 				additionalInfo: "",
 				myError:        nil,
@@ -112,7 +114,7 @@ func TestPrintError(tPtr *testing.T) {
 			outputMode: rcv.MODE_OUTPUT_DISPLAY,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied - Display Output Mode",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied - Display Output Mode",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -120,7 +122,7 @@ func TestPrintError(tPtr *testing.T) {
 			outputMode: rcv.MODE_OUTPUT_DISPLAY,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No Data Supplied - Log Output Mode",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No Data Supplied - Log Output Mode",
 			arguments: arguments{
 				additionalInfo: "",
 				myError:        nil,
@@ -128,7 +130,7 @@ func TestPrintError(tPtr *testing.T) {
 			outputMode: rcv.MODE_OUTPUT_LOG,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied - Log Output Mode",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied - Log Output Mode",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -138,9 +140,11 @@ func TestPrintError(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(t *testing.T) {
-			PrintError(ts.arguments.myError, ts.arguments.additionalInfo)
-		})
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				PrintError(ts.arguments.myError, ts.arguments.additionalInfo)
+			},
+		)
 	}
 }
 
@@ -157,7 +161,7 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 		outputMode string
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No Data Supplied",
 			arguments: arguments{
 				additionalInfo: "",
 				myError:        nil,
@@ -165,7 +169,7 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 			outputMode: "",
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -173,7 +177,7 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 			outputMode: "",
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No Data Supplied",
 			arguments: arguments{
 				additionalInfo: "",
 				myError:        nil,
@@ -181,7 +185,7 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 			outputMode: rcv.MODE_OUTPUT_LOG,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -189,7 +193,7 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 			outputMode: rcv.MODE_OUTPUT_LOG,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No Data Supplied",
 			arguments: arguments{
 				additionalInfo: "",
 				myError:        nil,
@@ -197,7 +201,7 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 			outputMode: rcv.MODE_OUTPUT_DISPLAY,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -207,9 +211,11 @@ func TestPrintErrorInfo(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(t *testing.T) {
-			PrintErrorInfo(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo))
-		})
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				PrintErrorInfo(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo))
+			},
+		)
 	}
 }
 
@@ -226,7 +232,7 @@ func TestOutputError(tPtr *testing.T) {
 		outputMode string
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -234,7 +240,7 @@ func TestOutputError(tPtr *testing.T) {
 			outputMode: "",
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -242,7 +248,7 @@ func TestOutputError(tPtr *testing.T) {
 			outputMode: rcv.MODE_OUTPUT_LOG,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Data Supplied",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Data Supplied",
 			arguments: arguments{
 				additionalInfo: rcv.TXT_EMPTY,
 				myError:        ErrErrorMissing,
@@ -252,9 +258,11 @@ func TestOutputError(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(t *testing.T) {
-			outputError(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo))
-		})
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				outputError(NewErrorInfo(ts.arguments.myError, ts.arguments.additionalInfo))
+			},
+		)
 	}
 }
 
@@ -266,14 +274,16 @@ func TestNewError(tPtr *testing.T) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-		if errorInfo = newError(ErrErrorMissing); errorInfo.Error == nil {
-			tPtr.Errorf(EXPECTED_ERROR_FORMAT, tFunctionName)
-		}
-		if errorInfo = newError(nil); errorInfo.Error != nil {
-			tPtr.Errorf(EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error)
-		}
-	})
+	tPtr.Run(
+		tFunctionName, func(tPtr *testing.T) {
+			if errorInfo = newError(ErrErrorMissing); errorInfo.Error == nil {
+				tPtr.Errorf(EXPECTED_ERROR_FORMAT, tFunctionName)
+			}
+			if errorInfo = newError(nil); errorInfo.Error != nil {
+				tPtr.Errorf(EXPECTING_NO_ERROR_FORMAT, tFunctionName, errorInfo.Error)
+			}
+		},
+	)
 }
 
 // Private Functions
@@ -319,15 +329,17 @@ func TestGetErrorFunctionFileNameLineNumber(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(tFunctionName, func(t *testing.T) {
-			if tErrorInfo = getErrorFunctionFileNameLineNumber(ts.arguments.level); tErrorInfo.Error != nil {
-				gotError = true
-			} else {
-				gotError = false
-			}
-			if gotError != ts.wantError {
-				tPtr.Error(tErrorInfo.Error.Error())
-			}
-		})
+		tPtr.Run(
+			tFunctionName, func(t *testing.T) {
+				if tErrorInfo = getErrorFunctionFileNameLineNumber(ts.arguments.level); tErrorInfo.Error != nil {
+					gotError = true
+				} else {
+					gotError = false
+				}
+				if gotError != ts.wantError {
+					tPtr.Error(tErrorInfo.Error.Error())
+				}
+			},
+		)
 	}
 }

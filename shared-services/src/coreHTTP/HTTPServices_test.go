@@ -59,7 +59,7 @@ func TestNewHTTP(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Secure connection.",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Secure connection.",
 			arguments: arguments{
 				hostname:       "localhost",
 				configFilename: "/Users/syacko/workspace/sty-holdings/GriesPikeThomp/servers/nats-connect/config/local/http-inbound-config.json",
@@ -67,7 +67,7 @@ func TestNewHTTP(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Bad URL.",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Bad URL.",
 			arguments: arguments{
 				hostname:       "localhost",
 				configFilename: "/Users/syacko/workspace/sty-holdings/GriesPikeThomp/servers/nats-connect/config/local/http-inbound-config.json",
@@ -109,16 +109,18 @@ func TestNewHTTP(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(t *testing.T) {
-			if _, errorInfo = NewHTTP(ts.arguments.configFilename); errorInfo.Error != nil {
-				gotError = true
-			} else {
-				gotError = false
-			}
-			if gotError != ts.wantError {
-				tPtr.Error(ts.name)
-				tPtr.Error(errorInfo)
-			}
-		})
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				if _, errorInfo = NewHTTP(ts.arguments.configFilename); errorInfo.Error != nil {
+					gotError = true
+				} else {
+					gotError = false
+				}
+				if gotError != ts.wantError {
+					tPtr.Error(ts.name)
+					tPtr.Error(errorInfo)
+				}
+			},
+		)
 	}
 }

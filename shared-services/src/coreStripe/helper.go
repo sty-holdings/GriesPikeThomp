@@ -80,7 +80,7 @@ func checkSetCurrency(currency string) (
 		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeCurrencyInvalid, rcv.VAL_EMPTY)
 		return
 	}
-	for _, tCurrency = range currencyList {
+	for _, tCurrency = range currencyValidValues {
 		if stripe.Currency(strings.ToLower(strings.Trim(currency, rcv.SPACES_ONE))) == tCurrency {
 			x := string(tCurrency)
 			stripeCurrencyPtr = &x
@@ -89,8 +89,8 @@ func checkSetCurrency(currency string) (
 	}
 
 	errorInfo = cpi.NewErrorInfo(cpi.ErrStripeCurrencyInvalid, fmt.Sprintf("%v%v", rcv.TXT_CURRENCY, currency))
-	return
 
+	return
 }
 
 // checkSetId - will see if the payment intent id is empty. If it is, then an error is return
@@ -105,7 +105,7 @@ func checkSetId(paymentIntentId string) (
 ) {
 
 	if paymentIntentId == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeIdInvalid, rcv.VAL_EMPTY)
+		errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentIntentIdEmpty, rcv.VAL_EMPTY)
 		return
 	}
 	stripePaymentIntentId = paymentIntentId
@@ -133,22 +133,64 @@ func checkSetKey(key string) (
 	return
 }
 
-// checkSetMethodType - will see if the payment method type is empty. If it is, then an error is return
-// otherwise it returns the payment method type.
+// checkSetPaymentMethod - will see if the payment method is empty. If it is, then an error is return
+// otherwise it returns the payment method as a string pointer.
 //
 //	Customer Messages: None
-//	Errors: cpi.ErrStripeMethodTypeEmpty
+//	Errors: cpi.ErrStripePaymentMethodInvalid
 //	Verifications: None
-func checkSetMethodType(methodType string) (
-	stripeTypePtr *string,
+func checkSetPaymentMethod(paymentMethod string) (
+	stripePaymentMethod *string,
 	errorInfo cpi.ErrorInfo,
 ) {
 
-	if methodType == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeMethodTypeEmpty, rcv.VAL_EMPTY)
+	var (
+		tPaymentMethod string
+	)
+
+	if paymentMethod == rcv.VAL_EMPTY {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodEmpty, rcv.VAL_EMPTY)
 		return
 	}
-	stripeTypePtr = &methodType
+	for _, tPaymentMethod = range paymentMethodValidValues {
+		if tPaymentMethod == strings.ToLower(strings.Trim(paymentMethod, rcv.SPACES_ONE)) {
+			stripePaymentMethod = &paymentMethod
+			return
+		}
+	}
+
+	errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodInvalid, fmt.Sprintf("%v%v", rcv.TXT_PAYMENT_METHOD, paymentMethod))
+
+	return
+}
+
+// checkSetPaymentMethodType - will see if the payment method type is empty. If it is, then an error is return
+// otherwise it returns the payment method type as a string pointer.
+//
+//	Customer Messages: None
+//	Errors: cpi.ErrStripePaymentMethodInvalid
+//	Verifications: None
+func checkSetPaymentMethodType(paymentMethodType string) (
+	stripePaymentMethodType *string,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	var (
+		tPaymentMethodType string
+	)
+
+	if paymentMethodType == rcv.VAL_EMPTY {
+		errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodTypeEmpty, rcv.VAL_EMPTY)
+		return
+	}
+	for _, tPaymentMethodType = range paymentMethodValidValues {
+		if tPaymentMethodType == strings.ToLower(strings.Trim(paymentMethodType, rcv.SPACES_ONE)) {
+			stripePaymentMethodType = &paymentMethodType
+			return
+		}
+	}
+
+	errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodTypeInvalid, fmt.Sprintf("%v%v", rcv.TXT_PAYMENT_METHOD_TYPE, paymentMethodType))
 
 	return
 }

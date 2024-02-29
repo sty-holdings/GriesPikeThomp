@@ -217,7 +217,7 @@ func TestCheckFileExistsAndReadable(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "File exists and is readable.",
+			name: rcv.TEST_POSITIVE_SUCCESS + "File exists and is readable.",
 			arguments: arguments{
 				FQN:       TEST_FILE_EXISTS_FILENAME,
 				fileLabel: "Test Good filename",
@@ -225,7 +225,7 @@ func TestCheckFileExistsAndReadable(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "File exists and is readable - No Label.",
+			name: rcv.TEST_POSITIVE_SUCCESS + "File exists and is readable - No Label.",
 			arguments: arguments{
 				FQN: TEST_FILE_EXISTS_FILENAME,
 			},
@@ -402,21 +402,21 @@ func TestIsDomainValid(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No domain",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No domain",
 			arguments: arguments{
 				domain: rcv.VAL_EMPTY,
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "invalid domain",
+			name: rcv.TEST_POSITIVE_SUCCESS + "invalid domain",
 			arguments: arguments{
 				domain: TEST_INVALID_DOMAIN,
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "good domain",
+			name: rcv.TEST_POSITIVE_SUCCESS + "good domain",
 			arguments: arguments{
 				domain: TEST_DOMAIN,
 			},
@@ -481,49 +481,49 @@ func TestIsEnvironmentValid(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "No environment",
+			name: rcv.TEST_POSITIVE_SUCCESS + "No environment",
 			arguments: arguments{
 				environment: "",
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "LOCAL environment",
+			name: rcv.TEST_POSITIVE_SUCCESS + "LOCAL environment",
 			arguments: arguments{
 				environment: strings.ToUpper(rcv.ENVIRONMENT_LOCAL),
 			},
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "local environment",
+			name: rcv.TEST_POSITIVE_SUCCESS + "local environment",
 			arguments: arguments{
 				environment: strings.ToLower(rcv.ENVIRONMENT_LOCAL),
 			},
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "DEVELOPMENT environment",
+			name: rcv.TEST_POSITIVE_SUCCESS + "DEVELOPMENT environment",
 			arguments: arguments{
 				environment: strings.ToUpper(rcv.ENVIRONMENT_DEVELOPMENT),
 			},
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "development environment",
+			name: rcv.TEST_POSITIVE_SUCCESS + "development environment",
 			arguments: arguments{
 				environment: strings.ToLower(rcv.ENVIRONMENT_DEVELOPMENT),
 			},
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "PRODUCTION environment",
+			name: rcv.TEST_POSITIVE_SUCCESS + "PRODUCTION environment",
 			arguments: arguments{
 				environment: strings.ToUpper(rcv.ENVIRONMENT_PRODUCTION),
 			},
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "production environment",
+			name: rcv.TEST_POSITIVE_SUCCESS + "production environment",
 			arguments: arguments{
 				environment: strings.ToLower(rcv.ENVIRONMENT_PRODUCTION),
 			},

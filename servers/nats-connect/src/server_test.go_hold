@@ -37,7 +37,7 @@ func TestBuildExtension(tPtr *testing.T) {
 		// Missing extension key is not tested. No way for the program to get to this code without a key.
 		// Empty subject registry is not tested. No way for the program to get to this code without a populated Subject Registry.
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Secure connection.",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Secure connection.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{

@@ -66,7 +66,7 @@ func TestGetNATSConnection(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Secure connection.",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Secure connection.",
 			arguments: arguments{
 				instanceName: "scott-test-connection",
 				config: ext.ExtensionConfiguration{
@@ -83,7 +83,7 @@ func TestGetNATSConnection(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Secure connection.",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Secure connection.",
 			arguments: arguments{
 				instanceName: rcv.VAL_EMPTY,
 				config: ext.ExtensionConfiguration{
@@ -204,19 +204,21 @@ func TestGetNATSConnection(tPtr *testing.T) {
 	}
 
 	for _, ts := range tests {
-		tPtr.Run(ts.name, func(t *testing.T) {
-			if _, errorInfo = GetConnection(ts.arguments.instanceName, ts.arguments.config); errorInfo.Error != nil {
-				gotError = true
-				errorInfo = cpi.ErrorInfo{
-					Error: errors.New(fmt.Sprintf("Failed - NATS connection was not created for Test: %v", tFunctionName)),
+		tPtr.Run(
+			ts.name, func(t *testing.T) {
+				if _, errorInfo = GetConnection(ts.arguments.instanceName, ts.arguments.config); errorInfo.Error != nil {
+					gotError = true
+					errorInfo = cpi.ErrorInfo{
+						Error: errors.New(fmt.Sprintf("Failed - NATS connection was not created for Test: %v", tFunctionName)),
+					}
+				} else {
+					gotError = false
 				}
-			} else {
-				gotError = false
-			}
-			if gotError != ts.wantError {
-				tPtr.Error(ts.name)
-				tPtr.Error(errorInfo)
-			}
-		})
+				if gotError != ts.wantError {
+					tPtr.Error(ts.name)
+					tPtr.Error(errorInfo)
+				}
+			},
+		)
 	}
 }

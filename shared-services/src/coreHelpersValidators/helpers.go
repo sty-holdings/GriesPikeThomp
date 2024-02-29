@@ -146,10 +146,11 @@ func Base64Encode(value string) string {
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
-func ConvertSliceToSliceOfPtrs(inbound []interface{}) (outbound []*interface{}) {
-
+func ConvertStringSliceToSliceOfPtrs(inbound []string) (outbound []*string) {
+	
 	for _, tSlice := range inbound {
-		outbound = append(outbound, &tSlice)
+		x := tSlice // required to get different pointers for each value.
+		outbound = append(outbound, &x)
 	}
 
 	return

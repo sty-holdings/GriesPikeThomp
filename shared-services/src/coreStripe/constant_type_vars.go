@@ -36,13 +36,17 @@ import (
 
 	"github.com/nats-io/nats.go"
 	sc "github.com/stripe/stripe-go/v76"
+	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
 	// Subjects
-	STRIPE_PAYMENT_INTENT       = "stripe.payment-intent"
-	STRIPE_LIST_PAYMENT_METHODS = "stripe.list-payment-methods"
+	STRIPE_CANCEL_PAYMENT_INTENT  = "stripe.cancel-payment-intent"
+	STRIPE_CONFIRM_PAYMENT_INTENT = "stripe.confirm-payment-intent"
+	STRIPE_LIST_PAYMENT_METHODS   = "stripe.list-payment-methods"
+	STRIPE_LIST_PAYMENT_INTENTS   = "stripe.list-payment-intents"
+	STRIPE_CREATE_PAYMENT_INTENT  = "stripe.create-payment-intent"
 )
 
 type Address struct {
@@ -107,18 +111,32 @@ type ListPaymentMethodRequest struct {
 	Key string `json:"key"`
 }
 
-type PaymentIntentRequest struct {
-	Amount             float64  `json:"amount"`
-	Confirm            bool     `json:"confirm,omitempty"`
-	Currency           string   `json:"currency"`
-	Description        string   `json:"description,omitempty"`
-	Key                string   `json:"key"`
-	PaymentMethodTypes []string `json:"payment_method_types,omitempty"`
-	ReceiptEmail       string   `json:"receipt_email"`
-	ReturnURL          string   `json:"return_url,omitempty"`
+type ListPaymentIntentRequest struct {
+	Key           string `json:"key"`
+	CustomerId    string `json:"customer_id,omitempty"`
+	Limit         int64  `json:"limit,omitempty"`
+	StartingAfter string `json:"starting_after,omitempty"`
 }
 
-type ConfirmRequest struct {
+type PaymentIntentRequest struct {
+	Amount                  float64 `json:"amount"`
+	AutomaticPaymentMethods bool    `json:"automatic_payment_methods,omitempty"`
+	// Confirm            bool     `json:"confirm,omitempty"`
+	Currency    string `json:"currency"`
+	Description string `json:"description,omitempty"`
+	Key         string `json:"key"`
+	// PaymentMethodTypes []string `json:"payment_method_types,omitempty"`
+	ReceiptEmail string `json:"receipt_email"`
+	ReturnURL    string `json:"return_url,omitempty"`
+}
+
+type CancelPaymentIntentRequest struct {
+	Key                string `json:"key"`
+	PaymentIntentId    string `json:"id"`
+	CancellationReason string `json:"cancellation_reason"`
+}
+
+type ConfirmPaymentIntentRequest struct {
 	CaptureMethod   string `json:"capture_method,omitempty"`
 	Key             string `json:"key"`
 	PaymentIntentId string `json:"id"`
@@ -253,7 +271,7 @@ type stripeInstance struct {
 }
 
 var (
-	currencyList = []sc.Currency{
+	currencyValidValues = []sc.Currency{
 		sc.CurrencyAED,
 		sc.CurrencyAFN,
 		sc.CurrencyALL,
@@ -393,5 +411,111 @@ var (
 		sc.CurrencyYER,
 		sc.CurrencyZAR,
 		sc.CurrencyZMW,
+	}
+	paymentMethodValidValues = []string{
+		rcv.CARD_BRAND_VISA,
+		rcv.CARD_BRAND_VISA_DEBIT,
+		rcv.CARD_BRAND_MASTERCARD,
+		rcv.CARD_BRAND_MASTERCARD_DEBIT,
+		rcv.CARD_BRAND_MASTERCARD_PREPAID,
+		rcv.CARD_BRAND_AMEX,
+		rcv.CARD_BRAND_DISCOVER,
+		rcv.CARD_BRAND_DINERS_CLUB,
+		rcv.CARD_BRAND_JCB,
+		rcv.CARD_BRAND_UNION_PAY,
+		rcv.CARD_BRAND_CARTES_BANCAIRES_VISA,
+		rcv.CARD_BRAND_CARTES_BANCAIRES_MASTERCARD,
+		rcv.CARD_BRAND_EFTPOS_AUSTRALIA_VISA,
+		rcv.CARD_BRAND_EFTPOS_AUSTRALIA_MASTERCARD,
+		rcv.CARD_USA_VISA,
+		rcv.CARD_ARGENTINA_VISA,
+		rcv.CARD_BRAZIL_VISA,
+		rcv.CARD_CANADA_VISA,
+		rcv.CARD_MEXICO_VISA,
+		rcv.CARD_UNITED_ARAB_EMIRATES_VISA,
+		rcv.CARD_UNITED_ARAB_EMIRATES_MASTERCARD,
+		rcv.CARD_AUSTRIA_VISA,
+		rcv.CARD_BELGIUM_VISA,
+		rcv.CARD_BULGARIA_VISA,
+		rcv.CARD_BELARUS_VISA,
+		rcv.CARD_CROATIA_VISA,
+		rcv.CARD_CYPRUS_VISA,
+		rcv.CARD_CZECH_REPUBLIC_VISA,
+		rcv.CARD_DENMARK_VISA,
+		rcv.CARD_ESTONIA_VISA,
+		rcv.CARD_FINLAND_VISA,
+		rcv.CARD_FRANCE_VISA,
+		rcv.CARD_GERMANY_VISA,
+		rcv.CARD_GIBRALTAR_VISA,
+		rcv.CARD_GREECE_VISA,
+		rcv.CARD_HUNGARY_VISA,
+		rcv.CARD_IRELAND_VISA,
+		rcv.CARD_ITALY_VISA,
+		rcv.CARD_LATVIA_VISA,
+		rcv.CARD_LIECHTENSTEIN_VISA,
+		rcv.CARD_LITHUANIA_VISA,
+		rcv.CARD_LUXEMBOURG_VISA,
+		rcv.CARD_MALTA_VISA,
+		rcv.CARD_NETHERLANDS_VISA,
+		rcv.CARD_NORWAY_VISA,
+		rcv.CARD_POLAND_VISA,
+		rcv.CARD_PORTUGAL_VISA,
+		rcv.CARD_ROMANIA_VISA,
+		rcv.CARD_SLOVENIA_VISA,
+		rcv.CARD_SLOVAKIA_VISA,
+		rcv.CARD_SPAIN_VISA,
+		rcv.CARD_SWEDEN_VISA,
+		rcv.CARD_SWITZERLAND_VISA,
+		rcv.CARD_UNITED_KINGDOM_VISA,
+		rcv.CARD_UNITED_KINGDOM_DEBIT,
+		rcv.CARD_UNITED_KINGDOM_MASTERCARD,
+		rcv.CARD_AUSTRALIA_VISA,
+		rcv.CARD_CHINA_VISA,
+		rcv.CARD_HONG_KONG_VISA,
+		rcv.CARD_INDIA_VISA,
+		rcv.CARD_JAPAN_VISA,
+		rcv.CARD_JAPAN_JCB,
+		rcv.CARD_MALAYSIA_VISA,
+		rcv.CARD_NEW_ZEALAND_VISA,
+		rcv.CARD_SINGAPORE_VISA,
+		rcv.CARD_THAILAND_VISA_CREDIT,
+		rcv.CARD_THAILAND_DEBIT_VISA_DEBIT,
+	}
+	paymentMethodTypeValidValues = []string{
+		rcv.PAYMENT_METHOD_TYPE_ACSSDEBIT,
+		rcv.PAYMENT_METHOD_TYPE_AFFIRM,
+		rcv.PAYMENT_METHOD_TYPE_AFTERPAYCLEARPAY,
+		rcv.PAYMENT_METHOD_TYPE_ALIPAY,
+		rcv.PAYMENT_METHOD_TYPE_AUBECSDEBIT,
+		rcv.PAYMENT_METHOD_TYPE_BACSDEBIT,
+		rcv.PAYMENT_METHOD_TYPE_BANCONTACT,
+		rcv.PAYMENT_METHOD_TYPE_BLIK,
+		rcv.PAYMENT_METHOD_TYPE_BOLETO,
+		rcv.PAYMENT_METHOD_TYPE_CARD,
+		rcv.PAYMENT_METHOD_TYPE_CARD_PRESENT,
+		rcv.PAYMENT_METHOD_TYPE_CASHAPP,
+		rcv.PAYMENT_METHOD_TYPE_CUSTOMER_BALANCE,
+		rcv.PAYMENT_METHOD_TYPE_EPS,
+		rcv.PAYMENT_METHOD_TYPE_FPX,
+		rcv.PAYMENT_METHOD_TYPE_GIROPAY,
+		rcv.PAYMENT_METHOD_TYPE_GRABPAY,
+		rcv.PAYMENT_METHOD_TYPE_IDEAL,
+		rcv.PAYMENT_METHOD_TYPE_INTERAC_PRESENT,
+		rcv.PAYMENT_METHOD_TYPE_KLARNA,
+		rcv.PAYMENT_METHOD_TYPE_KONBINI,
+		rcv.PAYMENT_METHOD_TYPE_LINK,
+		rcv.PAYMENT_METHOD_TYPE_OXXO,
+		rcv.PAYMENT_METHOD_TYPE_P24,
+		rcv.PAYMENT_METHOD_TYPE_PAYNOW,
+		rcv.PAYMENT_METHOD_TYPE_PAYPAL,
+		rcv.PAYMENT_METHOD_TYPE_PIX,
+		rcv.PAYMENT_METHOD_TYPE_PROMPTPAY,
+		rcv.PAYMENT_METHOD_TYPE_REVOLUTPAY,
+		rcv.PAYMENT_METHOD_TYPE_SEPADEBIT,
+		rcv.PAYMENT_METHOD_TYPE_SOFORT,
+		rcv.PAYMENT_METHOD_TYPE_SWISH,
+		rcv.PAYMENT_METHOD_TYPE_USBANKACCOUNT,
+		rcv.PAYMENT_METHOD_TYPE_WECHATPAY,
+		rcv.PAYMENT_METHOD_TYPE_ZIP,
 	}
 )

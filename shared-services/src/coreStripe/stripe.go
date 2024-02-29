@@ -91,11 +91,20 @@ func (stripeInstancePtr *stripeInstance) messageHandles() (
 
 	handlers = make(map[string]cn.MessageHandler)
 
-	handlers[STRIPE_PAYMENT_INTENT] = cn.MessageHandler{
-		Handler: stripeInstancePtr.paymentIntent(),
+	handlers[STRIPE_CANCEL_PAYMENT_INTENT] = cn.MessageHandler{
+		Handler: stripeInstancePtr.CancelPaymentIntent(),
+	}
+	handlers[STRIPE_CONFIRM_PAYMENT_INTENT] = cn.MessageHandler{
+		Handler: stripeInstancePtr.ConfirmPaymentIntent(),
 	}
 	handlers[STRIPE_LIST_PAYMENT_METHODS] = cn.MessageHandler{
 		Handler: stripeInstancePtr.listPaymentMethods(),
+	}
+	handlers[STRIPE_LIST_PAYMENT_INTENTS] = cn.MessageHandler{
+		Handler: stripeInstancePtr.listPaymentIntents(),
+	}
+	handlers[STRIPE_CREATE_PAYMENT_INTENT] = cn.MessageHandler{
+		Handler: stripeInstancePtr.createPaymentIntent(),
 	}
 
 	return
@@ -148,6 +157,66 @@ func (stripeInstancePtr *stripeInstance) buildExtension(config ext.ExtensionConf
 
 // NATS Message Handlers go below this line.
 
+func (stripeInstancePtr *stripeInstance) CancelPaymentIntent() nats.MsgHandler {
+
+	return func(msg *nats.Msg) {
+
+		var (
+			errorInfo                      cpi.ErrorInfo
+			tCancelPaymentIntentResultsPtr *stripe.PaymentIntent
+			tReply                         cn.NATSReply
+			tRequest                       CancelPaymentIntentRequest
+		)
+
+		if errorInfo = cn.UnmarshalMessageData(cpi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+			tCancelPaymentIntentResultsPtr, errorInfo = processCancelPaymentIntent(tRequest)
+		}
+
+		if errorInfo.Error == nil {
+			tReply.Response = *tCancelPaymentIntentResultsPtr
+		} else {
+			cpi.PrintErrorInfo(errorInfo)
+			tReply.ErrorInfo = errorInfo
+		}
+
+		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+			cpi.PrintErrorInfo(errorInfo)
+		}
+
+		return
+	}
+}
+
+func (stripeInstancePtr *stripeInstance) ConfirmPaymentIntent() nats.MsgHandler {
+
+	return func(msg *nats.Msg) {
+
+		var (
+			errorInfo                       cpi.ErrorInfo
+			tConfirmPaymentIntentResultsPtr *stripe.PaymentIntent
+			tReply                          cn.NATSReply
+			tRequest                        ConfirmPaymentIntentRequest
+		)
+
+		if errorInfo = cn.UnmarshalMessageData(cpi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+			tConfirmPaymentIntentResultsPtr, errorInfo = processConfirmPaymentIntent(tRequest)
+		}
+
+		if errorInfo.Error == nil {
+			tReply.Response = *tConfirmPaymentIntentResultsPtr
+		} else {
+			cpi.PrintErrorInfo(errorInfo)
+			tReply.ErrorInfo = errorInfo
+		}
+
+		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+			cpi.PrintErrorInfo(errorInfo)
+		}
+
+		return
+	}
+}
+
 func (stripeInstancePtr *stripeInstance) listPaymentMethods() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
@@ -178,7 +247,37 @@ func (stripeInstancePtr *stripeInstance) listPaymentMethods() nats.MsgHandler {
 	}
 }
 
-func (stripeInstancePtr *stripeInstance) paymentIntent() nats.MsgHandler {
+func (stripeInstancePtr *stripeInstance) listPaymentIntents() nats.MsgHandler {
+
+	return func(msg *nats.Msg) {
+
+		var (
+			errorInfo                 cpi.ErrorInfo
+			tListPaymentIntentResults []stripe.PaymentIntent
+			tReply                    cn.NATSReply
+			tRequest                  ListPaymentIntentRequest
+		)
+
+		if errorInfo = cn.UnmarshalMessageData(cpi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+			tListPaymentIntentResults, errorInfo = processListPaymentIntents(tRequest)
+		}
+
+		if errorInfo.Error == nil {
+			tReply.Response = tListPaymentIntentResults
+		} else {
+			cpi.PrintErrorInfo(errorInfo)
+			tReply.ErrorInfo = errorInfo
+		}
+
+		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+			cpi.PrintErrorInfo(errorInfo)
+		}
+
+		return
+	}
+}
+
+func (stripeInstancePtr *stripeInstance) createPaymentIntent() nats.MsgHandler {
 
 	return func(msg *nats.Msg) {
 
@@ -190,7 +289,7 @@ func (stripeInstancePtr *stripeInstance) paymentIntent() nats.MsgHandler {
 		)
 
 		if errorInfo = cn.UnmarshalMessageData(cpi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
-			tPaymentIntentResults, errorInfo = processPaymentIntent(tRequest)
+			tPaymentIntentResults, errorInfo = processCreatePaymentIntent(tRequest)
 		}
 
 		if errorInfo.Error == nil {
@@ -324,12 +423,81 @@ func (stripeInstancePtr *stripeInstance) paymentIntent() nats.MsgHandler {
 
 // Private functions go below here.
 
-// processListPaymentMethods - will return the payment methods setup in the
+// processCancelPaymentIntent - will cancel a payment intent request
+//
+//	Customer Message: none
+//	Errors: checkSetId returns, checkSetPaymentMethod returns
+//	Verifications: none
+func processCancelPaymentIntent(
+	request CancelPaymentIntentRequest,
+) (
+	cancelPaymentIntentResultsPtr *stripe.PaymentIntent,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	var (
+		tPaymentIntentId string
+	)
+
+	if stripe.Key, errorInfo = checkSetKey(request.Key); errorInfo.Error != nil {
+		return
+	}
+
+	tPaymentIntentConfirmParamsPtr := &stripe.PaymentIntentCancelParams{}
+
+	if tPaymentIntentId, errorInfo = checkSetId(request.PaymentIntentId); errorInfo.Error != nil {
+		return
+	}
+
+	cancelPaymentIntentResultsPtr, errorInfo.Error = paymentintent.Cancel(tPaymentIntentId, tPaymentIntentConfirmParamsPtr)
+
+	return
+}
+
+// processConfirmPaymentIntent - will handle a confirm payment intent request
+//
+//	Customer Message: none
+//	Errors: checkSetId returns, checkSetPaymentMethod returns
+//	Verifications: none
+func processConfirmPaymentIntent(
+	request ConfirmPaymentIntentRequest,
+) (
+	paymentIntentResultsPtr *stripe.PaymentIntent,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	var (
+		tPaymentIntentId string
+	)
+
+	if stripe.Key, errorInfo = checkSetKey(request.Key); errorInfo.Error != nil {
+		return
+	}
+
+	paymentParams := &stripe.PaymentIntentConfirmParams{}
+
+	if tPaymentIntentId, errorInfo = checkSetId(request.PaymentIntentId); errorInfo.Error != nil {
+		return
+	}
+	if paymentParams.PaymentMethod, errorInfo = checkSetPaymentMethod(request.PaymentMethod); errorInfo.Error != nil {
+		return
+	}
+
+	if chv.IsPopulated(request.ReturnURL) {
+		paymentParams.ReturnURL = &request.ReturnURL
+	}
+
+	paymentIntentResultsPtr, errorInfo.Error = paymentintent.Confirm(tPaymentIntentId, paymentParams)
+
+	return
+}
+
+// processListPaymentMethods - will return the payment methods in the
 // Stripe dashboard > Settings > Payments > Payment Methods. Only the first
 // configuration is supported.
 //
 //	Customer Messages: None
-//	Errors: chv.GetFieldsNames returned
+//	Errors: checkSetKey returns, GetFieldsNames returns
 //	Verifications: None
 func processListPaymentMethods(
 	request ListPaymentMethodRequest,
@@ -364,15 +532,55 @@ func processListPaymentMethods(
 		errorInfo.Error = json.Unmarshal(tJSONPaymentMethod, &tPaymentMethodDetails)
 		paymentMethodList[key] = tPaymentMethodDetails
 	}
+
 	return
 }
 
-// processStripePayment - will handle a Stripe payment intent request
+// processListPaymentIntents - will return the payment intents based on parameters provide.
+//
+//	Customer Messages: None
+//	Errors: checkSetKey returns,
+//	Verifications: None
+func processListPaymentIntents(
+	request ListPaymentIntentRequest,
+) (
+	paymentIntentList []stripe.PaymentIntent,
+	errorInfo cpi.ErrorInfo,
+) {
+
+	var (
+		tPaymentIntentListParamsPtr *stripe.PaymentIntentListParams
+		tPaymentIntentListPtr       *paymentintent.Iter
+		tPaymentIntentList          []stripe.PaymentIntent
+	)
+
+	if stripe.Key, errorInfo = checkSetKey(request.Key); errorInfo.Error != nil {
+		return
+	}
+	if chv.IsPopulated(request.CustomerId) {
+		tPaymentIntentListParamsPtr.Customer = &request.CustomerId
+	}
+	if request.Limit > 0 {
+		tPaymentIntentListParamsPtr.Limit = stripe.Int64(request.Limit)
+	}
+	if chv.IsPopulated(request.StartingAfter) {
+		tPaymentIntentListParamsPtr.StartingAfter = &request.StartingAfter
+	}
+
+	tPaymentIntentListPtr = paymentintent.List(tPaymentIntentListParamsPtr)
+	for _, tPaymentIntent := range tPaymentIntentListPtr.PaymentIntentList().Data {
+		tPaymentIntentList = append(tPaymentIntentList, *tPaymentIntent)
+	}
+
+	return
+}
+
+// processCreatePaymentIntent - will handle a create payment intent request
 //
 //	Errors: ErrStripeAmountInvalid, cpi.ErrStripeCurrencyInvalid, cpi.ErrStripeKeyInvalid
 //	Customer Message: none
 //	Verifications: none
-func processPaymentIntent(
+func processCreatePaymentIntent(
 	request PaymentIntentRequest,
 ) (
 	paymentIntentResultsPtr *stripe.PaymentIntent,
@@ -393,13 +601,9 @@ func processPaymentIntent(
 		return
 	}
 
-	if chv.IsPopulated(request.Confirm) {
-		paymentParams.Confirm = &request.Confirm
-		if chv.IsPopulated(request.ReturnURL) {
-			paymentParams.ReturnURL = &request.ReturnURL
-			if chv.IsPopulated(request.PaymentMethodTypes) {
-				paymentParams.PaymentMethodTypes = request.PaymentMethodTypes
-			}
+	if chv.IsPopulated(request.AutomaticPaymentMethods) && request.AutomaticPaymentMethods == true {
+		paymentParams.AutomaticPaymentMethods = &stripe.PaymentIntentAutomaticPaymentMethodsParams{
+			Enabled: stripe.Bool(request.AutomaticPaymentMethods),
 		}
 	}
 	if chv.IsPopulated(request.Description) {
@@ -410,57 +614,6 @@ func processPaymentIntent(
 	}
 
 	paymentIntentResultsPtr, errorInfo.Error = paymentintent.New(paymentParams)
-
-	return
-}
-
-// processConfirmPaymentIntent - will handle a Stripe confirm payment intent request
-//
-//	Errors: ErrStripeAmountInvalid, cpi.ErrStripeCurrencyInvalid, cpi.ErrStripeKeyInvalid
-//	Customer Message: none
-//	Verifications: none
-func processConfirmPaymentIntent(
-	request ConfirmRequest,
-) (
-	paymentIntentResultsPtr *stripe.PaymentIntent,
-	errorInfo cpi.ErrorInfo,
-) {
-
-	var (
-		tPaymentIntentId string
-	)
-
-	if stripe.Key, errorInfo = checkSetKey(request.Key); errorInfo.Error != nil {
-		return
-	}
-
-	paymentParams := &stripe.PaymentIntentConfirmParams{}
-
-	if tPaymentIntentId, errorInfo = checkSetId(request.PaymentIntentId); errorInfo.Error != nil {
-		return
-	}
-
-	if chv.IsPopulated(request.ReturnURL) {
-		paymentParams.ReturnURL = &request.ReturnURL
-	}
-
-	//
-	// if chv.DoesFieldExist(PaymentIntentRequest{}, "confirm") {
-	// 	paymentParams.Confirm = &request.Confirm
-	// 	if request.Confirm && chv.DoesFieldExist(PaymentIntentRequest{}, "returnURL") {
-	// 		paymentParams.ReturnURL = &request.ReturnURL
-	// 	}
-	// }
-	//
-	// if chv.DoesFieldExist(PaymentIntentRequest{}, "description") {
-	// 	paymentParams.Description = &request.Description
-	// }
-	//
-	// if chv.DoesFieldExist(PaymentIntentRequest{}, "receiptEmail") {
-	// 	paymentParams.ReceiptEmail = &request.ReceiptEmail
-	// }
-	//
-	paymentIntentResultsPtr, errorInfo.Error = paymentintent.Confirm(tPaymentIntentId, paymentParams)
 
 	return
 }

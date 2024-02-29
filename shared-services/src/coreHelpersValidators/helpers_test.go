@@ -41,7 +41,6 @@ import (
 	"testing"
 
 	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	cs "GriesPikeThomp/shared-services/src/coreStripe"
 	rcv "github.com/sty-holdings/resuable-const-vars/src"
 )
 
@@ -139,13 +138,18 @@ var (
 func TestConvertSliceToSliceOfPtrs(tPtr *testing.T) {
 
 	type arguments struct {
-		paymentMethodTypes []interface{}
+		paymentMethodTypes []string
 	}
 
 	var (
-		gotError bool
-		sliceOut []*interface{}
+		gotError       bool
+		sliceOut       []*string
+		paymentMethods []string
 	)
+
+	// Append the constants to the slice
+	paymentMethods = append(paymentMethods, rcv.PAYMENT_METHOD_CARD)
+	paymentMethods = append(paymentMethods, rcv.PAYMENT_METHOD_PAYNOW)
 
 	tests := []struct {
 		name      string
@@ -153,9 +157,9 @@ func TestConvertSliceToSliceOfPtrs(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITVE_SUCCESS + "Successful!",
+			name: rcv.TEST_POSITIVE_SUCCESS + "Successful!",
 			arguments: arguments{
-				paymentMethodTypes: []interface{cs.PAYMENT_METHOD_CARD, cs.PAYMENT_METHOD_PAYNOW},
+				paymentMethodTypes: paymentMethods,
 			},
 			wantError: false,
 		},
@@ -164,7 +168,7 @@ func TestConvertSliceToSliceOfPtrs(tPtr *testing.T) {
 	for _, ts := range tests {
 		tPtr.Run(
 			ts.name, func(t *testing.T) {
-				if sliceOut = ConvertSliceToSliceOfPtrs(ts.arguments.paymentMethodTypes); len(sliceOut) == 0 {
+				if sliceOut = ConvertStringSliceToSliceOfPtrs(ts.arguments.paymentMethodTypes); len(sliceOut) == 0 {
 					gotError = true
 				} else {
 					gotError = false
