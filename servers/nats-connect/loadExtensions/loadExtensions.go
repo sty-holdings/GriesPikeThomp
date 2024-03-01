@@ -30,11 +30,11 @@ import (
 	"encoding/json"
 	"fmt"
 
-	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
-	chv "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cj "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreJWT"
-	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
+	ctv "github.com/sty-holdings/constant-type-vars-go/v2024"
+	config "github.com/sty-holdings/sty-shared/v2024/configuration"
+	hv "github.com/sty-holdings/sty-shared/v2024/helpersValidators"
+	ns "github.com/sty-holdings/sty-shared/v2024/natsSerices"
+	pi "github.com/sty-holdings/sty-shared/v2024/programInfo"
 )
 
 const (
@@ -42,13 +42,10 @@ const (
 )
 
 type ExtensionConfiguration struct {
-	MessageEnvironment      string        `json:"message_environment"`
-	NATSCredentialsFilename string        `json:"nats_credentials_filename"`
-	NATSPort                int           `json:"nats_port"`
-	NATSTLSInfo             cj.TLSInfo    `json:"nats_tls_info"`
-	NATSURL                 string        `json:"nats_url"`
-	RequestedThreads        uint          `json:"requested_threads"`
-	SubjectRegistry         []SubjectInfo `json:"subject_registry"`
+	MessageEnvironment string `json:"message_environment"`
+	NATSConfig         ns.NATSConfiguration
+	RequestedThreads   uint          `json:"requested_threads"`
+	SubjectRegistry    []SubjectInfo `json:"subject_registry"`
 }
 
 type SubjectInfo struct {
@@ -68,20 +65,20 @@ var (
 //	Verifications: validateConfiguration
 func LoadExtensionConfig(configFilename string) (
 	extension ExtensionConfiguration,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	var (
-		tAdditionalInfo = fmt.Sprintf("%v%v", rcv.TXT_FILENAME, configFilename)
+		tAdditionalInfo = fmt.Sprintf("%v%v", ctv.TXT_FILENAME, configFilename)
 		tConfigData     []byte
 	)
 
-	if tConfigData, errorInfo = cc.ReadConfigFile(chv.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
+	if tConfigData, errorInfo = config.ReadConfigFile(hv.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
 		return
 	}
 
 	if errorInfo.Error = json.Unmarshal(tConfigData, &extension); errorInfo.Error != nil {
-		errorInfo = cpi.NewErrorInfo(errorInfo.Error, tAdditionalInfo)
+		errorInfo = pi.NewErrorInfo(errorInfo.Error, tAdditionalInfo)
 		return
 	}
 
@@ -97,41 +94,41 @@ func LoadExtensionConfig(configFilename string) (
 //	Customer Messages: None
 //	Errors: ErrEnvironmentInvalid, ErrMessageNamespaceInvalid, ErrDomainInvalid, error returned from DoesFileExistsAndReadable, ErrSubjectsMissing
 //	Verifications: None
-func validateConfiguration(config ExtensionConfiguration) (errorInfo cpi.ErrorInfo) {
+func validateConfiguration(config ExtensionConfiguration) (errorInfo pi.ErrorInfo) {
 
-	if errorInfo = chv.DoesFileExistsAndReadable(config.NATSCredentialsFilename, rcv.TXT_FILENAME); errorInfo.Error != nil {
-		cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.NATSCredentialsFilename))
+	if errorInfo = hv.DoesFileExistsAndReadable(config.NATSConfig.NATSCredentialsFilename, ctv.TXT_FILENAME); errorInfo.Error != nil {
+		pi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, config.NATSConfig.NATSCredentialsFilename))
 		return
 	}
-	if chv.IsEnvironmentValid(config.MessageEnvironment) == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.MessageEnvironment))
+	if hv.IsEnvironmentValid(config.MessageEnvironment) == false {
+		errorInfo = pi.NewErrorInfo(pi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", ctv.TXT_EVIRONMENT, config.MessageEnvironment))
 		return
 	}
-	if config.NATSPort == rcv.VAL_ZERO {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrNatsPortInvalid, fmt.Sprintf("%v%v", rcv.TXT_NATS_PORT, config.NATSPort))
+	if config.NATSConfig.NATSPort == ctv.VAL_ZERO {
+		errorInfo = pi.NewErrorInfo(pi.ErrNatsPortInvalid, fmt.Sprintf("%v%v", ctv.TXT_NATS_PORT, config.NATSConfig.NATSPort))
 		return
 	}
-	if config.NATSTLSInfo.TLSCert != rcv.VAL_EMPTY && config.NATSTLSInfo.TLSPrivateKey != rcv.VAL_EMPTY && config.NATSTLSInfo.TLSCABundle != rcv.VAL_EMPTY {
-		if errorInfo = chv.DoesFileExistsAndReadable(config.NATSTLSInfo.TLSCert, rcv.TXT_FILENAME); errorInfo.Error != nil {
-			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.NATSTLSInfo.TLSCert))
+	if config.NATSConfig.NATSTLSInfo.TLSCert != ctv.VAL_EMPTY && config.NATSConfig.NATSTLSInfo.TLSPrivateKey != ctv.VAL_EMPTY && config.NATSConfig.NATSTLSInfo.TLSCABundle != ctv.VAL_EMPTY {
+		if errorInfo = hv.DoesFileExistsAndReadable(config.NATSConfig.NATSTLSInfo.TLSCert, ctv.TXT_FILENAME); errorInfo.Error != nil {
+			pi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, config.NATSConfig.NATSTLSInfo.TLSCert))
 			return
 		}
-		if errorInfo = chv.DoesFileExistsAndReadable(config.NATSTLSInfo.TLSPrivateKey, rcv.TXT_FILENAME); errorInfo.Error != nil {
-			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.NATSTLSInfo.TLSPrivateKey))
+		if errorInfo = hv.DoesFileExistsAndReadable(config.NATSConfig.NATSTLSInfo.TLSPrivateKey, ctv.TXT_FILENAME); errorInfo.Error != nil {
+			pi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, config.NATSConfig.NATSTLSInfo.TLSPrivateKey))
 			return
 		}
-		if errorInfo = chv.DoesFileExistsAndReadable(config.NATSTLSInfo.TLSCABundle, rcv.TXT_FILENAME); errorInfo.Error != nil {
-			cpi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_DIRECTORY, config.NATSTLSInfo.TLSCABundle))
+		if errorInfo = hv.DoesFileExistsAndReadable(config.NATSConfig.NATSTLSInfo.TLSCABundle, ctv.TXT_FILENAME); errorInfo.Error != nil {
+			pi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, config.NATSConfig.NATSTLSInfo.TLSCABundle))
 			return
 		}
 	}
-	if chv.IsDomainValid(config.NATSURL) == false {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrDomainInvalid, fmt.Sprintf("%v%v", rcv.TXT_EVIRONMENT, config.NATSURL))
+	if hv.IsDomainValid(config.NATSConfig.NATSURL) == false {
+		errorInfo = pi.NewErrorInfo(pi.ErrDomainInvalid, fmt.Sprintf("%v%v", ctv.TXT_EVIRONMENT, config.NATSConfig.NATSURL))
 		return
 	}
 	// ToDo Add support for requested threads
-	if len(config.SubjectRegistry) == rcv.VAL_ZERO {
-		cpi.NewErrorInfo(cpi.ErrSubjectsMissing, rcv.VAL_EMPTY)
+	if len(config.SubjectRegistry) == ctv.VAL_ZERO {
+		pi.NewErrorInfo(pi.ErrSubjectsMissing, ctv.VAL_EMPTY)
 	}
 
 	return

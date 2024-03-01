@@ -36,27 +36,27 @@ import (
 	"strings"
 
 	"github.com/stripe/stripe-go/v76"
-	chv "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
+	ctv "github.com/sty-holdings/constant-type-vars-go/v2024"
+	hv "github.com/sty-holdings/sty-shared/v2024/helpersValidators"
+	pi "github.com/sty-holdings/sty-shared/v2024/programInfo"
 )
 
 // checkSetAmount - will see if the amount is positive. If not, an error is returned, otherwise, the amount.
 //
 //	Customer Messages: None
-//	Errors: cpi.ErrStripeAmountInvalid
+//	Errors: pi.ErrStripeAmountInvalid
 //	Verifications: None
 func checkSetAmount(amount float64) (
 	stripeAmountPtr *int64,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	if amount > 0 {
-		x := chv.FloatToPennies(amount)
+		x := hv.FloatToPennies(amount)
 		stripeAmountPtr = &x
 		return
 	}
-	errorInfo = cpi.NewErrorInfo(cpi.ErrStripeAmountInvalid, fmt.Sprintf("%v%v", rcv.TXT_AMOUNT, amount))
+	errorInfo = pi.NewErrorInfo(pi.ErrStripeAmountInvalid, fmt.Sprintf("%v%v", ctv.TXT_AMOUNT, amount))
 
 	return
 }
@@ -65,30 +65,30 @@ func checkSetAmount(amount float64) (
 // the stripe currency is returned.
 //
 //	Customer Messages: None
-//	Errors: cpi.ErrStripeCurrencyInvalid
+//	Errors: pi.ErrStripeCurrencyInvalid
 //	Verifications: None
 func checkSetCurrency(currency string) (
 	stripeCurrencyPtr *string,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	var (
 		tCurrency stripe.Currency
 	)
 
-	if currency == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeCurrencyInvalid, rcv.VAL_EMPTY)
+	if currency == ctv.VAL_EMPTY {
+		errorInfo = pi.NewErrorInfo(pi.ErrStripeCurrencyInvalid, ctv.VAL_EMPTY)
 		return
 	}
 	for _, tCurrency = range currencyValidValues {
-		if stripe.Currency(strings.ToLower(strings.Trim(currency, rcv.SPACES_ONE))) == tCurrency {
+		if stripe.Currency(strings.ToLower(strings.Trim(currency, ctv.SPACES_ONE))) == tCurrency {
 			x := string(tCurrency)
 			stripeCurrencyPtr = &x
 			return
 		}
 	}
 
-	errorInfo = cpi.NewErrorInfo(cpi.ErrStripeCurrencyInvalid, fmt.Sprintf("%v%v", rcv.TXT_CURRENCY, currency))
+	errorInfo = pi.NewErrorInfo(pi.ErrStripeCurrencyInvalid, fmt.Sprintf("%v%v", ctv.TXT_CURRENCY, currency))
 
 	return
 }
@@ -97,15 +97,15 @@ func checkSetCurrency(currency string) (
 // otherwise it returns the id.
 //
 //	Customer Messages: None
-//	Errors: cpi.ErrStripeIdInvalid
+//	Errors: pi.ErrStripeIdInvalid
 //	Verifications: None
 func checkSetId(paymentIntentId string) (
 	stripePaymentIntentId string,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
-	if paymentIntentId == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentIntentIdEmpty, rcv.VAL_EMPTY)
+	if paymentIntentId == ctv.VAL_EMPTY {
+		errorInfo = pi.NewErrorInfo(pi.ErrStripePaymentIntentIdEmpty, ctv.VAL_EMPTY)
 		return
 	}
 	stripePaymentIntentId = paymentIntentId
@@ -117,15 +117,15 @@ func checkSetId(paymentIntentId string) (
 // otherwise it returns the key.
 //
 //	Customer Messages: None
-//	Errors: cpi.ErrStripeKeyInvalid
+//	Errors: pi.ErrStripeKeyInvalid
 //	Verifications: None
 func checkSetKey(key string) (
 	stripeKey string,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
-	if key == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripeKeyInvalid, rcv.VAL_EMPTY)
+	if key == ctv.VAL_EMPTY {
+		errorInfo = pi.NewErrorInfo(pi.ErrStripeKeyInvalid, ctv.VAL_EMPTY)
 		return
 	}
 	stripeKey = key
@@ -137,29 +137,29 @@ func checkSetKey(key string) (
 // otherwise it returns the payment method as a string pointer.
 //
 //	Customer Messages: None
-//	Errors: cpi.ErrStripePaymentMethodInvalid
+//	Errors: pi.ErrStripePaymentMethodInvalid
 //	Verifications: None
 func checkSetPaymentMethod(paymentMethod string) (
 	stripePaymentMethod *string,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	var (
 		tPaymentMethod string
 	)
 
-	if paymentMethod == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodEmpty, rcv.VAL_EMPTY)
+	if paymentMethod == ctv.VAL_EMPTY {
+		errorInfo = pi.NewErrorInfo(pi.ErrStripePaymentMethodEmpty, ctv.VAL_EMPTY)
 		return
 	}
 	for _, tPaymentMethod = range paymentMethodValidValues {
-		if tPaymentMethod == strings.ToLower(strings.Trim(paymentMethod, rcv.SPACES_ONE)) {
+		if tPaymentMethod == strings.ToLower(strings.Trim(paymentMethod, ctv.SPACES_ONE)) {
 			stripePaymentMethod = &paymentMethod
 			return
 		}
 	}
 
-	errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodInvalid, fmt.Sprintf("%v%v", rcv.TXT_PAYMENT_METHOD, paymentMethod))
+	errorInfo = pi.NewErrorInfo(pi.ErrStripePaymentMethodInvalid, fmt.Sprintf("%v%v", ctv.TXT_PAYMENT_METHOD, paymentMethod))
 
 	return
 }
@@ -168,29 +168,29 @@ func checkSetPaymentMethod(paymentMethod string) (
 // otherwise it returns the payment method type as a string pointer.
 //
 //	Customer Messages: None
-//	Errors: cpi.ErrStripePaymentMethodInvalid
+//	Errors: pi.ErrStripePaymentMethodInvalid
 //	Verifications: None
 func checkSetPaymentMethodType(paymentMethodType string) (
 	stripePaymentMethodType *string,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	var (
 		tPaymentMethodType string
 	)
 
-	if paymentMethodType == rcv.VAL_EMPTY {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodTypeEmpty, rcv.VAL_EMPTY)
+	if paymentMethodType == ctv.VAL_EMPTY {
+		errorInfo = pi.NewErrorInfo(pi.ErrStripePaymentMethodTypeEmpty, ctv.VAL_EMPTY)
 		return
 	}
 	for _, tPaymentMethodType = range paymentMethodValidValues {
-		if tPaymentMethodType == strings.ToLower(strings.Trim(paymentMethodType, rcv.SPACES_ONE)) {
+		if tPaymentMethodType == strings.ToLower(strings.Trim(paymentMethodType, ctv.SPACES_ONE)) {
 			stripePaymentMethodType = &paymentMethodType
 			return
 		}
 	}
 
-	errorInfo = cpi.NewErrorInfo(cpi.ErrStripePaymentMethodTypeInvalid, fmt.Sprintf("%v%v", rcv.TXT_PAYMENT_METHOD_TYPE, paymentMethodType))
+	errorInfo = pi.NewErrorInfo(pi.ErrStripePaymentMethodTypeInvalid, fmt.Sprintf("%v%v", ctv.TXT_PAYMENT_METHOD_TYPE, paymentMethodType))
 
 	return
 }

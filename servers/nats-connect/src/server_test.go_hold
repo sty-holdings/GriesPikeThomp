@@ -11,8 +11,8 @@ import (
 
 	le "GriesPikeThomp/servers/nats-connect/loadExtensions"
 	cj "GriesPikeThomp/shared-services/src/coreJWT"
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
+    pi "github.com/sty-holdings/sty-shared/src/coreProgramInfo"
+	ctv "github.com/sty-holdings/constant-type-vars-go/v2024"
 )
 
 func TestBuildExtension(tPtr *testing.T) {
@@ -23,7 +23,7 @@ func TestBuildExtension(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          cpi.ErrorInfo
+		errorInfo          pi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -37,14 +37,14 @@ func TestBuildExtension(tPtr *testing.T) {
 		// Missing extension key is not tested. No way for the program to get to this code without a key.
 		// Empty subject registry is not tested. No way for the program to get to this code without a populated Subject Registry.
 		{
-			name: rcv.TEST_POSITIVE_SUCCESS + "Secure connection.",
+			name: ctv.TEST_POSITIVE_SUCCESS + "Secure connection.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{
-					MessageEnvironment:      rcv.ENVIRONMENT_LOCAL,
+					MessageEnvironment:      ctv.ENVIRONMENT_LOCAL,
 					NATSCredentialsFilename: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
 					NATSPort:                4222,
-					NATSTLSInfo: cj.TLSInfo{
+					NATSTLSInfo: jwts.TLSInfo{
 						TLSCert:       "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
 						TLSPrivateKey: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
 						TLSCABundle:   "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt",
@@ -56,13 +56,13 @@ func TestBuildExtension(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Missing Credential filename.",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Missing Credential filename.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{
-					NATSCredentialsFilename: rcv.VAL_EMPTY,
+					NATSCredentialsFilename: ctv.VAL_EMPTY,
 					NATSPort:                4222,
-					NATSTLSInfo: cj.TLSInfo{
+					NATSTLSInfo: jwts.TLSInfo{
 						TLSCert:       "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
 						TLSPrivateKey: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
 						TLSCABundle:   "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt",
@@ -74,13 +74,13 @@ func TestBuildExtension(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Port is zero.",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Port is zero.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{
 					NATSCredentialsFilename: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
 					NATSPort:                0,
-					NATSTLSInfo: cj.TLSInfo{
+					NATSTLSInfo: jwts.TLSInfo{
 						TLSCert:       "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
 						TLSPrivateKey: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
 						TLSCABundle:   "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt",
@@ -92,14 +92,14 @@ func TestBuildExtension(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Missing certificate FQN.",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Missing certificate FQN.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{
 					NATSCredentialsFilename: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
 					NATSPort:                4222,
-					NATSTLSInfo: cj.TLSInfo{
-						TLSCert:       rcv.VAL_EMPTY,
+					NATSTLSInfo: jwts.TLSInfo{
+						TLSCert:       ctv.VAL_EMPTY,
 						TLSPrivateKey: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
 						TLSCABundle:   "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt",
 					},
@@ -110,15 +110,15 @@ func TestBuildExtension(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Missing private key FQN.",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Missing private key FQN.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{
 					NATSCredentialsFilename: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
 					NATSPort:                4222,
-					NATSTLSInfo: cj.TLSInfo{
+					NATSTLSInfo: jwts.TLSInfo{
 						TLSCert:       "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
-						TLSPrivateKey: rcv.VAL_EMPTY,
+						TLSPrivateKey: ctv.VAL_EMPTY,
 						TLSCABundle:   "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt",
 					},
 					NATSURL:         "savup-local-0030.savup.com",
@@ -128,16 +128,16 @@ func TestBuildExtension(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Missing CA bundle FQN.",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Missing CA bundle FQN.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{
 					NATSCredentialsFilename: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
 					NATSPort:                4222,
-					NATSTLSInfo: cj.TLSInfo{
+					NATSTLSInfo: jwts.TLSInfo{
 						TLSCert:       "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
 						TLSPrivateKey: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
-						TLSCABundle:   rcv.VAL_EMPTY,
+						TLSCABundle:   ctv.VAL_EMPTY,
 					},
 					NATSURL:         "savup-local-0030.savup.com",
 					SubjectRegistry: buildSubjectRegistry(),
@@ -146,18 +146,18 @@ func TestBuildExtension(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Missing URL.",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Missing URL.",
 			arguments: arguments{
 				extensionKey: NC_INTERNAL,
 				config: le.ExtensionConfiguration{
 					NATSCredentialsFilename: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
 					NATSPort:                4222,
-					NATSTLSInfo: cj.TLSInfo{
+					NATSTLSInfo: jwts.TLSInfo{
 						TLSCert:       "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
 						TLSPrivateKey: "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
 						TLSCABundle:   "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt",
 					},
-					NATSURL:         rcv.VAL_EMPTY,
+					NATSURL:         ctv.VAL_EMPTY,
 					SubjectRegistry: buildSubjectRegistry(),
 				},
 			},
@@ -169,7 +169,7 @@ func TestBuildExtension(tPtr *testing.T) {
 		tPtr.Run(ts.name, func(t *testing.T) {
 			if _, errorInfo = buildExtension(ts.arguments.extensionKey, ts.arguments.config, true); errorInfo.Error != nil {
 				gotError = true
-				errorInfo = cpi.ErrorInfo{
+				errorInfo = pi.ErrorInfo{
 					Error: errors.New(fmt.Sprintf("Failed - NATS connection was not created for Test: %v", tFunctionName)),
 				}
 			} else {
@@ -190,17 +190,17 @@ func TestBuildExtension(tPtr *testing.T) {
 // func TestNewServer(tPtr *testing.T) {
 //
 // 	var (
-// 		errorInfos         []cpi.ErrorInfo
+// 		errorInfos         []pi.ErrorInfo
 // 		tFunction, _, _, _ = runtime.Caller(0)
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		if _, errorInfos = NewServer(rcv.TEST_CONFIGURATION_FQN, rcv.TEST_VERSION, true); len(errorInfos) > 0 {
-// 			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, rcv.TEST_CONFIGURATION_FQN)
+// 		if _, errorInfos = NewServer( ctv.TEST_CONFIGURATION_FQN, ctv.TEST_VERSION, true); len(errorInfos) > 0 {
+// 			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, ctv.TEST_CONFIGURATION_FQN)
 // 		}
-// 		if _, errorInfos = NewServer(rcv.TEST_CONFIGURATION_WTIH_TLS_FQN, rcv.TEST_VERSION, true); len(errorInfos) > 0 {
-// 			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, rcv.TEST_CONFIGURATION_FQN)
+// 		if _, errorInfos = NewServer( ctv.TEST_CONFIGURATION_WTIH_TLS_FQN, ctv.TEST_VERSION, true); len(errorInfos) > 0 {
+// 			tPtr.Errorf("%v Failed: Server was not created using the configuration file: %v.", tFunctionName, ctv.TEST_CONFIGURATION_FQN)
 // 		}
 // 	})
 // }
@@ -240,7 +240,7 @@ func TestBuildExtension(tPtr *testing.T) {
 // 	)
 //
 // 	tPtr.Run(tFunctionName, func(tPtr *testing.T) {
-// 		myServer, _ := NewServer(rcv.TEST_CONFIGURATION_FQN, server.VERSION, true)
+// 		myServer, _ := NewServer( ctv.TEST_CONFIGURATION_FQN, server.VERSION, true)
 // 		myServer.Shutdown(true)
 // 	})
 // }

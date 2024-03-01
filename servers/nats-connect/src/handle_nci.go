@@ -37,8 +37,8 @@ package src
 
 import (
 	"github.com/nats-io/nats.go"
-	cn "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreNATS"
-	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
+	ns "github.com/sty-holdings/sty-shared/v2024/natsSerices"
+	pi "github.com/sty-holdings/sty-shared/v2024/programInfo"
 )
 
 // nciMessageHandles - builds a map of message handlers
@@ -47,15 +47,15 @@ import (
 //	Errors: None
 //	Verifications: None
 func (serverPtr *Server) loadNCIMessageHandles() (
-	handlers map[string]cn.MessageHandler,
+	handlers map[string]ns.MessageHandler,
 ) {
 
-	handlers = make(map[string]cn.MessageHandler)
+	handlers = make(map[string]ns.MessageHandler)
 
-	handlers[NCI_TURN_DEBUG_OFF] = cn.MessageHandler{
+	handlers[NCI_TURN_DEBUG_OFF] = ns.MessageHandler{
 		Handler: serverPtr.nciTurnDebugOff(),
 	}
-	handlers[NCI_TURN_DEBUG_ON] = cn.MessageHandler{
+	handlers[NCI_TURN_DEBUG_ON] = ns.MessageHandler{
 		Handler: serverPtr.nciTurnDebugOn(),
 	}
 
@@ -74,15 +74,15 @@ func (serverPtr *Server) nciTurnDebugOff() nats.MsgHandler {
 	return func(msg *nats.Msg) {
 
 		var (
-			errorInfo cpi.ErrorInfo
-			tReply    cn.NATSReply
+			errorInfo pi.ErrorInfo
+			tReply    ns.NATSReply
 		)
 
 		serverPtr.instance.debugModeOn = false
 		tReply.Response = "Debug mode turned off"
 
-		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
-			cpi.PrintErrorInfo(errorInfo)
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
+			pi.PrintErrorInfo(errorInfo)
 		}
 
 		return
@@ -99,15 +99,15 @@ func (serverPtr *Server) nciTurnDebugOn() nats.MsgHandler {
 	return func(msg *nats.Msg) {
 
 		var (
-			errorInfo cpi.ErrorInfo
-			tReply    cn.NATSReply
+			errorInfo pi.ErrorInfo
+			tReply    ns.NATSReply
 		)
 
 		serverPtr.instance.debugModeOn = true
 		tReply.Response = "Debug mode turned on"
 
-		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
-			cpi.PrintErrorInfo(errorInfo)
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
+			pi.PrintErrorInfo(errorInfo)
 		}
 
 		return
@@ -133,7 +133,7 @@ func (serverPtr *Server) nciTurnDebugOn() nats.MsgHandler {
 // 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 	)
 //
-// 	cpi.PrintDebugTrail(tFunctionName)
+// 	pi.PrintDebugTrail(tFunctionName)
 //
 // 	return func(msg *nats.Msg) {
 // 		var (
@@ -141,8 +141,8 @@ func (serverPtr *Server) nciTurnDebugOn() nats.MsgHandler {
 // 			tFunctionName      = runtime.FuncForPC(tFunction).Name()
 // 		)
 //
-// 		cpi.PrintRequestStart(2)
-// 		cpi.PrintDebugTrail(tFunctionName)
+// 		pi.PrintRequestStart(2)
+// 		pi.PrintDebugTrail(tFunctionName)
 //
 // 		executeGetBackendInfo(myServer, msg)
 //

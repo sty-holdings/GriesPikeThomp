@@ -38,7 +38,7 @@ import (
 
 	"github.com/nats-io/nats.go"
 	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
-	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
+	config "github.com/sty-holdings/sty-shared/v2024/configuration"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
@@ -89,7 +89,7 @@ type Instance struct {
 }
 
 type Server struct {
-	config           cc.BaseConfiguration
+	config           config.BaseConfiguration
 	instance         Instance
 	extensionConfigs map[string]ext.ExtensionConfiguration
 }

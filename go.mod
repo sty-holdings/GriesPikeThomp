@@ -1,6 +1,6 @@
 module github.com/sty-holdings/GriesPikeThomp
 
-go 1.21
+go 1.21.5
 
 require (
 	cloud.google.com/go/firestore v1.14.0
@@ -9,12 +9,11 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.0
 	github.com/integrii/flaggy v1.5.2
 	github.com/jackc/pgx/v5 v5.5.2
-	github.com/nats-io/nats.go v1.32.0
+	github.com/nats-io/nats.go v1.33.1
 	github.com/plaid/plaid-go/v9 v9.0.0
 	github.com/sendgrid/rest v2.6.9+incompatible
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/stripe/stripe-go/v76 v76.17.0
-	github.com/sty-holdings/resuable-const-vars v2024.12.0+incompatible
 	golang.org/x/text v0.14.0
 	google.golang.org/api v0.162.0
 )
@@ -40,6 +39,9 @@ require (
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
+	github.com/sty-holdings/constant-type-vars-go/v2024 v2024.1.2 // indirect
+	github.com/sty-holdings/resuable-const-vars v2024.13.1+incompatible // indirect
+	github.com/sty-holdings/sty-shared/v2024 v2024.4.3 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.47.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.47.0 // indirect

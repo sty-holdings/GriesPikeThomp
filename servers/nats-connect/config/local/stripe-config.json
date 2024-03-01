@@ -11,7 +11,7 @@
   "requested_threads": 3,
   "subject_registry": [
     {
-      "subject": "stripe.payment-intent"
+      "subject": "stripe.create-payment-intent"
     },
     {
       "subject": "stripe.list-payment-methods"

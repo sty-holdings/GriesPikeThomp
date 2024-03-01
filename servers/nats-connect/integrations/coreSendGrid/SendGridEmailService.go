@@ -45,7 +45,6 @@ import (
 	"runtime"
 	"strings"
 
-	"albert/constants"
 	"albert/core/coreHelpers"
 	"albert/core/coreValidators"
 	"github.com/plaid/plaid-go/v9/plaid"
@@ -119,7 +118,10 @@ type SendGridHelper struct {
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // NewSendGridServer - initialize the SendGrid service for use. When the mode is production of demo, the defaultSenderAddress is used. For other modes, developer@sty-holdings.com is used.
-func NewSendGridServer(defaultSenderAddress, defaultSenderName, environment, sendgridKeyFQN string) (emailServerPtr *EmailServer, errorInfo cpi.ErrorInfo) {
+func NewSendGridServer(defaultSenderAddress, defaultSenderName, environment, sendgridKeyFQN string) (
+	emailServerPtr *EmailServer,
+	errorInfo pi.ErrorInfo,
+) {
 
 	var (
 		tSendGrid          SendGridHelper
@@ -129,12 +131,17 @@ func NewSendGridServer(defaultSenderAddress, defaultSenderName, environment, sen
 		tEmailServerPtr    = &tEmailServer
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
-	if defaultSenderAddress == rcv.EMPTY || defaultSenderName == rcv.EMPTY || environment == rcv.EMPTY || sendgridKeyFQN == rcv.EMPTY {
-		errorInfo.Error = cpi.ErrRequiredArgumentMissing
-		errorInfo.AdditionalInfo = fmt.Sprintf("Default Sender Address: '%v' Default Sender Name: '%v' Environment: '%v' and/or the provide key", defaultSenderAddress, defaultSenderName, environment)
-		cpi.PrintError(errorInfo)
+	if defaultSenderAddress == ctv.EMPTY || defaultSenderName == ctv.EMPTY || environment == ctv.EMPTY || sendgridKeyFQN == ctv.EMPTY {
+		errorInfo.Error = pi.ErrRequiredArgumentMissing
+		errorInfo.AdditionalInfo = fmt.Sprintf(
+			"Default Sender Address: '%v' Default Sender Name: '%v' Environment: '%v' and/or the provide key",
+			defaultSenderAddress,
+			defaultSenderName,
+			environment,
+		)
+		pi.PrintError(errorInfo)
 	} else {
 		if tSendGrid, errorInfo = sendGridGetKey(sendgridKeyFQN); errorInfo.Error == nil {
 			if errorInfo = validateEmailAddress(defaultSenderAddress); errorInfo.Error == nil {
@@ -146,7 +153,7 @@ func NewSendGridServer(defaultSenderAddress, defaultSenderName, environment, sen
 						ProviderKeyFQN: sendgridKeyFQN,
 					}
 					switch strings.ToUpper(environment) {
-					case rcv.ENVIRONMENT_PRODUCTION:
+					case ctv.ENVIRONMENT_PRODUCTION:
 						tEmailServerPtr.emailInfo.DefaultSender.Name = defaultSenderName
 						if errorInfo = validateEmailAddress(defaultSenderAddress); errorInfo.Error == nil {
 							tEmailServerPtr.emailInfo.DefaultSender.Address = defaultSenderAddress
@@ -165,20 +172,26 @@ func NewSendGridServer(defaultSenderAddress, defaultSenderName, environment, sen
 }
 
 // addTemplateData
-func (emailServerPtr *EmailServer) addTemplateData(personalizationPtr *mail.Personalization, templateData map[string]interface{}) {
+func (emailServerPtr *EmailServer) addTemplateData(
+	personalizationPtr *mail.Personalization,
+	templateData map[string]interface{},
+) {
 
 	personalizationPtr.DynamicTemplateData = templateData
 }
 
 // NewPersonalization - adds the 'from' address if valid, otherwise it uses the default sender. The toList must be populated, while the ccList and bccList are optional.
-func (emailServerPtr *EmailServer) newPersonalization(personalizationPtr *mail.Personalization, toList, ccList, bccList []EmailItem) (errorInfo cpi.ErrorInfo) {
+func (emailServerPtr *EmailServer) newPersonalization(
+	personalizationPtr *mail.Personalization,
+	toList, ccList, bccList []EmailItem,
+) (errorInfo pi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
 	if isRecipientListPopulated(toList) {
 		if errorInfo = addRecipientList(personalizationPtr, toList, RECIPIENT_TO); errorInfo.Error == nil {
@@ -199,7 +212,15 @@ func (emailServerPtr *EmailServer) newPersonalization(personalizationPtr *mail.P
 }
 
 // SendEmailUsingPlainText - The toList must have non-blank address to send an email. The ccList and bccList parameters can have empty addresses.
-func (emailServerPtr *EmailServer) sendEmailUsingPlainText(from EmailItem, subject, body string, toList, ccList, bccList []EmailItem, replyTo EmailItem) (response *rest.Response, errorInfo cpi.ErrorInfo) {
+func (emailServerPtr *EmailServer) sendEmailUsingPlainText(
+	from EmailItem,
+	subject, body string,
+	toList, ccList, bccList []EmailItem,
+	replyTo EmailItem,
+) (
+	response *rest.Response,
+	errorInfo pi.ErrorInfo,
+) {
 
 	var (
 		tEmailPtr           = mail.NewV3Mail()
@@ -208,12 +229,12 @@ func (emailServerPtr *EmailServer) sendEmailUsingPlainText(from EmailItem, subje
 		tPersonalizationPtr = mail.NewPersonalization()
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
-	if subject == rcv.EMPTY || body == rcv.EMPTY || isRecipientListPopulated(toList) == false {
-		errorInfo.Error = cpi.ErrRequiredArgumentMissing
+	if subject == ctv.EMPTY || body == ctv.EMPTY || isRecipientListPopulated(toList) == false {
+		errorInfo.Error = pi.ErrRequiredArgumentMissing
 		errorInfo.AdditionalInfo = fmt.Sprintf("Subject: '%v' Body: '%v' and/or the 'To List'.", subject, body)
-		cpi.PrintError(errorInfo)
+		pi.PrintError(errorInfo)
 	} else {
 		addFrom(emailServerPtr, tEmailPtr, from)
 		if errorInfo = validateSubject(subject); errorInfo.Error == nil {
@@ -232,7 +253,18 @@ func (emailServerPtr *EmailServer) sendEmailUsingPlainText(from EmailItem, subje
 }
 
 // SendEmailUsingPlainText - The toList, template id, and the template data must be populated to send an email. The ccList and bccList parameters can have empty addresses.
-func (emailServerPtr *EmailServer) SendEmailUsingTemplate(from EmailItem, subject string, toList, ccList, bccList []EmailItem, replyTo EmailItem, templateId string, templateData map[any]interface{}, test bool) (response *rest.Response, errorInfo cpi.ErrorInfo) {
+func (emailServerPtr *EmailServer) SendEmailUsingTemplate(
+	from EmailItem,
+	subject string,
+	toList, ccList, bccList []EmailItem,
+	replyTo EmailItem,
+	templateId string,
+	templateData map[any]interface{},
+	test bool,
+) (
+	response *rest.Response,
+	errorInfo pi.ErrorInfo,
+) {
 
 	var (
 		tEmailPtr           = mail.NewV3Mail()
@@ -240,13 +272,13 @@ func (emailServerPtr *EmailServer) SendEmailUsingTemplate(from EmailItem, subjec
 		tPersonalizationPtr = mail.NewPersonalization()
 	)
 
-	if tFindings = coreValidators.AreMapKeysValuesPopulated(templateData); tFindings != rcv.GOOD {
-		errorInfo.Error = cpi.GetMapKeyPopulatedError(tFindings)
+	if tFindings = coreValidators.AreMapKeysValuesPopulated(templateData); tFindings != ctv.GOOD {
+		errorInfo.Error = pi.GetMapKeyPopulatedError(tFindings)
 	} else {
-		if subject == rcv.EMPTY || isRecipientListPopulated(toList) == false || templateId == rcv.EMPTY {
-			errorInfo.Error = cpi.ErrRequiredArgumentMissing
+		if subject == ctv.EMPTY || isRecipientListPopulated(toList) == false || templateId == ctv.EMPTY {
+			errorInfo.Error = pi.ErrRequiredArgumentMissing
 			errorInfo.AdditionalInfo = fmt.Sprintf("Subject: '%v' Template Id: '%v' and/or the 'To List'.", subject, templateId)
-			cpi.PrintError(errorInfo)
+			pi.PrintError(errorInfo)
 		} else {
 			addFrom(emailServerPtr, tEmailPtr, from)
 			if errorInfo = validateSubject(subject); errorInfo.Error == nil {
@@ -269,23 +301,30 @@ func (emailServerPtr *EmailServer) SendEmailUsingTemplate(from EmailItem, subjec
 }
 
 // validateAddress - checks the length, the domain and the format of the address
-func (emailServerPtr *EmailServer) validateAddress(emailAddress string) (errorInfo cpi.ErrorInfo) {
+func (emailServerPtr *EmailServer) validateAddress(emailAddress string) (errorInfo pi.ErrorInfo) {
 
 	return validateEmailAddress(emailAddress)
 }
 
 // addContent
 // ToDo Add profanity checking service for subject line
-func addContent(emailPtr *mail.SGMailV3, mineType, body string) {
+func addContent(
+	emailPtr *mail.SGMailV3,
+	mineType, body string,
+) {
 
 	emailPtr.AddContent(mail.NewContent(mineType, body))
 }
 
 // addFrom - populates the email from with the supplied from or the default sender if the 'from' is empty.
-func addFrom(emailServerPtr *EmailServer, emailPtr *mail.SGMailV3, from EmailItem) {
+func addFrom(
+	emailServerPtr *EmailServer,
+	emailPtr *mail.SGMailV3,
+	from EmailItem,
+) {
 
 	var (
-		errorInfo cpi.ErrorInfo
+		errorInfo pi.ErrorInfo
 	)
 
 	// If the supplied 'from' email address is invalid, then the default email address and name is used.
@@ -298,7 +337,11 @@ func addFrom(emailServerPtr *EmailServer, emailPtr *mail.SGMailV3, from EmailIte
 
 // addRecipientList
 // ToDo Add profanity checking service for subject line
-func addRecipientList(personalizationPtr *mail.Personalization, recipientList []EmailItem, recipientType string) (errorInfo cpi.ErrorInfo) {
+func addRecipientList(
+	personalizationPtr *mail.Personalization,
+	recipientList []EmailItem,
+	recipientType string,
+) (errorInfo pi.ErrorInfo) {
 
 	for _, recipient := range recipientList {
 		if errorInfo = validateEmailAddress(recipient.Address); errorInfo.Error == nil {
@@ -320,7 +363,10 @@ func addRecipientList(personalizationPtr *mail.Personalization, recipientList []
 }
 
 // addReplyTo
-func addReplyTo(myEmailPtr *mail.SGMailV3, replyTo EmailItem) (errorInfo cpi.ErrorInfo) {
+func addReplyTo(
+	myEmailPtr *mail.SGMailV3,
+	replyTo EmailItem,
+) (errorInfo pi.ErrorInfo) {
 
 	if errorInfo = validateEmailAddress(replyTo.Address); errorInfo.Error == nil {
 		myEmailPtr.SetReplyTo(mail.NewEmail(replyTo.Name, replyTo.Address))
@@ -333,7 +379,7 @@ func addReplyTo(myEmailPtr *mail.SGMailV3, replyTo EmailItem) (errorInfo cpi.Err
 func isRecipientListPopulated(recipientList []EmailItem) bool {
 
 	for _, recipient := range recipientList {
-		if recipient.Address == rcv.EMPTY {
+		if recipient.Address == ctv.EMPTY {
 			return false
 		}
 	}
@@ -342,7 +388,12 @@ func isRecipientListPopulated(recipientList []EmailItem) bool {
 }
 
 // GenerateVerifyEmail - will format and send the verification email for a newly created user
-func GenerateVerifyEmail(emailServerPtr *EmailServer, templateId string, firstName, lastName, email, shortURL string, test bool) (errorInfo cpi.ErrorInfo) {
+func GenerateVerifyEmail(
+	emailServerPtr *EmailServer,
+	templateId string,
+	firstName, lastName, email, shortURL string,
+	test bool,
+) (errorInfo pi.ErrorInfo) {
 
 	var (
 		tBCCList []EmailItem
@@ -376,7 +427,13 @@ func GenerateVerifyEmail(emailServerPtr *EmailServer, templateId string, firstNa
 //	Customer Messages: None
 //	Errors: Any error returned from emailServerPtr.SendEmailUsingTemplate
 //	Verifications: None
-func GenerateBankRegisteredEmail(emailServerPtr *EmailServer, templateId string, firstName, lastName, email, institutionName string, accountData []plaid.AccountBase, test bool) (errorInfo cpi.ErrorInfo) {
+func GenerateBankRegisteredEmail(
+	emailServerPtr *EmailServer,
+	templateId string,
+	firstName, lastName, email, institutionName string,
+	accountData []plaid.AccountBase,
+	test bool,
+) (errorInfo pi.ErrorInfo) {
 
 	var (
 		tBCCList           []EmailItem
@@ -395,7 +452,7 @@ func GenerateBankRegisteredEmail(emailServerPtr *EmailServer, templateId string,
 		tToList       []EmailItem
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
 	tToList = []EmailItem{{
 		Name:    fmt.Sprintf("%v %v", firstName, lastName),
@@ -408,7 +465,17 @@ func GenerateBankRegisteredEmail(emailServerPtr *EmailServer, templateId string,
 		tTemplateData[fmt.Sprintf("su_institution_account_label_%v", i)] = "Account:"
 		tTemplateData[fmt.Sprintf("su_institution_account_name_%v", i)] = accountData[i].OfficialName
 	}
-	_, errorInfo = emailServerPtr.SendEmailUsingTemplate(tFrom, BANK_REGISTERED_SUBJECT, tToList, tCCList, tBCCList, tReplyTo, templateId, tTemplateData, test)
+	_, errorInfo = emailServerPtr.SendEmailUsingTemplate(
+		tFrom,
+		BANK_REGISTERED_SUBJECT,
+		tToList,
+		tCCList,
+		tBCCList,
+		tReplyTo,
+		templateId,
+		tTemplateData,
+		test,
+	)
 
 	return
 }
@@ -420,7 +487,13 @@ func GenerateBankRegisteredEmail(emailServerPtr *EmailServer, templateId string,
 //	Customer Messages: None
 //	Errors: Any error returned from emailServerPtr.SendEmailUsingTemplate
 //	Verifications: None
-func GenerateTransferRequestEmail(emailServerPtr *EmailServer, templateId string, firstName, lastName, email string, transferData map[string]string, test bool) (errorInfo cpi.ErrorInfo) {
+func GenerateTransferRequestEmail(
+	emailServerPtr *EmailServer,
+	templateId string,
+	firstName, lastName, email string,
+	transferData map[string]string,
+	test bool,
+) (errorInfo pi.ErrorInfo) {
 
 	var (
 		tBCCList []EmailItem
@@ -439,7 +512,7 @@ func GenerateTransferRequestEmail(emailServerPtr *EmailServer, templateId string
 		tToList       []EmailItem
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
 	tToList = []EmailItem{{
 		Name:    fmt.Sprintf("%v %v", firstName, lastName),
@@ -454,27 +527,43 @@ func GenerateTransferRequestEmail(emailServerPtr *EmailServer, templateId string
 	tTemplateData["su_first_name"] = firstName
 	tTemplateData["su_transfer_amount"] = transferData["amount"]
 	switch strings.ToUpper(transferData["method"]) {
-	case rcv.TRANFER_CHECK:
-		tTemplateData["su_transfer_method"] = rcv.CHECK
-	case rcv.TRANFER_WIRE:
-		tTemplateData["su_transfer_method"] = rcv.WIRE
-		tTemplateData["su_institution_lbl"] = rcv.TRANSFER_INSTITUTION_NAME
+	case ctv.TRANFER_CHECK:
+		tTemplateData["su_transfer_method"] = ctv.CHECK
+	case ctv.TRANFER_WIRE:
+		tTemplateData["su_transfer_method"] = ctv.WIRE
+		tTemplateData["su_institution_lbl"] = ctv.TRANSFER_INSTITUTION_NAME
 		tTemplateData["su_institution_name"] = transferData["institution"]
-	case rcv.TRANFER_ZELLE:
-		tTemplateData["su_transfer_method"] = rcv.ZELLE
-	case rcv.TRANFER_STRIPE:
-		tTemplateData["su_transfer_method"] = rcv.STRIPE
+	case ctv.TRANFER_ZELLE:
+		tTemplateData["su_transfer_method"] = ctv.ZELLE
+	case ctv.TRANFER_STRIPE:
+		tTemplateData["su_transfer_method"] = ctv.STRIPE
 	}
 	tTemplateData["su_estimated_completion"] = transferData["completion"]
-	_, errorInfo = emailServerPtr.SendEmailUsingTemplate(tFrom, TRANSFER_REQUEST_SUBJECT, tToList, tCCList, tBCCList, tReplyTo, templateId, tTemplateData, test)
+	_, errorInfo = emailServerPtr.SendEmailUsingTemplate(
+		tFrom,
+		TRANSFER_REQUEST_SUBJECT,
+		tToList,
+		tCCList,
+		tBCCList,
+		tReplyTo,
+		templateId,
+		tTemplateData,
+		test,
+	)
 
 	return
 }
 
-func sendEmail(emailPtr *mail.SGMailV3, key, host string) (response *rest.Response, errorInfo cpi.ErrorInfo) {
+func sendEmail(
+	emailPtr *mail.SGMailV3,
+	key, host string,
+) (
+	response *rest.Response,
+	errorInfo pi.ErrorInfo,
+) {
 
 	request := sendgrid.GetRequest(key, SENDGRID_ENDPOINT, host)
-	request.Method = rcv.HTTP_POST
+	request.Method = ctv.HTTP_POST
 	request.Body = mail.GetRequestBody(emailPtr)
 	response, errorInfo.Error = sendgrid.API(request)
 
@@ -484,7 +573,10 @@ func sendEmail(emailPtr *mail.SGMailV3, key, host string) (response *rest.Respon
 // sendGridGetKey
 // NOTE: This is a critical start-up function that enforce having the SendGrid key file available.
 // This retrieves the Stripe key and sets the 'stripe.Key' variable.
-func sendGridGetKey(sendgridFQN string) (sendGrid SendGridHelper, errorInfo cpi.ErrorInfo) {
+func sendGridGetKey(sendgridFQN string) (
+	sendGrid SendGridHelper,
+	errorInfo pi.ErrorInfo,
+) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
@@ -492,17 +584,17 @@ func sendGridGetKey(sendgridFQN string) (sendGrid SendGridHelper, errorInfo cpi.
 		tStripe            []byte
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
 	if tStripe, errorInfo.Error = os.ReadFile(sendgridFQN); errorInfo.Error != nil {
-		errorInfo.Error = cpi.ErrServiceFailedSendGrid
+		errorInfo.Error = pi.ErrServiceFailedSendGrid
 		errorInfo.AdditionalInfo = fmt.Sprintf("SendGrid key file: %v", sendgridFQN)
-		cpi.PrintError(errorInfo)
+		pi.PrintError(errorInfo)
 	} else {
 		if errorInfo.Error = json.Unmarshal(tStripe, &sendGrid); errorInfo.Error != nil {
-			errorInfo.Error = cpi.ErrJSONInvalid
+			errorInfo.Error = pi.ErrJSONInvalid
 			errorInfo.AdditionalInfo = fmt.Sprintf("SendGrid JSON file: %v", sendgridFQN)
-			cpi.PrintError(errorInfo)
+			pi.PrintError(errorInfo)
 		}
 	}
 
@@ -510,7 +602,7 @@ func sendGridGetKey(sendgridFQN string) (sendGrid SendGridHelper, errorInfo cpi.
 }
 
 // validateEmailAddress
-func validateEmailAddress(emailAddress string) (errorInfo cpi.ErrorInfo) {
+func validateEmailAddress(emailAddress string) (errorInfo pi.ErrorInfo) {
 
 	var (
 		mx                 []*net.MX
@@ -518,7 +610,7 @@ func validateEmailAddress(emailAddress string) (errorInfo cpi.ErrorInfo) {
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
 	if len(emailAddress) < 3 || len(emailAddress) > 254 {
 		errorInfo.Error = errors.New("The email address length must be greater than 2 and less than 255.")
@@ -541,14 +633,14 @@ func validateEmailAddress(emailAddress string) (errorInfo cpi.ErrorInfo) {
 
 // validateSubject
 // ToDo Add profanity checking service for subject line
-func validateSubject(subject string) (errorInfo cpi.ErrorInfo) {
+func validateSubject(subject string) (errorInfo pi.ErrorInfo) {
 
 	var (
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
 	)
 
-	cpi.PrintDebugTrail(tFunctionName)
+	pi.PrintDebugTrail(tFunctionName)
 
 	if len(subject) < 5 || len(subject) > 78 {
 		errorInfo.Error = errors.New("The email subject length must be greater than 4 and less than 79 characters.")

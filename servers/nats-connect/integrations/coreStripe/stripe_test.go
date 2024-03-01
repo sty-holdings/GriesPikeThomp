@@ -25,9 +25,9 @@ import (
 	"runtime"
 	"testing"
 
-	cpi "GriesPikeThomp/shared-services/src/coreProgramInfo"
 	"github.com/stripe/stripe-go/v76"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
+	ctv "github.com/sty-holdings/constant-type-vars-go/v2024"
+	pi "github.com/sty-holdings/sty-shared/v2024/programInfo"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
@@ -169,7 +169,7 @@ func TestProcessCancelPaymentIntent(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          cpi.ErrorInfo
+		errorInfo          pi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -182,17 +182,17 @@ func TestProcessCancelPaymentIntent(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "missing key",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "missing key",
 			arguments: arguments{
 				request: CancelPaymentIntentRequest{
-					Key:             rcv.VAL_EMPTY,
+					Key:             ctv.VAL_EMPTY,
 					PaymentIntentId: "pi_3OotQbK3aJ31D0AS0QeNlREa",
 				},
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "missing payment intent id",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "missing payment intent id",
 			arguments: arguments{
 				request: CancelPaymentIntentRequest{
 					Key: TEST_KEY,
@@ -201,7 +201,7 @@ func TestProcessCancelPaymentIntent(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Successful!",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Successful!",
 			arguments: arguments{
 				request: CancelPaymentIntentRequest{
 					Key:             TEST_KEY,
@@ -215,7 +215,7 @@ func TestProcessCancelPaymentIntent(tPtr *testing.T) {
 	for _, ts := range tests {
 		tPtr.Run(
 			ts.name, func(t *testing.T) {
-				fmt.Println(rcv.LINE_LONG)
+				fmt.Println(ctv.LINE_LONG)
 				if _, errorInfo = processCancelPaymentIntent(ts.arguments.request); errorInfo.Error == nil {
 					gotError = false
 				} else {
@@ -236,7 +236,7 @@ func TestProcessConfirmPaymentIntent(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          cpi.ErrorInfo
+		errorInfo          pi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -249,16 +249,16 @@ func TestProcessConfirmPaymentIntent(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "missing key",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "missing key",
 			arguments: arguments{
 				request: ConfirmPaymentIntentRequest{
-					Key: rcv.VAL_EMPTY,
+					Key: ctv.VAL_EMPTY,
 				},
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "missing payment intent id",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "missing payment intent id",
 			arguments: arguments{
 				request: ConfirmPaymentIntentRequest{
 					Key: TEST_KEY,
@@ -267,7 +267,7 @@ func TestProcessConfirmPaymentIntent(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "missing return URL",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "missing return URL",
 			arguments: arguments{
 				request: ConfirmPaymentIntentRequest{
 					Key:             TEST_KEY,
@@ -277,7 +277,7 @@ func TestProcessConfirmPaymentIntent(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "missing payment method",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "missing payment method",
 			arguments: arguments{
 				request: ConfirmPaymentIntentRequest{
 					Key:             TEST_KEY,
@@ -288,12 +288,12 @@ func TestProcessConfirmPaymentIntent(tPtr *testing.T) {
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Successful!",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Successful!",
 			arguments: arguments{
 				request: ConfirmPaymentIntentRequest{
 					Key:             TEST_KEY,
 					PaymentIntentId: "pi_3OotA4K3aJ31D0AS0BPWECZn",
-					PaymentMethod:   rcv.CARD_BRAND_VISA,
+					PaymentMethod:   ctv.CARD_BRAND_VISA,
 					ReturnURL:       "https://stripe.natsconnect.com",
 				},
 			},
@@ -304,7 +304,7 @@ func TestProcessConfirmPaymentIntent(tPtr *testing.T) {
 	for _, ts := range tests {
 		tPtr.Run(
 			ts.name, func(t *testing.T) {
-				fmt.Println(rcv.LINE_LONG)
+				fmt.Println(ctv.LINE_LONG)
 				if _, errorInfo = processConfirmPaymentIntent(ts.arguments.request); errorInfo.Error == nil {
 					gotError = false
 				} else {
@@ -325,7 +325,7 @@ func TestProcessListPaymentIntents(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          cpi.ErrorInfo
+		errorInfo          pi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -338,7 +338,7 @@ func TestProcessListPaymentIntents(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITIVE_SUCCESS + "Successful List!",
+			name: ctv.TEST_POSITIVE_SUCCESS + "Successful List!",
 			arguments: arguments{
 				request: ListPaymentIntentRequest{
 					Key: TEST_KEY,
@@ -347,10 +347,10 @@ func TestProcessListPaymentIntents(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "key is missing",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "key is missing",
 			arguments: arguments{
 				request: ListPaymentIntentRequest{
-					Key: rcv.VAL_EMPTY,
+					Key: ctv.VAL_EMPTY,
 				},
 			},
 			wantError: true,
@@ -380,7 +380,7 @@ func TestProcessListPaymentMethods(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          cpi.ErrorInfo
+		errorInfo          pi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -393,7 +393,7 @@ func TestProcessListPaymentMethods(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITIVE_SUCCESS + "Successful List!",
+			name: ctv.TEST_POSITIVE_SUCCESS + "Successful List!",
 			arguments: arguments{
 				request: ListPaymentMethodRequest{
 					Key: TEST_KEY,
@@ -402,10 +402,10 @@ func TestProcessListPaymentMethods(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Successful key is missing",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Successful key is missing",
 			arguments: arguments{
 				request: ListPaymentMethodRequest{
-					Key: rcv.VAL_EMPTY,
+					Key: ctv.VAL_EMPTY,
 				},
 			},
 			wantError: true,
@@ -435,7 +435,7 @@ func TestProcessCreatePaymentIntent(tPtr *testing.T) {
 	}
 
 	var (
-		errorInfo          cpi.ErrorInfo
+		errorInfo          pi.ErrorInfo
 		gotError           bool
 		tFunction, _, _, _ = runtime.Caller(0)
 		tFunctionName      = runtime.FuncForPC(tFunction).Name()
@@ -448,7 +448,7 @@ func TestProcessCreatePaymentIntent(tPtr *testing.T) {
 		wantError bool
 	}{
 		{
-			name: rcv.TEST_POSITIVE_SUCCESS + "Successful payment no automatic payment method or description!",
+			name: ctv.TEST_POSITIVE_SUCCESS + "Successful payment no automatic payment method or description!",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:   1.01,
@@ -459,19 +459,19 @@ func TestProcessCreatePaymentIntent(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITIVE_SUCCESS + "Successful payment no automatic payment method!",
+			name: ctv.TEST_POSITIVE_SUCCESS + "Successful payment no automatic payment method!",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:      1.01,
 					Currency:    string(stripe.CurrencyUSD),
-					Description: rcv.TXT_EMPTY,
+					Description: ctv.TXT_EMPTY,
 					Key:         TEST_KEY,
 				},
 			},
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITIVE_SUCCESS + "Successful payment with automatic payment method no description!",
+			name: ctv.TEST_POSITIVE_SUCCESS + "Successful payment with automatic payment method no description!",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:                  1.01,
@@ -483,62 +483,62 @@ func TestProcessCreatePaymentIntent(tPtr *testing.T) {
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_POSITIVE_SUCCESS + "Successful payment with automatic payment method and description!",
+			name: ctv.TEST_POSITIVE_SUCCESS + "Successful payment with automatic payment method and description!",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:                  1.01,
 					AutomaticPaymentMethods: true,
 					Currency:                string(stripe.CurrencyUSD),
-					Description:             rcv.TXT_EMPTY,
+					Description:             ctv.TXT_EMPTY,
 					Key:                     TEST_KEY,
 				},
 			},
 			wantError: false,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Zero amount",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Zero amount",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:      0,
 					Currency:    string(stripe.CurrencyUSD),
-					Description: rcv.TXT_EMPTY,
+					Description: ctv.TXT_EMPTY,
 					Key:         TEST_KEY,
 				},
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Empty currency",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Empty currency",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:      1.01,
-					Currency:    rcv.VAL_EMPTY,
-					Description: rcv.TXT_EMPTY,
+					Currency:    ctv.VAL_EMPTY,
+					Description: ctv.TXT_EMPTY,
 					Key:         TEST_KEY,
 				},
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Uppercase currency",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Uppercase currency",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:      1.01,
 					Currency:    "USD",
-					Description: rcv.TXT_EMPTY,
-					Key:         rcv.VAL_EMPTY,
+					Description: ctv.TXT_EMPTY,
+					Key:         ctv.VAL_EMPTY,
 				},
 			},
 			wantError: true,
 		},
 		{
-			name: rcv.TEST_NEGATIVE_SUCCESS + "Empty key",
+			name: ctv.TEST_NEGATIVE_SUCCESS + "Empty key",
 			arguments: arguments{
 				request: PaymentIntentRequest{
 					Amount:      1.01,
 					Currency:    string(stripe.CurrencyUSD),
-					Description: rcv.TXT_EMPTY,
-					Key:         rcv.VAL_EMPTY,
+					Description: ctv.TXT_EMPTY,
+					Key:         ctv.VAL_EMPTY,
 				},
 			},
 			wantError: true,
@@ -548,7 +548,7 @@ func TestProcessCreatePaymentIntent(tPtr *testing.T) {
 	for _, ts := range tests {
 		tPtr.Run(
 			ts.name, func(t *testing.T) {
-				fmt.Println(rcv.LINE_LONG)
+				fmt.Println(ctv.LINE_LONG)
 				if _, errorInfo = processCreatePaymentIntent(ts.arguments.request); errorInfo.Error == nil {
 					gotError = false
 				} else {

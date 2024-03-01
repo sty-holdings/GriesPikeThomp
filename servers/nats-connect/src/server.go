@@ -37,13 +37,13 @@ import (
 	"syscall"
 
 	"github.com/nats-io/nats.go"
+	cs "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/integrations/coreStripe"
 	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
-	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
-	chv "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreHelpersValidators"
-	cn "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreNATS"
-	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
-	cs "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreStripe"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
+	ctv "github.com/sty-holdings/constant-type-vars-go/v2024"
+	config "github.com/sty-holdings/sty-shared/v2024/configuration"
+	hv "github.com/sty-holdings/sty-shared/v2024/helpersValidators"
+	ns "github.com/sty-holdings/sty-shared/v2024/natsSerices"
+	pi "github.com/sty-holdings/sty-shared/v2024/programInfo"
 )
 
 // RunServer will set up a new server instance after parsing the configuration defined
@@ -60,36 +60,36 @@ func RunServer(
 ) (returnCode int) {
 
 	var (
-		errorInfo          cpi.ErrorInfo
+		errorInfo          pi.ErrorInfo
 		serverPtr          *Server
-		tConfig            cc.BaseConfiguration
+		tConfig            config.BaseConfiguration
 		tLogFileHandlerPtr *os.File
 		tLogFQD            string
 		tlogFQN            string
 	)
 
 	// See if configuration file exists and is readable, if not, return an error
-	if tConfig, errorInfo = cc.ProcessBaseConfigFile(configFileFQN); errorInfo.Error != nil {
-		cpi.PrintErrorInfo(errorInfo)
+	if tConfig, errorInfo = config.ProcessBaseConfigFile(configFileFQN); errorInfo.Error != nil {
+		pi.PrintErrorInfo(errorInfo)
 		return 1
 	}
 
-	if errorInfo = cc.ValidateConfiguration(tConfig); errorInfo.Error != nil {
-		cpi.PrintErrorInfo(errorInfo)
+	if errorInfo = config.ValidateConfiguration(tConfig); errorInfo.Error != nil {
+		pi.PrintErrorInfo(errorInfo)
 		return 1
 	}
 
 	// Initializing the log output.
-	tLogFQD = chv.PrependWorkingDirectoryWithEndingSlash(tConfig.LogDirectory)
-	if tLogFileHandlerPtr, tlogFQN, errorInfo = chv.CreateAndRedirectLogOutput(tLogFQD, rcv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
-		cpi.PrintErrorInfo(errorInfo)
+	tLogFQD = hv.PrependWorkingDirectoryWithEndingSlash(tConfig.LogDirectory)
+	if tLogFileHandlerPtr, tlogFQN, errorInfo = hv.CreateAndRedirectLogOutput(tLogFQD, ctv.MODE_OUTPUT_LOG_DISPLAY); errorInfo.Error != nil {
+		pi.PrintErrorInfo(errorInfo)
 		return
 	}
 
 	log.Printf("Creating a new instance of %v server.\n", serverName)
 
 	if serverPtr, errorInfo = initializeServer(tConfig, serverName, version, tlogFQN, tLogFileHandlerPtr, testingOn); errorInfo.Error != nil {
-		cpi.PrintErrorInfo(errorInfo)
+		pi.PrintErrorInfo(errorInfo)
 		return 1
 	}
 
@@ -122,13 +122,13 @@ func (serverPtr *Server) Shutdown() {
 //	Errors: ErrPIDFileExists
 //	Verifications: None
 func initializeServer(
-	config cc.BaseConfiguration,
+	config config.BaseConfiguration,
 	serverName, version, logFQN string,
 	logFileHandlerPtr *os.File,
 	testingOn bool,
 ) (
 	serverPtr *Server,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	log.Printf("Initializing instance of %v server.\n", serverName)
@@ -138,13 +138,13 @@ func initializeServer(
 	}
 
 	// Check if a server.pid exists, if so shutdown
-	if chv.DoesFileExist(serverPtr.instance.pidFQN) {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrPIDFileExists, fmt.Sprintf("PID Directory: %v", serverPtr.instance.pidFQN))
+	if hv.DoesFileExist(serverPtr.instance.pidFQN) {
+		errorInfo = pi.NewErrorInfo(pi.ErrPIDFileExists, fmt.Sprintf("PID Directory: %v", serverPtr.instance.pidFQN))
 		return nil, errorInfo
 	}
 
 	if testingOn == false {
-		if errorInfo = chv.WritePidFile(serverPtr.instance.pidFQN, serverPtr.instance.pid); errorInfo.Error != nil {
+		if errorInfo = hv.WritePidFile(serverPtr.instance.pidFQN, serverPtr.instance.pid); errorInfo.Error != nil {
 			return nil, errorInfo
 		}
 	}
@@ -187,10 +187,10 @@ func (serverPtr *Server) messageHandler() {
 	// for serviceName, serviceInfo := range serverPtr.loadExtensions {
 	// 	switch serviceName {
 	// 	case NC_INTERNAL:
-	// 		retrievedService := serviceInfo.(cn.NATSService)
+	// 		retrievedService := serviceInfo.(ns.NATSService)
 	// serverPtr.getNATSHandlers(retrievedService)
 	// 	case STRIPE:
-	// 		retrievedService := serviceInfo.(cn.NATSService)
+	// 		retrievedService := serviceInfo.(ns.NATSService)
 	// 		serverPtr.getNATSHandlers(retrievedService)
 	// 	}
 	// }
@@ -207,17 +207,17 @@ func (serverPtr *Server) messageHandler() {
 //	Errors: None
 //	Verifications: None
 func newServer(
-	config cc.BaseConfiguration,
+	config config.BaseConfiguration,
 	serverName, version, logFQN string,
 	logFileHandlerPtr *os.File,
 	testingOn bool,
 ) (
 	serverPtr *Server,
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	if config.MaxThreads > runtime.NumCPU() {
-		errorInfo = cpi.NewErrorInfo(cpi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v", rcv.TXT_MAX_THREADS, "exceeds available threads."))
+		errorInfo = pi.NewErrorInfo(pi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v", ctv.TXT_MAX_THREADS, "exceeds available threads."))
 	}
 
 	serverPtr = &Server{
@@ -227,7 +227,7 @@ func newServer(
 			logFileHandlerPtr: logFileHandlerPtr,
 			logFQN:            logFQN,
 			numberCPUS:        runtime.NumCPU(),
-			outputMode:        rcv.MODE_OUTPUT_LOG_DISPLAY,
+			outputMode:        ctv.MODE_OUTPUT_LOG_DISPLAY,
 			pid:               os.Getppid(),
 			serverName:        serverName,
 			testingOn:         testingOn,
@@ -238,7 +238,7 @@ func newServer(
 	serverPtr.instance.extInstances = make(map[string]ExtInstance)
 	serverPtr.instance.hostname, _ = os.Hostname()
 	serverPtr.instance.messageHandlers = make(map[string]nats.MsgHandler)
-	serverPtr.instance.pidFQN = chv.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + rcv.PID_FILENAME
+	serverPtr.instance.pidFQN = hv.PrependWorkingDirectoryWithEndingSlash(config.PIDDirectory) + ctv.PID_FILENAME
 	serverPtr.instance.workingDirectory, _ = os.Getwd()
 
 	return
@@ -255,16 +255,16 @@ func (serverPtr *Server) run() {
 		key string
 	)
 
-	key = strings.ToLower(strings.Trim(key, rcv.VAL_EMPTY))
+	key = strings.ToLower(strings.Trim(key, ctv.VAL_EMPTY))
 
 	// capture signals
 	go initializeSignals(serverPtr)
 
 	// start extensions
 	for key, _ = range serverPtr.extensionConfigs {
-		if key != rcv.NC_INTERNAL { // Skipping NC_INSTANCE so server is not block extension creation
+		if key != ctv.NC_INTERNAL { // Skipping NC_INSTANCE so server is not block extension creation
 			switch key {
-			case rcv.STRIPE_EXTENSION:
+			case ctv.STRIPE_EXTENSION:
 				go cs.NewExtension(
 					serverPtr.instance.hostname,
 					serverPtr.extensionConfigs[key],
@@ -303,7 +303,7 @@ func (serverPtr *Server) signalHandler(signal os.Signal) {
 	case syscall.SIGQUIT: // kill -SIGQUIT XXXX
 		serverPtr.Shutdown()
 	default:
-		cpi.PrintError(cpi.ErrSignalUnknown, fmt.Sprintf("%v%v", rcv.TXT_SIGNAL, signal.String()))
+		pi.PrintError(pi.ErrSignalUnknown, fmt.Sprintf("%v%v", ctv.TXT_SIGNAL, signal.String()))
 	}
 
 	os.Exit(0)
@@ -315,7 +315,7 @@ func (serverPtr *Server) signalHandler(signal os.Signal) {
 //	Errors: None
 //	Verifications: None
 func (serverPtr *Server) buildNCIExtension() (
-	errorInfo cpi.ErrorInfo,
+	errorInfo pi.ErrorInfo,
 ) {
 
 	var (
@@ -323,12 +323,12 @@ func (serverPtr *Server) buildNCIExtension() (
 		tSubscriptionPtrs = make(map[string]*nats.Subscription)
 	)
 
-	if tExtInstance.InstanceName, errorInfo = cn.BuildInstanceName(cn.METHOD_BLANK, rcv.NC_INTERNAL); errorInfo.Error != nil {
+	if tExtInstance.InstanceName, errorInfo = ns.BuildInstanceName(ns.METHOD_BLANK, ctv.NC_INTERNAL); errorInfo.Error != nil {
 		return
 	}
-	if tExtInstance.NatsConnectionPtr, errorInfo = cn.GetConnection(
+	if tExtInstance.NatsConnectionPtr, errorInfo = ns.GetConnection(
 		tExtInstance.InstanceName,
-		serverPtr.extensionConfigs[rcv.NC_INTERNAL],
+		serverPtr.extensionConfigs[ctv.NC_INTERNAL].NATSConfig,
 	); errorInfo.Error != nil {
 		return
 	}
@@ -337,11 +337,11 @@ func (serverPtr *Server) buildNCIExtension() (
 	tExtInstance.WaitGroup = sync.WaitGroup{}
 	tExtInstance.WaitGroup.Add(1)
 	for subject, handler := range serverPtr.loadNCIMessageHandles() {
-		tSubscriptionPtrs[subject], errorInfo = cn.Subscribe(tExtInstance.NatsConnectionPtr, tExtInstance.InstanceName, subject, handler.Handler)
+		tSubscriptionPtrs[subject], errorInfo = ns.Subscribe(tExtInstance.NatsConnectionPtr, tExtInstance.InstanceName, subject, handler.Handler)
 	}
 
 	tExtInstance.SubscriptionPtrs = tSubscriptionPtrs
-	serverPtr.instance.extInstances[rcv.NC_INTERNAL] = tExtInstance
+	serverPtr.instance.extInstances[ctv.NC_INTERNAL] = tExtInstance
 
 	if serverPtr.instance.testingOn {
 		tExtInstance.WaitGroup.Done()
@@ -378,17 +378,17 @@ func shutdown(
 	testingOn bool,
 ) {
 	var (
-		errorInfo cpi.ErrorInfo
+		errorInfo pi.ErrorInfo
 	)
 
 	// Remove pid file
 	if testingOn == false {
-		if errorInfo = chv.RemovePidFile(pidFQN); errorInfo.Error != nil {
-			cpi.PrintError(errorInfo.Error, fmt.Sprintf("%v%v", rcv.TXT_FILENAME, pidFQN))
+		if errorInfo = hv.RemovePidFile(pidFQN); errorInfo.Error != nil {
+			pi.PrintError(errorInfo.Error, fmt.Sprintf("%v%v", ctv.TXT_FILENAME, pidFQN))
 		}
 	}
 
-	log.Println(rcv.LINE_SHORT)
+	log.Println(ctv.LINE_SHORT)
 	log.Printf("The pid file (%v) has been removed", pidFQN)
 	log.Printf("The %v server has shutdown gracefully.", serverName)
 

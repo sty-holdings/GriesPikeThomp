@@ -41,9 +41,9 @@ import (
 
 	"github.com/integrii/flaggy"
 	"github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/src"
-	cc "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration"
-	cpi "github.com/sty-holdings/GriesPikeThomp/shared-services/src/coreProgramInfo"
-	rcv "github.com/sty-holdings/resuable-const-vars/src"
+	ctv "github.com/sty-holdings/constant-type-vars-go/v2024"
+	config "github.com/sty-holdings/sty-shared/v2024/configuration"
+	pi "github.com/sty-holdings/sty-shared/v2024/programInfo"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -53,11 +53,11 @@ import (
 var (
 	// Add Variables here for the file (Remember, they are global)
 	// Start up values for a service
-	configFileFQN string
+	configFileFQN     string
 	generateConfigFQD string
-	serverName = "nats-connect"
-	testingOn bool
-	version = "9999.9999.9999"
+	serverName        = "nats-connect"
+	testingOn         bool
+	version           = "9999.9999.9999"
 )
 
 func init() {
@@ -65,12 +65,12 @@ func init() {
 	appDescription := cases.Title(language.English).String(serverName) + " bridges the gap between NATS users and the wider world, enabling effortless integration" +
 		" with third-party platforms and services.\n" +
 		"\nVersion: \n" +
-		rcv.SPACES_FOUR + "- " + version + "\n" +
+		ctv.SPACES_FOUR + "- " + version + "\n" +
 		"\nConstraints: \n" +
-		rcv.SPACES_FOUR + "- When using -c you must pass the fully qualified configuration file name.\n" +
-		rcv.SPACES_FOUR + "- There is no console available at this time and all log messages are output to Log_Directory specified in the config file.\n" +
+		ctv.SPACES_FOUR + "- When using -c you must pass the fully qualified configuration file name.\n" +
+		ctv.SPACES_FOUR + "- There is no console available at this time and all log messages are output to Log_Directory specified in the config file.\n" +
 		"\nNotes:\n" +
-		rcv.SPACES_FOUR + "None\n" +
+		ctv.SPACES_FOUR + "None\n" +
 		"\nFor more info, see link below:\n"
 
 	// Set your program's name and description.  These appear in help output.
@@ -109,19 +109,19 @@ func main() {
 	log.Printf("Starting %v server.\n", serverName)
 
 	if len(generateConfigFQD) > 0 {
-		cc.GenerateConfigFileSkeleton(serverName, generateConfigFQD)
+		config.GenerateConfigFileSkeleton(serverName, generateConfigFQD)
 		os.Exit(0)
 	}
 
 	// This is to prevent the serverName from being empty.
-	if serverName == rcv.VAL_EMPTY {
-		cpi.PrintError(cpi.ErrMissingServerName, fmt.Sprintf("%v %v", rcv.TXT_SERVER_NAME, serverName))
+	if serverName == ctv.VAL_EMPTY {
+		pi.PrintError(pi.ErrMissingServerName, fmt.Sprintf("%v %v", ctv.TXT_SERVER_NAME, serverName))
 		os.Exit(1)
 	}
 
 	// This is to prevent the version from being empty or not being set during the build process.
-	if (version == rcv.VAL_EMPTY || version == "9999.9999.9999") && testingOn == false {
-		cpi.PrintError(cpi.ErrVersionInvalid, fmt.Sprintf("%v %v", rcv.TXT_SERVER_VERSION, version))
+	if (version == ctv.VAL_EMPTY || version == "9999.9999.9999") && testingOn == false {
+		pi.PrintError(pi.ErrVersionInvalid, fmt.Sprintf("%v %v", ctv.TXT_SERVER_VERSION, version))
 		os.Exit(1)
 	}
 
