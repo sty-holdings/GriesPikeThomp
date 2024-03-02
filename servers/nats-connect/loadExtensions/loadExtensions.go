@@ -42,10 +42,10 @@ const (
 )
 
 type ExtensionConfiguration struct {
-	MessageEnvironment string `json:"message_environment"`
-	NATSConfig         ns.NATSConfiguration
-	RequestedThreads   uint          `json:"requested_threads"`
-	SubjectRegistry    []SubjectInfo `json:"subject_registry"`
+	MessageEnvironment string               `json:"message_environment"`
+	NATSConfig         ns.NATSConfiguration `json:"nats_config"`
+	RequestedThreads   uint                 `json:"requested_threads"`
+	SubjectRegistry    []SubjectInfo        `json:"subject_registry"`
 }
 
 type SubjectInfo struct {
@@ -63,17 +63,19 @@ var (
 //	Customer Messages: None
 //	Errors: error returned by ReadConfigFile or validateConfiguration
 //	Verifications: validateConfiguration
-func LoadExtensionConfig(configFilename string) (
+func LoadExtensionConfig(
+	extConfig config.BaseConfigExtensions,
+) (
 	extension ExtensionConfiguration,
 	errorInfo pi.ErrorInfo,
 ) {
 
 	var (
-		tAdditionalInfo = fmt.Sprintf("%v%v", ctv.TXT_FILENAME, configFilename)
+		tAdditionalInfo = fmt.Sprintf("%v%v", ctv.TXT_FILENAME, extConfig.ConfigFilename)
 		tConfigData     []byte
 	)
 
-	if tConfigData, errorInfo = config.ReadConfigFile(hv.PrependWorkingDirectory(configFilename)); errorInfo.Error != nil {
+	if tConfigData, errorInfo = config.ReadConfigFile(hv.PrependWorkingDirectory(extConfig.ConfigFilename)); errorInfo.Error != nil {
 		return
 	}
 
@@ -82,7 +84,7 @@ func LoadExtensionConfig(configFilename string) (
 		return
 	}
 
-	if errorInfo = validateConfiguration(extension); errorInfo.Error != nil {
+	if errorInfo = validateConfiguration(extConfig.Name, extension); errorInfo.Error != nil {
 		return
 	}
 
@@ -94,7 +96,10 @@ func LoadExtensionConfig(configFilename string) (
 //	Customer Messages: None
 //	Errors: ErrEnvironmentInvalid, ErrMessageNamespaceInvalid, ErrDomainInvalid, error returned from DoesFileExistsAndReadable, ErrSubjectsMissing
 //	Verifications: None
-func validateConfiguration(config ExtensionConfiguration) (errorInfo pi.ErrorInfo) {
+func validateConfiguration(
+	name string,
+	config ExtensionConfiguration,
+) (errorInfo pi.ErrorInfo) {
 
 	if errorInfo = hv.DoesFileExistsAndReadable(config.NATSConfig.NATSCredentialsFilename, ctv.TXT_FILENAME); errorInfo.Error != nil {
 		pi.NewErrorInfo(errorInfo.Error, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, config.NATSConfig.NATSCredentialsFilename))
@@ -128,7 +133,10 @@ func validateConfiguration(config ExtensionConfiguration) (errorInfo pi.ErrorInf
 	}
 	// ToDo Add support for requested threads
 	if len(config.SubjectRegistry) == ctv.VAL_ZERO {
-		pi.NewErrorInfo(pi.ErrSubjectsMissing, ctv.VAL_EMPTY)
+		if name == ctv.NC_INTERNAL {
+			return
+		}
+		errorInfo = pi.NewErrorInfo(pi.ErrSubjectsMissing, ctv.VAL_EMPTY)
 	}
 
 	return

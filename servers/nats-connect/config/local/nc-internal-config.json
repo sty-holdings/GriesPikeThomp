@@ -1,12 +1,14 @@
 {
   "message_environment": "local",
-  "nats_credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
-  "nats_port": 4222,
-  "nats_tls_info": {
-    "tls_certificate_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
-    "tls_private_key_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
-    "tls_ca_bundle_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt"
+  "nats_config": {
+    "nats_credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/nats-savup-backend.key",
+    "nats_port": 4222,
+    "nats_tls_info": {
+      "tls_certificate_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
+      "tls_private_key_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/savup.com.key",
+      "tls_ca_bundle_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/local/.keys/savup/STAR_savup_com/CAbundle.crt"
+    },
+    "nats_url": "savup-local-0030.savup.com"
   },
-  "nats_url": "savup-local-0030.savup.com",
   "requested_threads": 3
 }

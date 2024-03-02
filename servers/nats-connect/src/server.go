@@ -161,8 +161,7 @@ func initializeServer(
 	} else {
 		log.Println("Loading extension configs.")
 		for _, values := range config.Extensions {
-			if serverPtr.extensionConfigs[strings.ToLower(values.Name)], errorInfo = ext.LoadExtensionConfig(values.ConfigFilename); errorInfo.
-				Error != nil {
+			if serverPtr.extensionConfigs[strings.ToLower(values.Name)], errorInfo = ext.LoadExtensionConfig(values); errorInfo.Error != nil {
 				return
 			}
 			log.Printf("%v configuration is loaded.", values.Name)
