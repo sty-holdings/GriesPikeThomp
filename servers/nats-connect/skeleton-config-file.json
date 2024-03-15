@@ -1,0 +1,14 @@
+{
+  "skeleton_config_fqd": "/Users/syacko/workspace/sty-holdings/GriesPikeThomp/shared-services/src/coreConfiguration/",
+  "debug_mode_on": true,
+  "environment": "production",
+  "log_directory": "/var/log/nats-connect",
+  "max_threads": 5,
+  "pid_directory": "/var/run/nats-connect",
+  "extensions": [
+    {
+      "extension_name": "internal_nats",
+      "config_filename": "servers/nats-connect/config/local/nats-config.json"
+    }
+  ]
+}

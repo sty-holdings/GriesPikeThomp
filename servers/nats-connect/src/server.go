@@ -62,19 +62,52 @@ func RunServer(
 	var (
 		errorInfo          pi.ErrorInfo
 		serverPtr          *Server
-		tConfig            config.BaseConfiguration
+		tConfig            BaseConfiguration
+		tConfigExtensions  []ext.BaseConfigExtensions
+		tConfigData        = make(map[string]interface{})
 		tLogFileHandlerPtr *os.File
 		tLogFQD            string
 		tlogFQN            string
 	)
 
 	// See if configuration file exists and is readable, if not, return an error
-	if tConfig, errorInfo = config.ProcessBaseConfigFile(configFileFQN); errorInfo.Error != nil {
+	if tConfigData, errorInfo = config.ProcessBaseConfigFile(configFileFQN); errorInfo.Error != nil {
 		pi.PrintErrorInfo(errorInfo)
 		return 1
 	}
 
-	if errorInfo = config.ValidateConfiguration(tConfig); errorInfo.Error != nil {
+	if value, ok := tConfigData[ctv.FN_DEBUG_MODE_ON]; ok {
+		tConfig.DebugModeOn = value.(bool)
+	}
+	if value, ok := tConfigData[ctv.FN_ENVIRONMENT]; ok {
+		tConfig.Environment = value.(string)
+	}
+	if value, ok := tConfigData[ctv.FN_LOAD_EXTENSIONS]; ok {
+		for _, i2 := range value.([]interface{}) {
+			x := make(map[string]interface{})
+			x = i2.(map[string]interface{})
+			y := ext.BaseConfigExtensions{
+				Name:           x["name"].(string),
+				ConfigFilename: x["config_filename"].(string),
+			}
+			tConfigExtensions = append(tConfigExtensions, y)
+		}
+		tConfig.Extensions = tConfigExtensions
+	}
+	if value, ok := tConfigData[ctv.FN_LOG_DIRECTORY]; ok {
+		tConfig.LogDirectory = value.(string)
+	}
+	if value, ok := tConfigData[ctv.FN_MAX_THREADS]; ok {
+		tConfig.MaxThreads = int(value.(float64))
+	}
+	if value, ok := tConfigData[ctv.FN_PID_DIRECTORY]; ok {
+		tConfig.PIDDirectory = value.(string)
+	}
+	if value, ok := tConfigData[ctv.FN_SKELETON_DIRECTORY]; ok {
+		tConfig.SkeletonConfigDirectory = value.(string)
+	}
+
+	if errorInfo = validateConfiguration(tConfig); errorInfo.Error != nil {
 		pi.PrintErrorInfo(errorInfo)
 		return 1
 	}
@@ -116,13 +149,151 @@ func (serverPtr *Server) Shutdown() {
 
 // Private Functions
 
+// extensionHandler - starts extensions in goroutine.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (serverPtr *Server) buildNCIExtension() (
+	errorInfo pi.ErrorInfo,
+) {
+
+	var (
+		tExtInstance      ExtInstance
+		tSubscriptionPtrs = make(map[string]*nats.Subscription)
+	)
+
+	if tExtInstance.InstanceName, errorInfo = ns.BuildInstanceName(ns.METHOD_BLANK, ctv.NC_INTERNAL); errorInfo.Error != nil {
+		return
+	}
+	if tExtInstance.NatsConnectionPtr, errorInfo = ns.GetConnection(
+		tExtInstance.InstanceName,
+		serverPtr.extensionConfigs[ctv.NC_INTERNAL].NATSConfig,
+	); errorInfo.Error != nil {
+		return
+	}
+
+	// Use a WaitGroup to wait for a message to arrive
+	tExtInstance.WaitGroup = sync.WaitGroup{}
+	tExtInstance.WaitGroup.Add(1)
+	for subject, handler := range serverPtr.loadNCIMessageHandles() {
+		tSubscriptionPtrs[subject], errorInfo = ns.Subscribe(tExtInstance.NatsConnectionPtr, tExtInstance.InstanceName, subject, handler.Handler)
+	}
+
+	tExtInstance.SubscriptionPtrs = tSubscriptionPtrs
+	serverPtr.instance.extInstances[ctv.NC_INTERNAL] = tExtInstance
+
+	if serverPtr.instance.testingOn {
+		tExtInstance.WaitGroup.Done()
+	} else {
+		tExtInstance.WaitGroup.Wait()
+	}
+
+	return
+
+}
+
+// messageHandler - subscribes subjects to handlers.
+//
+//	Customer Messages: None
+//	Errors: ErrSignalUnknown
+//	Verifications: None
+func (serverPtr *Server) messageHandler() {
+
+	// Use a WaitGroup to wait for a message to arrive
+	// serverPtr.instance.waitGroup = sync.WaitGroup{}
+	// serverPtr.instance.waitGroup.Add(1)
+	// serverPtr.instance.waitGroupCreated = true
+	//
+	// for serviceName, serviceInfo := range serverPtr.loadExtensions {
+	// 	switch serviceName {
+	// 	case NC_INTERNAL:
+	// 		retrievedService := serviceInfo.(ns.NATSService)
+	// serverPtr.getNATSHandlers(retrievedService)
+	// 	case STRIPE:
+	// 		retrievedService := serviceInfo.(ns.NATSService)
+	// 		serverPtr.getNATSHandlers(retrievedService)
+	// 	}
+	// }
+	//
+	// // Waiting for a message to come in for processing.
+	// serverPtr.instance.waitGroup.Wait()
+
+	return
+}
+
+// Run - blocks for requests.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (serverPtr *Server) run() {
+
+	var (
+		key string
+	)
+
+	key = strings.ToLower(strings.Trim(key, ctv.VAL_EMPTY))
+
+	// capture signals
+	go initializeSignals(serverPtr)
+
+	// start extensions
+	for key = range serverPtr.extensionConfigs {
+		if key != ctv.NC_INTERNAL { // Skipping NC_INSTANCE so server is not block extension creation
+			switch key {
+			case ctv.STRIPE_EXTENSION:
+				go cs.NewExtension(
+					serverPtr.instance.hostname,
+					serverPtr.extensionConfigs[key],
+					serverPtr.instance.testingOn,
+				)
+			}
+		}
+	}
+
+	// start nats connect internal which will block the server
+	serverPtr.instance.nciProcessChannel = make(chan string) // This is for NC_INTERNAL only
+	go func() {
+		serverPtr.buildNCIExtension()
+	}()
+	select {
+	case <-serverPtr.instance.nciProcessChannel:
+	}
+
+	return
+}
+
+// signalHandler - collects keyboard input and manages the server response.
+//
+//	Customer Messages: None
+//	Errors: ErrSignalUnknown
+//	Verifications: None
+func (serverPtr *Server) signalHandler(signal os.Signal) {
+
+	switch signal {
+	case syscall.SIGHUP: // kill -SIGHUP XXXX
+		fallthrough
+	case syscall.SIGINT: // kill -SIGINT XXXX or Ctrl+c
+		fallthrough
+	case syscall.SIGTERM: // kill -SIGTERM XXXX
+		fallthrough
+	case syscall.SIGQUIT: // kill -SIGQUIT XXXX
+		serverPtr.Shutdown()
+	default:
+		pi.PrintError(pi.ErrSignalUnknown, fmt.Sprintf("%v%v", ctv.TXT_SIGNAL, signal.String()))
+	}
+
+	os.Exit(0)
+}
+
 // initializeServer - create an instance and loads loadExtensions.
 //
 //	Customer Messages: None
 //	Errors: ErrPIDFileExists
 //	Verifications: None
 func initializeServer(
-	config config.BaseConfiguration,
+	config BaseConfiguration,
 	serverName, version, logFQN string,
 	logFileHandlerPtr *os.File,
 	testingOn bool,
@@ -171,42 +342,13 @@ func initializeServer(
 	return
 }
 
-// messageHandler - subscribes subjects to handlers.
-//
-//	Customer Messages: None
-//	Errors: ErrSignalUnknown
-//	Verifications: None
-func (serverPtr *Server) messageHandler() {
-
-	// Use a WaitGroup to wait for a message to arrive
-	// serverPtr.instance.waitGroup = sync.WaitGroup{}
-	// serverPtr.instance.waitGroup.Add(1)
-	// serverPtr.instance.waitGroupCreated = true
-	//
-	// for serviceName, serviceInfo := range serverPtr.loadExtensions {
-	// 	switch serviceName {
-	// 	case NC_INTERNAL:
-	// 		retrievedService := serviceInfo.(ns.NATSService)
-	// serverPtr.getNATSHandlers(retrievedService)
-	// 	case STRIPE:
-	// 		retrievedService := serviceInfo.(ns.NATSService)
-	// 		serverPtr.getNATSHandlers(retrievedService)
-	// 	}
-	// }
-	//
-	// // Waiting for a message to come in for processing.
-	// serverPtr.instance.waitGroup.Wait()
-
-	return
-}
-
 // newServer - creates an instance by setting the values for the Server struct
 //
 //	Customer Messages: None
 //	Errors: None
 //	Verifications: None
 func newServer(
-	config config.BaseConfiguration,
+	config BaseConfiguration,
 	serverName, version, logFQN string,
 	logFileHandlerPtr *os.File,
 	testingOn bool,
@@ -241,115 +383,6 @@ func newServer(
 	serverPtr.instance.workingDirectory, _ = os.Getwd()
 
 	return
-}
-
-// Run - blocks for requests.
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func (serverPtr *Server) run() {
-
-	var (
-		key string
-	)
-
-	key = strings.ToLower(strings.Trim(key, ctv.VAL_EMPTY))
-
-	// capture signals
-	go initializeSignals(serverPtr)
-
-	// start extensions
-	for key, _ = range serverPtr.extensionConfigs {
-		if key != ctv.NC_INTERNAL { // Skipping NC_INSTANCE so server is not block extension creation
-			switch key {
-			case ctv.STRIPE_EXTENSION:
-				go cs.NewExtension(
-					serverPtr.instance.hostname,
-					serverPtr.extensionConfigs[key],
-					serverPtr.instance.testingOn,
-				)
-			}
-		}
-	}
-
-	// start nats connect internal which will block the server
-	serverPtr.instance.nciProcessChannel = make(chan string) // This is for NC_INTERNAL only
-	go func() {
-		serverPtr.buildNCIExtension()
-	}()
-	select {
-	case <-serverPtr.instance.nciProcessChannel:
-	}
-
-	return
-}
-
-// signalHandler - collects keyboard input and manages the server response.
-//
-//	Customer Messages: None
-//	Errors: ErrSignalUnknown
-//	Verifications: None
-func (serverPtr *Server) signalHandler(signal os.Signal) {
-
-	switch signal {
-	case syscall.SIGHUP: // kill -SIGHUP XXXX
-		fallthrough
-	case syscall.SIGINT: // kill -SIGINT XXXX or Ctrl+c
-		fallthrough
-	case syscall.SIGTERM: // kill -SIGTERM XXXX
-		fallthrough
-	case syscall.SIGQUIT: // kill -SIGQUIT XXXX
-		serverPtr.Shutdown()
-	default:
-		pi.PrintError(pi.ErrSignalUnknown, fmt.Sprintf("%v%v", ctv.TXT_SIGNAL, signal.String()))
-	}
-
-	os.Exit(0)
-}
-
-// extensionHandler - starts extensions in goroutine.
-//
-//	Customer Messages: None
-//	Errors: None
-//	Verifications: None
-func (serverPtr *Server) buildNCIExtension() (
-	errorInfo pi.ErrorInfo,
-) {
-
-	var (
-		tExtInstance      ExtInstance
-		tSubscriptionPtrs = make(map[string]*nats.Subscription)
-	)
-
-	if tExtInstance.InstanceName, errorInfo = ns.BuildInstanceName(ns.METHOD_BLANK, ctv.NC_INTERNAL); errorInfo.Error != nil {
-		return
-	}
-	if tExtInstance.NatsConnectionPtr, errorInfo = ns.GetConnection(
-		tExtInstance.InstanceName,
-		serverPtr.extensionConfigs[ctv.NC_INTERNAL].NATSConfig,
-	); errorInfo.Error != nil {
-		return
-	}
-
-	// Use a WaitGroup to wait for a message to arrive
-	tExtInstance.WaitGroup = sync.WaitGroup{}
-	tExtInstance.WaitGroup.Add(1)
-	for subject, handler := range serverPtr.loadNCIMessageHandles() {
-		tSubscriptionPtrs[subject], errorInfo = ns.Subscribe(tExtInstance.NatsConnectionPtr, tExtInstance.InstanceName, subject, handler.Handler)
-	}
-
-	tExtInstance.SubscriptionPtrs = tSubscriptionPtrs
-	serverPtr.instance.extInstances[ctv.NC_INTERNAL] = tExtInstance
-
-	if serverPtr.instance.testingOn {
-		tExtInstance.WaitGroup.Done()
-	} else {
-		tExtInstance.WaitGroup.Wait()
-	}
-
-	return
-
 }
 
 // initialize signal handler - handles signals from the console.
@@ -391,4 +424,38 @@ func shutdown(
 	log.Printf("The pid file (%v) has been removed", pidFQN)
 	log.Printf("The %v server has shutdown gracefully.", serverName)
 
+}
+
+// validateConfiguration - checks the values in the configuration file are valid. ValidateConfiguration doesn't
+// test if the configuration file exists, readable, or parsable.
+//
+//	Customer Messages: None
+//	Errors: ErrEnvironmentInvalid, ErrDirectoryMissing, ErrMaxThreadsInvalid
+//	Verifications: None
+func validateConfiguration(config BaseConfiguration) (
+	errorInfo pi.ErrorInfo,
+) {
+
+	if hv.IsEnvironmentValid(config.Environment) == false {
+		errorInfo = pi.NewErrorInfo(pi.ErrEnvironmentInvalid, fmt.Sprintf("%v%v", ctv.TXT_EVIRONMENT, ctv.FN_ENVIRONMENT))
+		return
+	}
+	if hv.DoesDirectoryExist(config.LogDirectory) == false {
+		errorInfo = pi.NewErrorInfo(pi.ErrDirectoryMissing, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, ctv.FN_LOG_DIRECTORY))
+		return
+	}
+	if config.MaxThreads < 1 {
+		errorInfo = pi.NewErrorInfo(pi.ErrMaxThreadsInvalid, fmt.Sprintf("%v%v", ctv.TXT_MAX_THREADS, ctv.FN_MAX_THREADS))
+		return
+	}
+	if hv.DoesDirectoryExist(config.PIDDirectory) == false {
+		errorInfo = pi.NewErrorInfo(pi.ErrDirectoryMissing, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, ctv.FN_PID_DIRECTORY))
+		return
+	}
+	if hv.DoesDirectoryExist(config.SkeletonConfigDirectory) == false {
+		errorInfo = pi.NewErrorInfo(pi.ErrDirectoryMissing, fmt.Sprintf("%v%v", ctv.TXT_DIRECTORY, ctv.FN_SKELETON_DIRECTORY))
+		return
+	}
+
+	return
 }

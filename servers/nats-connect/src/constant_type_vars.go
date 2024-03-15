@@ -38,7 +38,6 @@ import (
 
 	"github.com/nats-io/nats.go"
 	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
-	config "github.com/sty-holdings/sty-shared/v2024/configuration"
 )
 
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
@@ -51,6 +50,23 @@ const (
 type Auth struct {
 	authenticatorService string
 }
+
+// Configuration is a generic config file structure for application servers.
+type BaseConfiguration struct {
+	ConfigFQN               string
+	DebugModeOn             bool                       `json:"debug_mode_on"`
+	Environment             string                     `json:"environment"`
+	LogDirectory            string                     `json:"log_directory"`
+	MaxThreads              int                        `json:"max_threads"`
+	PIDDirectory            string                     `json:"pid_directory"`
+	Extensions              []ext.BaseConfigExtensions `json:"load_extensions"`
+	SkeletonConfigDirectory string                     `json:"skeleton_config_directory"`
+}
+
+// type BaseConfigExtensions struct {
+// 	Name           string `json:"name"`
+// 	ConfigFilename string `json:"config_filename"`
+// }
 
 // ExtInstance
 // READ ME: Shorten the name to resolve naming conflict
@@ -89,7 +105,7 @@ type Instance struct {
 }
 
 type Server struct {
-	config           config.BaseConfiguration
+	config           BaseConfiguration
 	instance         Instance
 	extensionConfigs map[string]ext.ExtensionConfiguration
 }

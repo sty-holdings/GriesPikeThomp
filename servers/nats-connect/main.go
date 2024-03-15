@@ -115,7 +115,7 @@ func main() {
 
 	// This is to prevent the serverName from being empty.
 	if serverName == ctv.VAL_EMPTY {
-		pi.PrintError(pi.ErrMissingServerName, fmt.Sprintf("%v %v", ctv.TXT_SERVER_NAME, serverName))
+		pi.PrintError(pi.ErrServerNameMissing, fmt.Sprintf("%v %v", ctv.TXT_SERVER_NAME, serverName))
 		os.Exit(1)
 	}
 

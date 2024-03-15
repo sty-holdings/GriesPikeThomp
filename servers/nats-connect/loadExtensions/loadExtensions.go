@@ -64,7 +64,7 @@ var (
 //	Errors: error returned by ReadConfigFile or validateConfiguration
 //	Verifications: validateConfiguration
 func LoadExtensionConfig(
-	extConfig config.BaseConfigExtensions,
+	extConfig BaseConfigExtensions,
 ) (
 	extension ExtensionConfiguration,
 	errorInfo pi.ErrorInfo,

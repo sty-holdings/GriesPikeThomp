@@ -10,5 +10,5 @@
   ],
   "max_threads": 5,
   "pid_directory": "servers/nats-connect/.run",
-  "skeleton_config_fqd": "shared-services/src/coreConfiguration/"
+  "skeleton_config_directory": "shared-services/src/coreConfiguration/"
 }
