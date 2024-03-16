@@ -10,7 +10,7 @@ require (
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	github.com/stripe/stripe-go/v76 v76.17.0
 	github.com/sty-holdings/constant-type-vars-go/v2024 v2024.5.5
-	github.com/sty-holdings/sty-shared/v2024 v2024.6.11
+	github.com/sty-holdings/sty-shared/v2024 v2024.6.17
 	golang.org/x/text v0.14.0
 )
 

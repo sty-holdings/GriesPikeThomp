@@ -71,7 +71,7 @@ func RunServer(
 	)
 
 	// See if configuration file exists and is readable, if not, return an error
-	if tConfigData, errorInfo = config.ProcessBaseConfigFile(configFileFQN); errorInfo.Error != nil {
+	if tConfigData, errorInfo = config.GetConfigFile(configFileFQN); errorInfo.Error != nil {
 		pi.PrintErrorInfo(errorInfo)
 		return 1
 	}
