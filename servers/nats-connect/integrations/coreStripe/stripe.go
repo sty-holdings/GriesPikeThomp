@@ -33,7 +33,7 @@ import (
 	ext "github.com/sty-holdings/GriesPikeThomp/servers/nats-connect/loadExtensions"
 	ctv "github.com/sty-holdings/constant-type-vars-go/v2024"
 	hv "github.com/sty-holdings/sty-shared/v2024/helpersValidators"
-	cn "github.com/sty-holdings/sty-shared/v2024/natsSerices"
+	ns "github.com/sty-holdings/sty-shared/v2024/natsSerices"
 	pi "github.com/sty-holdings/sty-shared/v2024/programInfo"
 )
 
@@ -59,7 +59,7 @@ func NewExtension(
 		testingOn:        testingOn,
 		waitGroup:        sync.WaitGroup{},
 	}
-	if stripeInstancePtr.instanceName, errorInfo = cn.BuildInstanceName(cn.METHOD_DASHES, hostname, ctv.STRIPE_EXTENSION); errorInfo.Error != nil {
+	if stripeInstancePtr.instanceName, errorInfo = ns.BuildInstanceName(ns.METHOD_DASHES, hostname, ctv.STRIPE_EXTENSION); errorInfo.Error != nil {
 		return
 	}
 
@@ -86,24 +86,24 @@ func NewExtension(
 //	Errors: None
 //	Verifications: None
 func (stripeInstancePtr *stripeInstance) messageHandles() (
-	handlers map[string]cn.MessageHandler,
+	handlers map[string]ns.MessageHandler,
 ) {
 
-	handlers = make(map[string]cn.MessageHandler)
+	handlers = make(map[string]ns.MessageHandler)
 
-	handlers[STRIPE_CANCEL_PAYMENT_INTENT] = cn.MessageHandler{
+	handlers[STRIPE_CANCEL_PAYMENT_INTENT] = ns.MessageHandler{
 		Handler: stripeInstancePtr.CancelPaymentIntent(),
 	}
-	handlers[STRIPE_CONFIRM_PAYMENT_INTENT] = cn.MessageHandler{
+	handlers[STRIPE_CONFIRM_PAYMENT_INTENT] = ns.MessageHandler{
 		Handler: stripeInstancePtr.ConfirmPaymentIntent(),
 	}
-	handlers[STRIPE_LIST_PAYMENT_METHODS] = cn.MessageHandler{
+	handlers[STRIPE_LIST_PAYMENT_METHODS] = ns.MessageHandler{
 		Handler: stripeInstancePtr.listPaymentMethods(),
 	}
-	handlers[STRIPE_LIST_PAYMENT_INTENTS] = cn.MessageHandler{
+	handlers[STRIPE_LIST_PAYMENT_INTENTS] = ns.MessageHandler{
 		Handler: stripeInstancePtr.listPaymentIntents(),
 	}
-	handlers[STRIPE_CREATE_PAYMENT_INTENT] = cn.MessageHandler{
+	handlers[STRIPE_CREATE_PAYMENT_INTENT] = ns.MessageHandler{
 		Handler: stripeInstancePtr.createPaymentIntent(),
 	}
 
@@ -119,10 +119,10 @@ func (stripeInstancePtr *stripeInstance) buildExtension(config ext.ExtensionConf
 	errorInfo pi.ErrorInfo,
 ) {
 	var (
-		tHandlers = make(map[string]cn.MessageHandler)
+		tHandlers = make(map[string]ns.MessageHandler)
 	)
 
-	if stripeInstancePtr.natsConnectionPtr, errorInfo = cn.GetConnection(stripeInstancePtr.instanceName, config.NATSConfig); errorInfo.Error != nil {
+	if stripeInstancePtr.natsConnectionPtr, errorInfo = ns.GetConnection(stripeInstancePtr.instanceName, config.NATSConfig); errorInfo.Error != nil {
 		return
 	}
 
@@ -139,7 +139,7 @@ func (stripeInstancePtr *stripeInstance) buildExtension(config ext.ExtensionConf
 			pi.PrintErrorInfo(errorInfo)
 			return
 		}
-		stripeInstancePtr.subscriptionPtrs[loadSubject.Subject], errorInfo = cn.Subscribe(
+		stripeInstancePtr.subscriptionPtrs[loadSubject.Subject], errorInfo = ns.Subscribe(
 			stripeInstancePtr.natsConnectionPtr,
 			stripeInstancePtr.instanceName, loadSubject.Subject, tHandlers[loadSubject.Subject].Handler,
 		)
@@ -164,11 +164,11 @@ func (stripeInstancePtr *stripeInstance) CancelPaymentIntent() nats.MsgHandler {
 		var (
 			errorInfo                      pi.ErrorInfo
 			tCancelPaymentIntentResultsPtr *stripe.PaymentIntent
-			tReply                         cn.NATSReply
+			tReply                         ns.NATSReply
 			tRequest                       CancelPaymentIntentRequest
 		)
 
-		if errorInfo = cn.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+		if errorInfo = ns.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
 			tCancelPaymentIntentResultsPtr, errorInfo = processCancelPaymentIntent(tRequest)
 		}
 
@@ -179,7 +179,7 @@ func (stripeInstancePtr *stripeInstance) CancelPaymentIntent() nats.MsgHandler {
 			tReply.ErrorInfo = errorInfo
 		}
 
-		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
 			pi.PrintErrorInfo(errorInfo)
 		}
 
@@ -194,11 +194,11 @@ func (stripeInstancePtr *stripeInstance) ConfirmPaymentIntent() nats.MsgHandler 
 		var (
 			errorInfo                       pi.ErrorInfo
 			tConfirmPaymentIntentResultsPtr *stripe.PaymentIntent
-			tReply                          cn.NATSReply
+			tReply                          ns.NATSReply
 			tRequest                        ConfirmPaymentIntentRequest
 		)
 
-		if errorInfo = cn.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+		if errorInfo = ns.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
 			tConfirmPaymentIntentResultsPtr, errorInfo = processConfirmPaymentIntent(tRequest)
 		}
 
@@ -209,7 +209,7 @@ func (stripeInstancePtr *stripeInstance) ConfirmPaymentIntent() nats.MsgHandler 
 			tReply.ErrorInfo = errorInfo
 		}
 
-		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
 			pi.PrintErrorInfo(errorInfo)
 		}
 
@@ -224,11 +224,11 @@ func (stripeInstancePtr *stripeInstance) listPaymentMethods() nats.MsgHandler {
 		var (
 			errorInfo                  pi.ErrorInfo
 			tListPaymentMethodsResults = make(map[string]PaymentMethodDetails)
-			tReply                     cn.NATSReply
+			tReply                     ns.NATSReply
 			tRequest                   ListPaymentMethodRequest
 		)
 
-		if errorInfo = cn.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+		if errorInfo = ns.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
 			tListPaymentMethodsResults, errorInfo = processListPaymentMethods(tRequest)
 		}
 
@@ -239,7 +239,7 @@ func (stripeInstancePtr *stripeInstance) listPaymentMethods() nats.MsgHandler {
 			tReply.ErrorInfo = errorInfo
 		}
 
-		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
 			pi.PrintErrorInfo(errorInfo)
 		}
 
@@ -254,11 +254,11 @@ func (stripeInstancePtr *stripeInstance) listPaymentIntents() nats.MsgHandler {
 		var (
 			errorInfo                 pi.ErrorInfo
 			tListPaymentIntentResults []stripe.PaymentIntent
-			tReply                    cn.NATSReply
+			tReply                    ns.NATSReply
 			tRequest                  ListPaymentIntentRequest
 		)
 
-		if errorInfo = cn.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+		if errorInfo = ns.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
 			tListPaymentIntentResults, errorInfo = processListPaymentIntents(tRequest)
 		}
 
@@ -269,7 +269,7 @@ func (stripeInstancePtr *stripeInstance) listPaymentIntents() nats.MsgHandler {
 			tReply.ErrorInfo = errorInfo
 		}
 
-		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
 			pi.PrintErrorInfo(errorInfo)
 		}
 
@@ -284,11 +284,11 @@ func (stripeInstancePtr *stripeInstance) createPaymentIntent() nats.MsgHandler {
 		var (
 			errorInfo             pi.ErrorInfo
 			tPaymentIntentResults *stripe.PaymentIntent
-			tReply                cn.NATSReply
+			tReply                ns.NATSReply
 			tRequest              PaymentIntentRequest
 		)
 
-		if errorInfo = cn.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
+		if errorInfo = ns.UnmarshalMessageData(pi.GetFunctionInfo(1).Name, msg, &tRequest); errorInfo.Error == nil {
 			tPaymentIntentResults, errorInfo = processCreatePaymentIntent(tRequest)
 		}
 
@@ -299,7 +299,7 @@ func (stripeInstancePtr *stripeInstance) createPaymentIntent() nats.MsgHandler {
 			tReply.ErrorInfo = errorInfo
 		}
 
-		if errorInfo = cn.SendReply(tReply, msg); errorInfo.Error != nil {
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
 			pi.PrintErrorInfo(errorInfo)
 		}
 

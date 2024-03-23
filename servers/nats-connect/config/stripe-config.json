@@ -1,0 +1,21 @@
+{
+  "nats_config": {
+    "nats_credentials_filename": "/Users/syacko/workspace/styh-dev/src/albert/keys/%v/.keys/nats-savup-backend.key",
+    "nats_port": 4222,
+    "nats_tls_info": {
+      "tls_certificate_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/%v/.keys/savup/STAR_savup_com/STAR_savup_com.crt",
+      "tls_private_key_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/%v/.keys/savup/STAR_savup_com/savup.com.key",
+      "tls_ca_bundle_fqn": "/Users/syacko/workspace/styh-dev/src/albert/keys/%v/.keys/savup/STAR_savup_com/CAbundle.crt"
+    },
+    "nats_url": "savup-%v-%v.savup.com"
+  },
+  "requested_threads": 3,
+  "subject_registry": [
+    {
+      "subject": "stripe.create-payment-intent"
+    },
+    {
+      "subject": "stripe.list-payment-methods"
+    }
+  ]
+}

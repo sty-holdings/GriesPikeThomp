@@ -43,6 +43,7 @@ import (
 //goland:noinspection GoSnakeCaseUsage,GoCommentStart
 const (
 	// Subjects
+	NCI_PING           = "ping"
 	NCI_TURN_DEBUG_OFF = "turn_debug_off"
 	NCI_TURN_DEBUG_ON  = "turn_debug_on"
 )
@@ -60,6 +61,7 @@ type BaseConfiguration struct {
 	MaxThreads              int                        `json:"max_threads"`
 	PIDDirectory            string                     `json:"pid_directory"`
 	Extensions              []ext.BaseConfigExtensions `json:"load_extensions"`
+	ServerInstanceNumber    string                     `json:"server_instance_number"`
 	SkeletonConfigDirectory string                     `json:"skeleton_config_directory"`
 }
 

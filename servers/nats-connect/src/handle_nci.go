@@ -52,6 +52,9 @@ func (serverPtr *Server) loadNCIMessageHandles() (
 
 	handlers = make(map[string]ns.MessageHandler)
 
+	handlers[NCI_PING] = ns.MessageHandler{
+		Handler: serverPtr.nciPing(),
+	}
 	handlers[NCI_TURN_DEBUG_OFF] = ns.MessageHandler{
 		Handler: serverPtr.nciTurnDebugOff(),
 	}
@@ -80,6 +83,30 @@ func (serverPtr *Server) nciTurnDebugOff() nats.MsgHandler {
 
 		serverPtr.instance.debugModeOn = false
 		tReply.Response = "Debug mode turned off"
+
+		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
+			pi.PrintErrorInfo(errorInfo)
+		}
+
+		return
+	}
+}
+
+// nciPing - pings the server to see if it is alive.
+//
+//	Customer Messages: None
+//	Errors: None
+//	Verifications: None
+func (serverPtr *Server) nciPing() nats.MsgHandler {
+
+	return func(msg *nats.Msg) {
+
+		var (
+			errorInfo pi.ErrorInfo
+			tReply    ns.NATSReply
+		)
+
+		tReply.Response = "Pong"
 
 		if errorInfo = ns.SendReply(tReply, msg); errorInfo.Error != nil {
 			pi.PrintErrorInfo(errorInfo)

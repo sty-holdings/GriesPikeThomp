@@ -103,6 +103,9 @@ func RunServer(
 	if value, ok := tConfigData[ctv.FN_PID_DIRECTORY]; ok {
 		tConfig.PIDDirectory = value.(string)
 	}
+	if value, ok := tConfigData[ctv.FN_SERVER_INSTANCE_NUMBER]; ok {
+		tConfig.ServerInstanceNumber = value.(string)
+	}
 	if value, ok := tConfigData[ctv.FN_SKELETON_DIRECTORY]; ok {
 		tConfig.SkeletonConfigDirectory = value.(string)
 	}
@@ -164,12 +167,14 @@ func (serverPtr *Server) buildNCIExtension() (
 	)
 
 	if tExtInstance.InstanceName, errorInfo = ns.BuildInstanceName(ns.METHOD_BLANK, ctv.NC_INTERNAL); errorInfo.Error != nil {
+		pi.PrintErrorInfo(errorInfo)
 		return
 	}
 	if tExtInstance.NatsConnectionPtr, errorInfo = ns.GetConnection(
 		tExtInstance.InstanceName,
 		serverPtr.extensionConfigs[ctv.NC_INTERNAL].NATSConfig,
 	); errorInfo.Error != nil {
+		pi.PrintErrorInfo(errorInfo)
 		return
 	}
 
@@ -332,7 +337,11 @@ func initializeServer(
 	} else {
 		log.Println("Loading extension configs.")
 		for _, values := range config.Extensions {
-			if serverPtr.extensionConfigs[strings.ToLower(values.Name)], errorInfo = ext.LoadExtensionConfig(values); errorInfo.Error != nil {
+			if serverPtr.extensionConfigs[strings.ToLower(values.Name)], errorInfo = ext.LoadExtensionConfig(
+				config.Environment,
+				config.ServerInstanceNumber,
+				&values,
+			); errorInfo.Error != nil {
 				return
 			}
 			log.Printf("%v configuration is loaded.", values.Name)
